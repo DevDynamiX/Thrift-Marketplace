@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground,
-
-
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import {black} from "colorette";
 
@@ -42,7 +30,7 @@ export default function SignUp() {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
             <ImageBackground
-                source={require('../assets/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('../../assets/Screenshot 2024-09-24 at 07.42.45.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -51,7 +39,7 @@ export default function SignUp() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('../assets/Picture 1.png')}
+                                source={require('../../assets/Picture 1.png')}
                             />
                             <Text style={styles.title}>
                                 Sign Up <Text style={{ color: '#ec5707' }}>Thrift Market</Text>
@@ -178,7 +166,7 @@ export default function SignUp() {
                             >
                                 <Image
                                     style={styles.googleLogo}
-                                    source={require('../assets/7123025_logo_google_g_icon.png')}
+                                    source={require('../../assets/7123025_logo_google_g_icon.png')}
                                 />
                                 <Text style={styles.btnText}>Sign up with Google</Text>
                             </TouchableOpacity>

@@ -1,19 +1,12 @@
 import React from 'react';
-import {
-    StyleSheet,
-    View,
-    Text,
-    Image,
-    TouchableOpacity,
-    StatusBar,
-} from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, StatusBar } from 'react-native';
 
 function SplashScreen() {
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor="black" barStyle="light-content" />
             <Image
-                source={require('../assets/Picture 1.png')} // Replace with your splash logo image
+                source={require('../../assets/Picture 1.png')} // Replace with your splash logo image
                 style={styles.logo}
             />
 
