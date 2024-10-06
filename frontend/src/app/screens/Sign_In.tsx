@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground,
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
 
 export default function Example() {
     const [form, setForm] = useState({
@@ -20,7 +10,7 @@ export default function Example() {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
             <ImageBackground
-                source={require('../assets/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('../../assets/Screenshot 2024-09-24 at 07.42.45.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -29,7 +19,7 @@ export default function Example() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('../assets/Picture 1.png')}
+                                source={require('../../assets/Picture 1.png')}
                             />
 
                             <Text style={styles.title}>
@@ -87,7 +77,7 @@ export default function Example() {
                                 style={styles.googleBtn}
                             >
                                 <Image
-                                    source={require('../assets/7123025_logo_google_g_icon.png')}
+                                    source={require('../../assets/7123025_logo_google_g_icon.png')}
                                     style={styles.googleLogo}
                                 />
                                 <Text style={styles.btnText}>Sign in with Google</Text>

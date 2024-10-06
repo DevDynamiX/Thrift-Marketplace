@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground,
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
 
 export default function ChangePassword({ navigation }) {
     const [newPassword, setNewPassword] = useState('');
@@ -18,7 +8,7 @@ export default function ChangePassword({ navigation }) {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
             <ImageBackground
-                source={require('../assets/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('../../assets/Screenshot 2024-09-24 at 07.42.45.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -27,7 +17,7 @@ export default function ChangePassword({ navigation }) {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('../assets/Picture 1.png')}
+                                source={require('../../assets/Picture 1.png')}
                             />
 
                             <Text style={styles.title}>

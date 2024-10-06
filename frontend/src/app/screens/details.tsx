@@ -1,28 +1,19 @@
 import React from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Text,
-    TouchableOpacity,
-    ImageBackground,
-    Image,
-    StatusBar,
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, TouchableOpacity, ImageBackground, Image, StatusBar} from 'react-native';
 
 export default function Menu() {
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor="plum" translucent={true} />
             <ImageBackground
-                source={require('../assets/Profile.png')} // Replace with your background image
+                source={require('../../assets/Profile.png')} // Replace with your background image
                 style={styles.backgroundImage}
             >
                 <SafeAreaView style={styles.safeArea}>
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
                             <Image
-                                source={require('../assets/Ellipse5.png')} // Replace with your logo image
+                                source={require('../../assets/Ellipse5.png')} // Replace with your logo image
                                 style={styles.logo}
                             />
                             <View style={styles.greetingContainer}>
@@ -35,7 +26,7 @@ export default function Menu() {
 
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
-                                source={require('../assets/gamer.png')} // Replace with your icon
+                                source={require('../../assets/gamer.png')} // Replace with your icon
                                 style={styles.icon}
                             />
                             <Text style={styles.menuText}>Your Details</Text>
@@ -43,7 +34,7 @@ export default function Menu() {
 
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
-                                source={require('../assets/heart.png')} // Replace with your icon
+                                source={require('../../assets/heart.png')} // Replace with your icon
                                 style={styles.icon}
                             />
                             <Text style={styles.menuText}>Your Favorites</Text>
@@ -51,7 +42,7 @@ export default function Menu() {
 
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
-                                source={require('../assets/received.png')} // Replace with your icon
+                                source={require('../../assets/received.png')} // Replace with your icon
                                 style={styles.icon}
                             />
                             <Text style={styles.menuText}>Order History</Text>
@@ -59,7 +50,7 @@ export default function Menu() {
 
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
-                                source={require('../assets/retro-game.png')} // Replace with your icon
+                                source={require('../../assets/retro-game.png')} // Replace with your icon
                                 style={styles.icon}
                             />
                             <Text style={styles.menuText}>Address Book</Text>
@@ -67,7 +58,7 @@ export default function Menu() {
 
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
-                                source={require('../assets/videogame.png')} // Replace with your icon
+                                source={require('../../assets/videogame.png')} // Replace with your icon
                                 style={styles.icon}
                             />
                             <Text style={styles.menuText}>Logout</Text>
