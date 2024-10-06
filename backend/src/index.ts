@@ -35,6 +35,7 @@ AppDataSource.initialize().then(async () => {
         AppDataSource.manager.create(User, {
             firstName: "Timber",
             lastName: "Saw",
+            email: "timber.saw@example.com",
             age: 27
         })
     )
@@ -43,6 +44,7 @@ AppDataSource.initialize().then(async () => {
         AppDataSource.manager.create(User, {
             firstName: "Phantom",
             lastName: "Assassin",
+            email: "phantom.assassin@example.com",
             age: 24
         })
     )
