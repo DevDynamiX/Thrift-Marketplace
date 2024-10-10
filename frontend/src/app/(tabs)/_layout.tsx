@@ -7,13 +7,14 @@ const TabsLayout = () => {
                 name="index"
                 options={{
                     headerTitle: "Index",
-                    title: "Index Page",
+                    title: "Home",
                 }}
             />
             <Tabs.Screen
                 name="tempFolderForRouting/[Id]"
                 options={{
-                    headerTitle: "Temp Page"
+                    headerTitle: "Temp Page",
+                    title: "Temp Page",
                 }}
             />
         </Tabs>
