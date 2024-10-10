@@ -28,7 +28,7 @@ export default function RegisterScreen() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/funky_background.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -37,7 +37,7 @@ export default function RegisterScreen() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('@assets/images/Picture 1.png')}
+                                source={require('@assets/images/logo.png')}
                             />
                             <Text style={styles.title}>
                                 Sign Up <Text style={{color: '#ec5707'}}>Thrift Market</Text>
@@ -179,7 +179,7 @@ export default function RegisterScreen() {
 
                     <Pressable
                         onPress={() =>
-                            router.replace({
+                            router.push({
                                 pathname: "/auth/LoginScreen"
                             })
                         }

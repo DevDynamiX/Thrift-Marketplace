@@ -1,15 +1,6 @@
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import {router} from "expo-router";
 
 export default function ResetPassword() {
     const [email, setEmail] = useState('');
@@ -17,7 +8,7 @@ export default function ResetPassword() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/funky_background.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -26,7 +17,7 @@ export default function ResetPassword() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('@assets/images/Picture 1.png')}
+                                source={require('@assets/images/logo.png')}
                             />
 
                             <Text style={styles.title}>
@@ -56,43 +47,53 @@ export default function ResetPassword() {
                             </View>
 
                             <View style={styles.formAction}>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        // handle reset password action
-                                        console.log("Reset link sent to", email);
-                                    }}
+                                <Pressable
+                                    onPress={() =>
+                                        router.push({
+                                            pathname: "/auth/PasswordResetScreen",
+                                        })
+                                    }
+                                    style={{marginTop: 'auto'}}
                                 >
                                     <View style={styles.btn}>
                                         <Text style={styles.btnText}>Send Reset Link</Text>
                                     </View>
-                                </TouchableOpacity>
+                                </Pressable>
                             </View>
 
                             {/* Add new text elements below the button */}
                             <Text style={styles.accountText}>
                                 Don't have an account?
                             </Text>
-                            <TouchableOpacity onPress={() => {
-                                // handle link to sign-up page
-                            }}>
+
+                            <Pressable
+                                onPress={() =>
+                                    router.push({
+                                        pathname: "/auth/RegisterScreen",
+                                    })
+                                }
+                                style={{marginTop: 'auto'}}
+                            >
                                 <Text style={styles.signUpText}>
                                     Sign Up
                                 </Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
                     </ScrollView>
 
-                    <TouchableOpacity
-                        onPress={() => {
-                            // handle link to sign-in page
-                        }}
+                    <Pressable
+                        onPress={() =>
+                            router.push({
+                                pathname: "/auth/LoginScreen",
+                            })
+                        }
                         style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
                             Remembered your password?{' '}
                             <Text style={{textDecorationLine: 'underline'}}>Sign in</Text>
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
             </ImageBackground>
         </SafeAreaView>

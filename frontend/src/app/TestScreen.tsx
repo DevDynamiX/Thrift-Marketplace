@@ -11,7 +11,7 @@ export default function ChangePassword({}: ChangePasswordProps) {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/funky_background.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -19,7 +19,7 @@ export default function ChangePassword({}: ChangePasswordProps) {
                         <Image
                             resizeMode="contain"
                             style={styles.headerImg}
-                            source={require('@assets/images/Picture 1.png')}
+                            source={require('@assets/images/logo.png')}
                         />
                         <Text style={styles.title}>Wow such empty</Text>
                     </View>

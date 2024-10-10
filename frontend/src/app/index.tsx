@@ -30,7 +30,7 @@ const App = () => {
                     <Text style={styles.buttonText}>Main App (Alpha build)</Text>
                 </Pressable>
 
-                {/* Login Button */}
+                {/* Auth Button */}
                 <Pressable
                     style={styles.button}
                     onPress={() =>
@@ -40,21 +40,21 @@ const App = () => {
                     }
                 >
                     <Icon name="log-in-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Login</Text>
+                    <Text style={styles.buttonText}>Authentication Screens</Text>
                 </Pressable>
 
-                {/* Register Button */}
-                <Pressable
-                    style={styles.button}
-                    onPress={() =>
-                        router.push({
-                            pathname: "/auth/RegisterScreen"
-                        })
-                    }
-                >
-                    <Icon name="person-add-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Register</Text>
-                </Pressable>
+                {/*/!* Register Button *!/*/}
+                {/*<Pressable*/}
+                {/*    style={styles.button}*/}
+                {/*    onPress={() =>*/}
+                {/*        router.push({*/}
+                {/*            pathname: "/auth/RegisterScreen"*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*>*/}
+                {/*    <Icon name="person-add-outline" size={24} color="#fff" />*/}
+                {/*    <Text style={styles.buttonText}>Register</Text>*/}
+                {/*</Pressable>*/}
 
                 {/* Profile Button */}
                 <Pressable
@@ -66,7 +66,7 @@ const App = () => {
                     }
                 >
                     <Icon name="person-circle-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Profile</Text>
+                    <Text style={styles.buttonText}>Profile Screen</Text>
                 </Pressable>
 
                 {/* Welcome Button */}
@@ -79,34 +79,34 @@ const App = () => {
                     }
                 >
                     <Icon name="happy-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Welcome</Text>
+                    <Text style={styles.buttonText}>Welcome Screen</Text>
                 </Pressable>
 
                 {/* Password recovery Button */}
-                <Pressable
-                    style={styles.button}
-                    onPress={() =>
-                        router.push({
-                            pathname: "auth/PasswordRecoveryScreen"
-                        })
-                    }
-                >
-                    <Icon name="lock-closed-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Password Recovery</Text>
-                </Pressable>
+                {/*<Pressable*/}
+                {/*    style={styles.button}*/}
+                {/*    onPress={() =>*/}
+                {/*        router.push({*/}
+                {/*            pathname: "auth/PasswordRecoveryScreen"*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*>*/}
+                {/*    <Icon name="lock-closed-outline" size={24} color="#fff" />*/}
+                {/*    <Text style={styles.buttonText}>Password Recovery</Text>*/}
+                {/*</Pressable>*/}
 
-                {/* Password reset Button */}
-                <Pressable
-                    style={styles.button}
-                    onPress={() =>
-                        router.push({
-                            pathname: "auth/PasswordResetScreen"
-                        })
-                    }
-                >
-                    <Icon name="refresh-circle-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Password Link</Text>
-                </Pressable>
+                {/*/!* Password reset Button *!/*/}
+                {/*<Pressable*/}
+                {/*    style={styles.button}*/}
+                {/*    onPress={() =>*/}
+                {/*        router.push({*/}
+                {/*            pathname: "auth/PasswordResetScreen"*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*>*/}
+                {/*    <Icon name="refresh-circle-outline" size={24} color="#fff" />*/}
+                {/*    <Text style={styles.buttonText}>Password Link</Text>*/}
+                {/*</Pressable>*/}
 
                 {/* Test Environment Button */}
                 <Pressable
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
-        backgroundColor: "#f0f0f0",
+        backgroundColor: "#000000",
     },
     main: {
         justifyContent: "center",
