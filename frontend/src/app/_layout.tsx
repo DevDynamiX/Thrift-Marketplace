@@ -8,6 +8,18 @@ const RootLayout = () => {
                 headerShown: false,
             }}
         />
+        <Stack.Screen
+            name="auth/login"
+            options={{
+                title: "Sign In",
+            }}
+        />
+        <Stack.Screen
+            name="auth/register"
+            options={{
+                title: "Sign Up",
+            }}
+        />
     </Stack>;
 };
 

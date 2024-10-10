@@ -1,15 +1,6 @@
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import { router } from "expo-router";
 import {Dropdown} from 'react-native-element-dropdown';
 
 const genderData = [
@@ -20,7 +11,7 @@ const genderData = [
     {label: 'Decline to state', value: 'Decline to state'},
 ];
 
-export default function SignUp() {
+export default function Register() {
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -54,6 +45,10 @@ export default function SignUp() {
                             <Text style={styles.subtitle}>
                                 Create an account to enjoy our services
                             </Text>
+
+                            <Text>Sign Up</Text>
+                            <TextInput placeholder="Email" />
+                            <TextInput placeholder="Password" secureTextEntry />
                         </View>
                         <View style={styles.form}>
                             <View style={styles.input}>
@@ -181,17 +176,20 @@ export default function SignUp() {
 
                         </View>
                     </ScrollView>
-                    <TouchableOpacity
-                        onPress={() => {
-                            // handle link to sign in
-                        }}
+
+                    <Pressable
+                        onPress={() =>
+                            router.replace({
+                                pathname: "/auth/login"
+                            })
+                        }
                         style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
                             Already have an account?{' '}
                             <Text style={{textDecorationLine: 'underline'}}>Sign in</Text>
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
             </ImageBackground>
         </SafeAreaView>
