@@ -20,6 +20,12 @@ const RootLayout = () => {
                 title: "Sign Up",
             }}
         />
+        <Stack.Screen
+            name="screens/profile"
+            options={{
+                title: "Profile",
+            }}
+        />
     </Stack>;
 };
 
