@@ -11,7 +11,7 @@ import {
     ImageBackground
 } from 'react-native';
 
-export default function ChangePassword({navigation}) {
+export default function ChangePassword({navigation}: {navigation: any}) {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 

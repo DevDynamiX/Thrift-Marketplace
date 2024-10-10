@@ -17,8 +17,6 @@ const App = () => {
     return (
         <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
             <View style={styles.main}>
-                <Text style={styles.title}>Welcome to Thrift Market!</Text>
-
                 {/* Main App Button */}
                 <Pressable
                     style={styles.button}
@@ -29,7 +27,7 @@ const App = () => {
                     }
                 >
                     <Icon name="home-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Main App (Beta)</Text>
+                    <Text style={styles.buttonText}>Main App (Alpha build)</Text>
                 </Pressable>
 
                 {/* Login Button */}
@@ -37,7 +35,7 @@ const App = () => {
                     style={styles.button}
                     onPress={() =>
                         router.push({
-                            pathname: "/auth/login"
+                            pathname: "/auth/LoginScreen"
                         })
                     }
                 >
@@ -50,7 +48,7 @@ const App = () => {
                     style={styles.button}
                     onPress={() =>
                         router.push({
-                            pathname: "/auth/register"
+                            pathname: "/auth/RegisterScreen"
                         })
                     }
                 >
@@ -63,12 +61,64 @@ const App = () => {
                     style={styles.button}
                     onPress={() =>
                         router.push({
-                            pathname: "screens/profile"
+                            pathname: "profile/ProfileScreen"
                         })
                     }
                 >
                     <Icon name="person-circle-outline" size={24} color="#fff" />
                     <Text style={styles.buttonText}>Profile</Text>
+                </Pressable>
+
+                {/* Welcome Button */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "welcome/WelcomeScreen"
+                        })
+                    }
+                >
+                    <Icon name="happy-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Welcome</Text>
+                </Pressable>
+
+                {/* Password recovery Button */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "auth/PasswordRecoveryScreen"
+                        })
+                    }
+                >
+                    <Icon name="lock-closed-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Password Recovery</Text>
+                </Pressable>
+
+                {/* Password reset Button */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "auth/PasswordResetScreen"
+                        })
+                    }
+                >
+                    <Icon name="refresh-circle-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Password Link</Text>
+                </Pressable>
+
+                {/* Test Environment Button */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "TestScreen"
+                        })
+                    }
+                >
+                    <Icon name="hammer-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Test Environment</Text>
                 </Pressable>
             </View>
         </Animated.View>

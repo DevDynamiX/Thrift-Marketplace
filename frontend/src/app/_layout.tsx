@@ -9,21 +9,45 @@ const RootLayout = () => {
             }}
         />
         <Stack.Screen
-            name="auth/login"
+            name="auth/LoginScreen"
             options={{
                 title: "Sign In",
             }}
         />
         <Stack.Screen
-            name="auth/register"
+            name="auth/RegisterScreen"
             options={{
                 title: "Sign Up",
             }}
         />
         <Stack.Screen
-            name="screens/profile"
+            name="profile/ProfileScreen"
             options={{
                 title: "Profile",
+            }}
+        />
+        <Stack.Screen
+            name="welcome/WelcomeScreen"
+            options={{
+                title: "Welcome",
+            }}
+        />
+        <Stack.Screen
+            name="auth/PasswordRecoveryScreen"
+            options={{
+                title: "Password Recovery",
+            }}
+        />
+        <Stack.Screen
+            name="auth/PasswordResetScreen"
+            options={{
+                title: "Password Reset",
+            }}
+        />
+        <Stack.Screen
+            name="TestScreen"
+            options={{
+                title: "Test Environment",
             }}
         />
     </Stack>;

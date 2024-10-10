@@ -1,24 +1,12 @@
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground
-} from 'react-native';
-import {NavigationProp} from '@react-navigation/native'; // Import NavigationProp
+import { router } from "expo-router";
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
 
-interface ChangePasswordProps {
-    navigation: NavigationProp<any>; // Define type for navigation prop
-}
-
-export default function ChangePassword({navigation}: ChangePasswordProps) {
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+export default function Example() {
+    const [form, setForm] = useState({
+        email: '',
+        password: '',
+    });
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
@@ -36,72 +24,84 @@ export default function ChangePassword({navigation}: ChangePasswordProps) {
                             />
 
                             <Text style={styles.title}>
-                                Change Password
+                                Login <Text style={{color: '#ec5707'}}>Thrift Market</Text>
                             </Text>
-
                             <Text style={styles.subtitle}>
-                                Enter a new password and confirm it below.
+                                Get started with our app,just create an account and enjoy the experience
                             </Text>
                         </View>
-
-                        {/* Display password criteria above the input fields */}
-                        <View style={styles.passwordCriteria}>
-                            <Text style={styles.criteriaText}>• One uppercase letter</Text>
-                            <Text style={styles.criteriaText}>• One special character</Text>
-                            <Text style={styles.criteriaText}>• One number</Text>
-                            <Text style={styles.criteriaText}>• Minimum 8 characters long</Text>
-                        </View>
-
                         <View style={styles.form}>
                             <View style={styles.input}>
-                                <Text style={styles.inputLabel}>New Password</Text>
+                                <Text style={styles.inputLabel}>Email address</Text>
                                 <TextInput
-                                    secureTextEntry={true}
-                                    onChangeText={(password) => setNewPassword(password)}
-                                    placeholder="Enter new password"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    clearButtonMode="while-editing"
+                                    keyboardType="email-address"
+                                    onChangeText={(email) => setForm({...form, email})}
+                                    placeholder="john@example.com"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
-                                    value={newPassword}
+                                    value={form.email}
                                 />
                             </View>
-
                             <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Confirm Password</Text>
+                                <Text style={styles.inputLabel}>Password</Text>
                                 <TextInput
-                                    secureTextEntry={true}
-                                    onChangeText={(password) => setConfirmPassword(password)}
-                                    placeholder="Confirm new password"
+                                    autoCorrect={false}
+                                    clearButtonMode="while-editing"
+                                    onChangeText={(password) => setForm({...form, password})}
+                                    placeholder="********"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
-                                    value={confirmPassword}
+                                    secureTextEntry={true}
+                                    value={form.password}
                                 />
                             </View>
-
                             <View style={styles.formAction}>
                                 <TouchableOpacity
                                     onPress={() => {
-                                        // handle password change action
-                                        console.log("New password:", newPassword);
+                                        // handle onPress
                                     }}
                                 >
                                     <View style={styles.btn}>
-                                        <Text style={styles.btnText}>Change Password</Text>
+                                        <Text style={styles.btnText}>Sign in</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Back Button */}
+                            {/* Google Sign-In Button */}
                             <TouchableOpacity
                                 onPress={() => {
-                                    // handle navigation back to previous screen
-                                    navigation.goBack();
+                                    // handle Google sign-in
                                 }}
-                                style={styles.backButton}
+                                style={styles.googleBtn}
                             >
-                                <Text style={styles.backText}>Remembered your password? Go back</Text>
+                                <Image
+                                    //Todo - Change to google_logo.svg
+                                    source={require('@assets/images/google_logo.png')}
+                                    style={styles.googleLogo}
+                                />
+                                <Text style={styles.btnText}>Sign in with Google</Text>
                             </TouchableOpacity>
+
+                            <Text style={styles.formLink}>Forgot password?</Text>
                         </View>
                     </ScrollView>
+
+                    <Pressable
+                        onPress={() =>
+                            router.replace({
+                                pathname: "/auth/RegisterScreen"
+                            })
+                        }
+                        style={{marginTop: 'auto'}}
+                    >
+                        <Text style={styles.formFooter}>
+                            Don't have an account?{' '}
+                            <Text style={{textDecorationLine: 'underline'}}>Sign up</Text>
+                        </Text>
+                    </Pressable>
                 </View>
             </ImageBackground>
         </SafeAreaView>
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         flexGrow: 1,
         flexShrink: 1,
+        flexBasis: 0,
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         borderRadius: 15,
         margin: 20,
@@ -133,15 +134,11 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1D2A32',
         marginBottom: 6,
-        paddingBottom: 15,
-        textAlign: 'center',
     },
     subtitle: {
         fontSize: 15,
         fontWeight: '500',
         color: '#929292',
-        textAlign: 'center',
-        marginBottom: 20,
     },
     header: {
         alignItems: 'center',
@@ -157,6 +154,26 @@ const styles = StyleSheet.create({
     form: {
         marginBottom: 24,
         paddingHorizontal: 24,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+    },
+    formAction: {
+        marginTop: 4,
+        marginBottom: 16,
+    },
+    formLink: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#ec5707',
+        textAlign: 'center',
+    },
+    formFooter: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#222',
+        textAlign: 'center',
+        letterSpacing: 0.15,
     },
     input: {
         marginBottom: 16,
@@ -177,22 +194,7 @@ const styles = StyleSheet.create({
         color: '#222',
         borderWidth: 1,
         borderColor: '#C9D3DB',
-    },
-    passwordCriteria: {
-        marginTop: 20,
-        marginBottom: 20,
-        alignItems: 'center',
-    },
-    criteriaText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#222',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    formAction: {
-        marginTop: 16,
-        marginBottom: 16,
+        borderStyle: 'solid',
     },
     btn: {
         flexDirection: 'row',
@@ -201,20 +203,33 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         paddingVertical: 10,
         paddingHorizontal: 20,
-        backgroundColor: '#6ABFAD',
+        borderWidth: 1,
+        backgroundColor: '#ec5707',
+        borderColor: '#ec5707',
+    },
+    googleBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 30,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderWidth: 1,
+        backgroundColor: 'rgb(57,56,56)',
+        borderColor: 'rgb(57,56,56)',
+        marginTop: 10,
+        marginBottom: 10
+    },
+    googleLogo: {
+        width: 24,
+        height: 24,
+        marginRight: 8,
+        opacity: 0.8,
     },
     btnText: {
         fontSize: 18,
+        lineHeight: 26,
         fontWeight: '600',
         color: '#fff',
-    },
-    backButton: {
-        marginTop: 20,
-        alignItems: 'center',
-    },
-    backText: {
-        fontSize: 16,
-        color: '#FF4500', // Orange color for the text
-        textDecorationLine: 'underline',
     },
 });
