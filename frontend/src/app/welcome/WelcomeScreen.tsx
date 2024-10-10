@@ -1,12 +1,13 @@
 import React from 'react';
-import {StyleSheet, View, Text, Image, TouchableOpacity, StatusBar} from 'react-native';
+import {StyleSheet, View, Text, Image, StatusBar, Pressable} from 'react-native';
+import {router} from "expo-router";
 
 function SplashScreen() {
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor="black" barStyle="light-content"/>
             <Image
-                source={require('@assets/images/Picture 1.png')} // Replace with your splash logo image
+                source={require('@assets/images/logo.png')} // Replace with your splash logo image
                 style={styles.logo}
             />
 
@@ -16,9 +17,17 @@ function SplashScreen() {
                 <Text style={styles.subtitle}>
                     Get started by signing up or logging in to explore great deals!
                 </Text>
-                <TouchableOpacity style={styles.getStartedButton}>
+
+                <Pressable
+                    onPress={() =>
+                        router.replace({
+                            pathname: "/auth/LoginScreen",
+                        })
+                    }
+                    style={styles.getStartedButton}
+                >
                     <Text style={styles.buttonText}>Get Started</Text>
-                </TouchableOpacity>
+                </Pressable>
             </View>
         </View>
     );

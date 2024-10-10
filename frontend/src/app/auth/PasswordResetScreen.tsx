@@ -1,29 +1,15 @@
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground
-} from 'react-native';
-import {NavigationProp} from '@react-navigation/native'; // Import NavigationProp
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import {router} from "expo-router";
 
-interface ChangePasswordProps {
-    navigation: NavigationProp<any>; // Define type for navigation prop
-}
-
-export default function ChangePassword({navigation}: ChangePasswordProps) {
+export default function ChangePassword() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/funky_background.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -32,7 +18,7 @@ export default function ChangePassword({navigation}: ChangePasswordProps) {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('@assets/images/Picture 1.png')}
+                                source={require('@assets/images/logo.png')}
                             />
 
                             <Text style={styles.title}>
@@ -90,16 +76,16 @@ export default function ChangePassword({navigation}: ChangePasswordProps) {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Back Button */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    // handle navigation back to previous screen
-                                    navigation.goBack();
-                                }}
+                            <Pressable
+                                onPress={() =>
+                                    router.push({
+                                        pathname: "/auth/LoginScreen",
+                                    })
+                                }
                                 style={styles.backButton}
                             >
-                                <Text style={styles.backText}>Remembered your password? Go back</Text>
-                            </TouchableOpacity>
+                                <Text style={styles.backText}>Return to Login</Text>
+                            </Pressable>
                         </View>
                     </ScrollView>
                 </View>
@@ -182,6 +168,9 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginBottom: 20,
         alignItems: 'center',
+        paddingBottom: 10,
+
+
     },
     criteriaText: {
         fontSize: 16,
@@ -189,6 +178,7 @@ const styles = StyleSheet.create({
         color: '#222',
         textAlign: 'center',
         marginBottom: 8,
+
     },
     formAction: {
         marginTop: 16,
@@ -214,7 +204,7 @@ const styles = StyleSheet.create({
     },
     backText: {
         fontSize: 16,
-        color: '#FF4500', // Orange color for the text
+        color: '#FF4500',
         textDecorationLine: 'underline',
     },
 });

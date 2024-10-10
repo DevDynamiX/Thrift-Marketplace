@@ -9,15 +9,83 @@ const RootLayout = () => {
             }}
         />
         <Stack.Screen
-            name="auth/login"
+            name="auth/LoginScreen"
             options={{
                 title: "Sign In",
+                headerStyle: {
+                    backgroundColor: "purple",
+                },
+                headerTintColor: "white",
             }}
         />
         <Stack.Screen
-            name="auth/register"
+            name="auth/RegisterScreen"
             options={{
                 title: "Sign Up",
+                headerStyle: {
+                    backgroundColor: "purple",
+                },
+                headerTintColor: "white",
+            }}
+        />
+        <Stack.Screen
+            name="profile/ProfileScreen"
+            options={{
+                title: "Profile",
+                headerStyle: {
+                    backgroundColor: "blue",
+                },
+                headerTintColor: "white",
+            }}
+        />
+        <Stack.Screen
+            name="welcome/WelcomeScreen"
+            options={{
+                title: "Welcome",
+                headerStyle: {
+                    backgroundColor: "green",
+                },
+                headerTintColor: "white",
+            }}
+        />
+        <Stack.Screen
+            name="auth/PasswordRecoveryScreen"
+            options={{
+                title: "Password Recovery",
+                headerStyle: {
+                    backgroundColor: "purple",
+                },
+                headerTintColor: "white",
+            }}
+        />
+        <Stack.Screen
+            name="auth/PasswordResetScreen"
+            options={{
+                title: "Password Reset",
+                headerStyle: {
+                    backgroundColor: "purple",
+                },
+                headerTintColor: "white",
+            }}
+        />
+        <Stack.Screen
+            name="TestScreen"
+            options={{
+                title: "Test Environment",
+                headerStyle: {
+                    backgroundColor: "red",
+                },
+                headerTintColor: "white",
+            }}
+        />
+        <Stack.Screen
+            name="index"
+            options={{
+                title: "Home",
+                headerStyle: {
+                    backgroundColor: "black",
+                },
+                headerTintColor: "white",
             }}
         />
     </Stack>;

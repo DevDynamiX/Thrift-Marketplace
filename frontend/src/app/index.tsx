@@ -1,43 +1,127 @@
-import {StyleSheet, View, Text, Pressable} from "react-native";
+import React, {useRef} from "react";
+import {StyleSheet, View, Text, Pressable, Animated} from "react-native";
 import {router} from "expo-router";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const App = () => {
-    return (
-        <View style={styles.container}>
-            <View style={styles.main}>
-                <Text style={styles.title}>Welcome to Thrift Market!</Text>
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
+    React.useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+        }).start();
+    }, [fadeAnim]);
+
+    return (
+        <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
+            <View style={styles.main}>
+                {/* Main App Button */}
                 <Pressable
+                    style={styles.button}
                     onPress={() =>
                         router.push({
                             pathname: "/tempFolderForRouting/[Id]",
                         })
                     }
                 >
-                    <Text style={styles.subtitle}>Test Routing Environment</Text>
+                    <Icon name="home-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Main App (Alpha build)</Text>
                 </Pressable>
 
+                {/* Auth Button */}
                 <Pressable
+                    style={styles.button}
                     onPress={() =>
                         router.push({
-                            pathname: "/auth/login"
+                            pathname: "/auth/LoginScreen"
                         })
                     }
                 >
-                    <Text style={styles.subtitle}>Click here to Sign In</Text>
+                    <Icon name="log-in-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Authentication Screens</Text>
                 </Pressable>
 
+                {/*/!* Register Button *!/*/}
+                {/*<Pressable*/}
+                {/*    style={styles.button}*/}
+                {/*    onPress={() =>*/}
+                {/*        router.push({*/}
+                {/*            pathname: "/auth/RegisterScreen"*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*>*/}
+                {/*    <Icon name="person-add-outline" size={24} color="#fff" />*/}
+                {/*    <Text style={styles.buttonText}>Register</Text>*/}
+                {/*</Pressable>*/}
+
+                {/* Profile Button */}
                 <Pressable
+                    style={styles.button}
                     onPress={() =>
                         router.push({
-                            pathname: "/auth/register"
+                            pathname: "profile/ProfileScreen"
                         })
                     }
                 >
-                    <Text style={styles.subtitle}>Click here to Sign Up</Text>
+                    <Icon name="person-circle-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Profile Screen</Text>
+                </Pressable>
+
+                {/* Welcome Button */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "welcome/WelcomeScreen"
+                        })
+                    }
+                >
+                    <Icon name="happy-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Welcome Screen</Text>
+                </Pressable>
+
+                {/* Password recovery Button */}
+                {/*<Pressable*/}
+                {/*    style={styles.button}*/}
+                {/*    onPress={() =>*/}
+                {/*        router.push({*/}
+                {/*            pathname: "auth/PasswordRecoveryScreen"*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*>*/}
+                {/*    <Icon name="lock-closed-outline" size={24} color="#fff" />*/}
+                {/*    <Text style={styles.buttonText}>Password Recovery</Text>*/}
+                {/*</Pressable>*/}
+
+                {/*/!* Password reset Button *!/*/}
+                {/*<Pressable*/}
+                {/*    style={styles.button}*/}
+                {/*    onPress={() =>*/}
+                {/*        router.push({*/}
+                {/*            pathname: "auth/PasswordResetScreen"*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*>*/}
+                {/*    <Icon name="refresh-circle-outline" size={24} color="#fff" />*/}
+                {/*    <Text style={styles.buttonText}>Password Link</Text>*/}
+                {/*</Pressable>*/}
+
+                {/* Test Environment Button */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "TestScreen"
+                        })
+                    }
+                >
+                    <Icon name="hammer-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Test Environment</Text>
                 </Pressable>
             </View>
-        </View>
+        </Animated.View>
     );
 };
 
@@ -47,21 +131,37 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
+        justifyContent: "center",
         padding: 24,
+        backgroundColor: "#000000",
     },
     main: {
-        flex: 1,
         justifyContent: "center",
-        maxWidth: 960,
-        marginHorizontal: "auto",
+        alignItems: "center",
     },
     title: {
-        fontSize: 48,
+        fontSize: 38,
         fontWeight: "bold",
+        color: "#1d3557",
+        marginBottom: 24,
     },
-    subtitle: {
-        fontSize: 30,
-        color: "#38434D",
+    button: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#457b9d",
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 25,
+        marginVertical: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
+    },
+    buttonText: {
+        fontSize: 18,
+        color: "#fff",
+        marginLeft: 10,
     },
 });
-

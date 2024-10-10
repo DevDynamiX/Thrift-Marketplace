@@ -1,15 +1,6 @@
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground
-} from 'react-native';
+import { router } from "expo-router";
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
 
 export default function Example() {
     const [form, setForm] = useState({
@@ -20,7 +11,7 @@ export default function Example() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/funky_background.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -29,7 +20,7 @@ export default function Example() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('@assets/images/Picture 1.png')}
+                                source={require('@assets/images/logo.png')}
                             />
 
                             <Text style={styles.title}>
@@ -94,20 +85,32 @@ export default function Example() {
                                 <Text style={styles.btnText}>Sign in with Google</Text>
                             </TouchableOpacity>
 
-                            <Text style={styles.formLink}>Forgot password?</Text>
+                            <Pressable
+                                onPress={() =>
+                                    router.push({
+                                        pathname: "/auth/PasswordRecoveryScreen"
+                                    })
+                                }
+                                style={{marginTop: 'auto'}}
+                            >
+                                <Text style={styles.formLink}>Forgot password?</Text>
+                            </Pressable>
                         </View>
                     </ScrollView>
-                    <TouchableOpacity
-                        onPress={() => {
-                            // handle link
-                        }}
+
+                    <Pressable
+                        onPress={() =>
+                            router.push({
+                                pathname: "/auth/RegisterScreen"
+                            })
+                        }
                         style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
                             Don't have an account?{' '}
                             <Text style={{textDecorationLine: 'underline'}}>Sign up</Text>
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
             </ImageBackground>
         </SafeAreaView>

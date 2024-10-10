@@ -1,15 +1,6 @@
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    SafeAreaView,
-    View,
-    Image,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ImageBackground
-} from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import { router } from "expo-router";
 import {Dropdown} from 'react-native-element-dropdown';
 
 const genderData = [
@@ -20,7 +11,7 @@ const genderData = [
     {label: 'Decline to state', value: 'Decline to state'},
 ];
 
-export default function SignUp() {
+export default function RegisterScreen() {
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -37,7 +28,7 @@ export default function SignUp() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/funky_background.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -46,7 +37,7 @@ export default function SignUp() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('@assets/images/Picture 1.png')}
+                                source={require('@assets/images/logo.png')}
                             />
                             <Text style={styles.title}>
                                 Sign Up <Text style={{color: '#ec5707'}}>Thrift Market</Text>
@@ -54,6 +45,10 @@ export default function SignUp() {
                             <Text style={styles.subtitle}>
                                 Create an account to enjoy our services
                             </Text>
+
+                            <Text>Sign Up</Text>
+                            <TextInput placeholder="Email" />
+                            <TextInput placeholder="Password" secureTextEntry />
                         </View>
                         <View style={styles.form}>
                             <View style={styles.input}>
@@ -181,17 +176,20 @@ export default function SignUp() {
 
                         </View>
                     </ScrollView>
-                    <TouchableOpacity
-                        onPress={() => {
-                            // handle link to sign in
-                        }}
+
+                    <Pressable
+                        onPress={() =>
+                            router.push({
+                                pathname: "/auth/LoginScreen"
+                            })
+                        }
                         style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
                             Already have an account?{' '}
                             <Text style={{textDecorationLine: 'underline'}}>Sign in</Text>
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
             </ImageBackground>
         </SafeAreaView>
