@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import {black} from "colorette";
 
 const genderData = [
     { label: 'Male', value: 'male' },
@@ -19,7 +18,7 @@ export default function SignUp() {
         confirmEmail: '',
         password: '',
         confirmPassword: '',
-        gender: null,
+        gender: '',
     });
 
 
