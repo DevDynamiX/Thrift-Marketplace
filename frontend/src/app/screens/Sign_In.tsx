@@ -11,6 +11,8 @@ import {
     ImageBackground
 } from 'react-native';
 
+
+
 export default function Example() {
     const [form, setForm] = useState({
         email: '',

@@ -1,329 +1,119 @@
-import React, {useState} from 'react';
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import React, { useState } from 'react';
 import { router } from "expo-router";
-import {Dropdown} from 'react-native-element-dropdown';
+import {
+    StyleSheet,
+    View,
+    Text,
+    TextInput,
+    ActivityIndicator,
+    Button,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView
+} from 'react-native';
+import { Firebase_Auth } from "@/FirebaseConfig";
+import { createUserWithEmailAndPassword } from "@firebase/auth";
 
-const genderData = [
-    {label: 'Male', value: 'male'},
-    {label: 'Female', value: 'female'},
-    {label: 'Non-binary', value: 'Non-binary'},
-    {label: 'Other', value: 'Other'},
-    {label: 'Decline to state', value: 'Decline to state'},
-];
+const SignUp = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const auth = Firebase_Auth;
 
-export default function Register() {
-    const [form, setForm] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        confirmEmail: '',
-        password: '',
-        confirmPassword: '',
-        gender: '',
-    });
+    const handleSignUp = async () => {
+        if (!email || !password) {
+            Alert.alert("Error", "Please enter both email and password");
+            return;
+        }
+        if (password.length < 6) {
+            Alert.alert("Error", "Password should be at least 6 characters long");
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await createUserWithEmailAndPassword(auth, email, password);
+            console.log(response);
+            Alert.alert("Success", "Registered successfully");
+            setEmail('');
+            setPassword('');
+        } catch (error:any) {
+            console.log(error);
+            Alert.alert("Error", error.message);
+        } finally {
+            setLoading(false);
+        }
+    }
 
-
-    const [isFocus, setIsFocus] = useState(false);
+    const navigateToSignIn = () =>{
+        router.push("auth/login");
+    }
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
-            <ImageBackground
-                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
-                style={styles.backgroundImage}
-            >
-                <View style={styles.container}>
-                    <ScrollView>
-                        <View style={styles.header}>
-                            <Image
-                                resizeMode="contain"
-                                style={styles.headerImg}
-                                source={require('@assets/images/Picture 1.png')}
-                            />
-                            <Text style={styles.title}>
-                                Sign Up <Text style={{color: '#ec5707'}}>Thrift Market</Text>
-                            </Text>
-                            <Text style={styles.subtitle}>
-                                Create an account to enjoy our services
-                            </Text>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+        >
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                <Text style={styles.title}>Sign Up</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    value={email}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    onChangeText={(text) => setEmail(text)}
+                />
+                <TextInput
+                    style={styles.input}
+                    secureTextEntry={true}
+                    placeholder="Password"
+                    value={password}
+                    autoCapitalize="none"
+                    onChangeText={(text) => setPassword(text)}
+                />
 
-                            <Text>Sign Up</Text>
-                            <TextInput placeholder="Email" />
-                            <TextInput placeholder="Password" secureTextEntry />
-                        </View>
-                        <View style={styles.form}>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>First Name</Text>
-                                <TextInput
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    onChangeText={(firstName) => setForm({...form, firstName})}
-                                    placeholder="John"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    value={form.firstName}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Last Name</Text>
-                                <TextInput
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    onChangeText={(lastName) => setForm({...form, lastName})}
-                                    placeholder="Doe"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    value={form.lastName}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Email address</Text>
-                                <TextInput
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    keyboardType="email-address"
-                                    onChangeText={(email) => setForm({...form, email})}
-                                    placeholder="john@example.com"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    value={form.email}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Confirm Email</Text>
-                                <TextInput
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    keyboardType="email-address"
-                                    onChangeText={(confirmEmail) => setForm({...form, confirmEmail})}
-                                    placeholder="john@example.com"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    value={form.confirmEmail}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Password</Text>
-                                <TextInput
-                                    autoCorrect={false}
-                                    onChangeText={(password) => setForm({...form, password})}
-                                    placeholder="********"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    secureTextEntry={true}
-                                    value={form.password}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Confirm Password</Text>
-                                <TextInput
-                                    autoCorrect={false}
-                                    onChangeText={(confirmPassword) => setForm({...form, confirmPassword})}
-                                    placeholder="********"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    secureTextEntry={true}
-                                    value={form.confirmPassword}
-                                />
-                            </View>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#0000ff" />
+                ) : <View style={styles.buttonContainer}>
+                    <Button title="Sign Up" onPress={handleSignUp} />
 
-                            {/* Gender Dropdown */}
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Gender</Text>
-                                <Dropdown
-                                    style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}
-                                    placeholderStyle={styles.placeholderStyle}
-                                    selectedTextStyle={styles.selectedTextStyle}
-                                    data={genderData}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder={!isFocus ? 'Select gender' : '...'}
-                                    value={form.gender}
-                                    onFocus={() => setIsFocus(true)}
-                                    onBlur={() => setIsFocus(false)}
-                                    onChange={item => {
-                                        setForm({...form, gender: item.value});
-                                        setIsFocus(false);
-                                    }}
-                                />
-                            </View>
-
-                            <View style={styles.formAction}>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        // handle sign-up logic
-                                    }}
-                                >
-                                    <View style={styles.btn}>
-                                        <Text style={styles.btnText}>Sign Up</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Google Sign-Up Button */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    // handle Google sign-up logic
-                                }}
-                                style={styles.googleBtn}
-                            >
-                                <Image
-                                    style={styles.googleLogo}
-                                    //Todo - Change to google_logo.svg
-                                    source={require('@assets/images/google_logo.png')}
-                                />
-                                <Text style={styles.btnText}>Sign up with Google</Text>
-                            </TouchableOpacity>
-
-                        </View>
-                    </ScrollView>
-
-                    <Pressable
-                        onPress={() =>
-                            router.replace({
-                                pathname: "/auth/login"
-                            })
-                        }
-                        style={{marginTop: 'auto'}}
-                    >
-                        <Text style={styles.formFooter}>
-                            Already have an account?{' '}
-                            <Text style={{textDecorationLine: 'underline'}}>Sign in</Text>
-                        </Text>
-                    </Pressable>
-                </View>
-            </ImageBackground>
-        </SafeAreaView>
+                    <Button title="Login" onPress={navigateToSignIn} />
+                </View>}
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
+export default SignUp;
+
 const styles = StyleSheet.create({
-    backgroundImage: {
-        flex: 1,
-        resizeMode: 'cover',
-        height: '120%',
-    },
     container: {
-        paddingVertical: 24,
-        paddingHorizontal: 24,
+        flex: 1,
+    },
+    scrollViewContent: {
         flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        borderRadius: 15,
-        margin: 20,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
+        justifyContent: "center",
+        padding: 16,
     },
     title: {
-        fontSize: 31,
-        fontWeight: '700',
-        color: '#1D2A32',
-        marginBottom: 6,
-    },
-    subtitle: {
-        fontSize: 15,
-        fontWeight: '500',
-        color: '#929292',
-    },
-    header: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginVertical: 36,
-    },
-    headerImg: {
-        width: 80,
-        height: 80,
-        alignSelf: 'center',
-        marginBottom: 36,
-    },
-    form: {
-        marginBottom: 24,
-        paddingHorizontal: 24,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 0,
-    },
-    formAction: {
-        marginTop: 4,
-        marginBottom: 16,
-    },
-    formFooter: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#222',
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
         textAlign: 'center',
-        letterSpacing: 0.15,
     },
     input: {
+        height: 40,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 5,
+        padding: 10,
         marginBottom: 16,
+        paddingVertical:20,
     },
-    inputLabel: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: '#222',
-        marginBottom: 8,
-    },
-    inputControl: {
-        height: 50,
-        backgroundColor: '#fff',
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        fontSize: 15,
-        fontWeight: '500',
-        color: '#222',
-        borderWidth: 1,
-        borderColor: '#C9D3DB',
-        borderStyle: 'solid',
-    },
-    dropdown: {
-        height: 50,
-        borderColor: 'gray',
-        borderWidth: 0.5,
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        backgroundColor: 'white',
-    },
-    placeholderStyle: {
-        fontSize: 16,
-    },
-    selectedTextStyle: {
-        fontSize: 16,
-    },
-    btn: {
+    buttonContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 30,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderWidth: 1,
-        backgroundColor: '#ec5707',
-        borderColor: '#ec5707',
-    },
-    btnText: {
-        fontSize: 18,
-        lineHeight: 26,
-        color: '#ffffff',
-    },
-    googleBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 30,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderWidth: 1,
-        backgroundColor: 'rgb(57,56,56)', // Background color for the Google button
-        borderColor: 'rgb(57,56,56)', // Border color for the Google button
-        marginTop: 10, // Add margin to separate from the Sign up button
-    },
-    googleLogo: {
-        width: 24,
-        height: 24,
-        marginRight: 10,
+        justifyContent: 'space-between',
+        marginTop: 20,
     },
 });
-
