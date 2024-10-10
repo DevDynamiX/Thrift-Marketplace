@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
+import React, {useState} from 'react';
+import {
+    StyleSheet,
+    SafeAreaView,
+    View,
+    Image,
+    Text,
+    TouchableOpacity,
+    TextInput,
+    ScrollView,
+    ImageBackground
+} from 'react-native';
 
 export default function Example() {
     const [form, setForm] = useState({
@@ -8,9 +18,9 @@ export default function Example() {
     });
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+        <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('../../assets/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -19,11 +29,11 @@ export default function Example() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('../../assets/Picture 1.png')}
+                                source={require('@assets/images/Picture 1.png')}
                             />
 
                             <Text style={styles.title}>
-                                Login <Text style={{ color: '#ec5707' }}>Thrift Market</Text>
+                                Login <Text style={{color: '#ec5707'}}>Thrift Market</Text>
                             </Text>
                             <Text style={styles.subtitle}>
                                 Get started with our app,just create an account and enjoy the experience
@@ -37,7 +47,7 @@ export default function Example() {
                                     autoCorrect={false}
                                     clearButtonMode="while-editing"
                                     keyboardType="email-address"
-                                    onChangeText={(email) => setForm({ ...form, email })}
+                                    onChangeText={(email) => setForm({...form, email})}
                                     placeholder="john@example.com"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
@@ -49,7 +59,7 @@ export default function Example() {
                                 <TextInput
                                     autoCorrect={false}
                                     clearButtonMode="while-editing"
-                                    onChangeText={(password) => setForm({ ...form, password })}
+                                    onChangeText={(password) => setForm({...form, password})}
                                     placeholder="********"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
@@ -77,7 +87,8 @@ export default function Example() {
                                 style={styles.googleBtn}
                             >
                                 <Image
-                                    source={require('../../assets/7123025_logo_google_g_icon.png')}
+                                    //Todo - Change to google_logo.svg
+                                    source={require('@assets/images/google_logo.png')}
                                     style={styles.googleLogo}
                                 />
                                 <Text style={styles.btnText}>Sign in with Google</Text>
@@ -90,11 +101,11 @@ export default function Example() {
                         onPress={() => {
                             // handle link
                         }}
-                        style={{ marginTop: 'auto' }}
+                        style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
                             Don't have an account?{' '}
-                            <Text style={{ textDecorationLine: 'underline' }}>Sign up</Text>
+                            <Text style={{textDecorationLine: 'underline'}}>Sign up</Text>
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -119,7 +130,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         margin: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 5,

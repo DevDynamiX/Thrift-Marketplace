@@ -1,12 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, StatusBar } from 'react-native';
+import {StyleSheet, View, Text, Image, TouchableOpacity, StatusBar} from 'react-native';
 
 function SplashScreen() {
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor="black" barStyle="light-content" />
+            <StatusBar backgroundColor="black" barStyle="light-content"/>
             <Image
-                source={require('../../assets/Picture 1.png')} // Replace with your splash logo image
+                source={require('@assets/images/Picture 1.png')} // Replace with your splash logo image
                 style={styles.logo}
             />
 
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
         alignItems: 'center', // Center the text and button
         width: '80%', // Adjust the width as needed
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5, // For shadow on Android

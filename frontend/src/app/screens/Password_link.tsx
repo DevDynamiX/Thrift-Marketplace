@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
+import React, {useState} from 'react';
+import {
+    StyleSheet,
+    SafeAreaView,
+    View,
+    Image,
+    Text,
+    TouchableOpacity,
+    TextInput,
+    ScrollView,
+    ImageBackground
+} from 'react-native';
 
 export default function ResetPassword() {
     const [email, setEmail] = useState('');
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+        <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('../../assets/Screenshot 2024-09-24 at 07.42.45.png')}
+                source={require('@assets/images/Screenshot 2024-09-24 at 07.42.45.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
@@ -16,7 +26,7 @@ export default function ResetPassword() {
                             <Image
                                 resizeMode="contain"
                                 style={styles.headerImg}
-                                source={require('../../assets/Picture 1.png')}
+                                source={require('@assets/images/Picture 1.png')}
                             />
 
                             <Text style={styles.title}>
@@ -25,7 +35,7 @@ export default function ResetPassword() {
 
                             <Text style={styles.subtitle}>
                                 Enter your signup email to receive a
-                                <Text style={{ marginLeft: 20 }}> password reset link.</Text>
+                                <Text style={{marginLeft: 20}}> password reset link.</Text>
                             </Text>
                         </View>
 
@@ -76,11 +86,11 @@ export default function ResetPassword() {
                         onPress={() => {
                             // handle link to sign-in page
                         }}
-                        style={{ marginTop: 'auto' }}
+                        style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
                             Remembered your password?{' '}
-                            <Text style={{ textDecorationLine: 'underline' }}>Sign in</Text>
+                            <Text style={{textDecorationLine: 'underline'}}>Sign in</Text>
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -104,7 +114,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         margin: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 5,
