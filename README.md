@@ -19,7 +19,7 @@ An easily accessaible mobile market place for the trade of second hand goods.
 3. Install dependencies:  
    `npm install`
    `npx expo install firebase`
-4. After  configuring FirebaseConfig.ts
+4. After  configuring firebaseConfig.ts
       `npx expo customize metro.config.js`
 
 ## USAGE

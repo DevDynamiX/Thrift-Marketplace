@@ -1,7 +1,5 @@
 const { getDefaultConfig } = require('expo/metro-config');
 
-const defualtConfig = getDefaultConfig(__dirname);
+const defaultConfig = getDefaultConfig(__dirname);
 
-
-
-module.exports = defualtConfig;
+module.exports = defaultConfig;

@@ -4,23 +4,20 @@ FROM node:18-alpine
 # Set the working directory
 WORKDIR /usr/src/app/
 
-# Log the working directory
-RUN echo "Working directory set to /usr/src/app"
-
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
-RUN echo "Copied package.json and package-lock.json"
-
 
 # Install dependencies
-RUN npm install && echo "Installed dependencies"
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
 
-# Expose the default Expo port
-EXPOSE 3000
-RUN echo "Exposing port 3000"
+# Install ts-node globally
+RUN npm install -g ts-node typescript
 
-# Start the Expo server
+# Expose the default port for the application
+EXPOSE 3000
+
+# Start the application using ts-node
 CMD ["npm", "start"]

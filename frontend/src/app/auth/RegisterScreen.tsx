@@ -1,29 +1,77 @@
 import React, {useState} from 'react';
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable , Alert} from 'react-native';
 import { router } from "expo-router";
-import {Dropdown} from 'react-native-element-dropdown';
+import { Firebase_Auth } from "@/firebaseConfig";
+import { createUserWithEmailAndPassword } from "@firebase/auth";
 
-const genderData = [
-    {label: 'Male', value: 'male'},
-    {label: 'Female', value: 'female'},
-    {label: 'Non-binary', value: 'Non-binary'},
-    {label: 'Other', value: 'Other'},
-    {label: 'Decline to state', value: 'Decline to state'},
-];
-
-export default function RegisterScreen() {
-    const [form, setForm] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        confirmEmail: '',
-        password: '',
-        confirmPassword: '',
-        gender: '',
-    });
-
-
+const SignUp = () => {
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [gender, setGender] = useState('');
+    const [loading, setLoading] = useState(false);
     const [isFocus, setIsFocus] = useState(false);
+
+    const handleSignUp = async () => {
+        if (!firstName || !lastName || !email || !password) {
+            Alert.alert("Error", "Please fill in all fields");
+            return;
+        }
+        if (password.length < 6) {
+            Alert.alert("Error", "Password should be at least 6 characters long");
+            return;
+        }
+        setLoading(true);
+        try {
+            // create the user with Firebase
+            const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
+            console.log("Firebase response:", firebaseResponse);
+
+            const { user } = firebaseResponse;
+            const { email: userEmail, uid } = user;
+
+            // Send the user data to your backend
+            const dbResponse = await fetch("http://localhost:3000/register", { // Update the URL as necessary
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email: userEmail,
+                    password, // Note: Use a hashed password in the backend
+                    gender,
+                    firebaseUid: uid, // Send Firebase UID to your backend
+                }),
+            });
+
+            if (!dbResponse.ok) {
+                const errorData = await dbResponse.json();
+                console.log("Backend error response:", errorData);
+                Alert.alert("Error", errorData.message || "Failed to register user in the backend");
+                return;
+            }
+
+            Alert.alert("Success", "Registered successfully");
+            setFirstName('');
+            setLastName('');
+            setEmail('');
+            setPassword('');
+            setGender('');
+        } catch (error:any) {
+            console.error("Sign-up error:", error.message);
+            Alert.alert("Error", error.message || "An error occurred while signing up");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const navigateToSignIn = () =>{
+        router.push("auth/LoginScreen");
+    }
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
@@ -39,16 +87,15 @@ export default function RegisterScreen() {
                                 style={styles.headerImg}
                                 source={require('@assets/images/logo.png')}
                             />
+
+                            <Text style={[styles.title, { color: '#ec5707' }]}>Thrift Market</Text>
                             <Text style={styles.title}>
-                                Sign Up <Text style={{color: '#ec5707'}}>Thrift Market</Text>
+                                Sign Up
                             </Text>
+
                             <Text style={styles.subtitle}>
                                 Create an account to enjoy our services
                             </Text>
-
-                            <Text>Sign Up</Text>
-                            <TextInput placeholder="Email" />
-                            <TextInput placeholder="Password" secureTextEntry />
                         </View>
                         <View style={styles.form}>
                             <View style={styles.input}>
@@ -56,11 +103,11 @@ export default function RegisterScreen() {
                                 <TextInput
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    onChangeText={(firstName) => setForm({...form, firstName})}
-                                    placeholder="John"
+                                    onChangeText={(text) => setFirstName(text)}
+                                    placeholder="first name"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
-                                    value={form.firstName}
+                                    value={firstName}
                                 />
                             </View>
                             <View style={styles.input}>
@@ -68,11 +115,11 @@ export default function RegisterScreen() {
                                 <TextInput
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    onChangeText={(lastName) => setForm({...form, lastName})}
-                                    placeholder="Doe"
+                                    onChangeText={(text) => setLastName(text)}
+                                    placeholder="last name"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
-                                    value={form.lastName}
+                                    value={lastName}
                                 />
                             </View>
                             <View style={styles.input}>
@@ -81,108 +128,62 @@ export default function RegisterScreen() {
                                     autoCapitalize="none"
                                     autoCorrect={false}
                                     keyboardType="email-address"
-                                    onChangeText={(email) => setForm({...form, email})}
-                                    placeholder="john@example.com"
+                                    onChangeText={(text) => setEmail(text)}
+                                    placeholder="email"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
-                                    value={form.email}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Confirm Email</Text>
-                                <TextInput
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    keyboardType="email-address"
-                                    onChangeText={(confirmEmail) => setForm({...form, confirmEmail})}
-                                    placeholder="john@example.com"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    value={form.confirmEmail}
+                                    value={email}
                                 />
                             </View>
                             <View style={styles.input}>
                                 <Text style={styles.inputLabel}>Password</Text>
                                 <TextInput
                                     autoCorrect={false}
-                                    onChangeText={(password) => setForm({...form, password})}
-                                    placeholder="********"
+                                    onChangeText={(text) => setPassword(text)}
+                                    placeholder="password"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
                                     secureTextEntry={true}
-                                    value={form.password}
-                                />
-                            </View>
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Confirm Password</Text>
-                                <TextInput
-                                    autoCorrect={false}
-                                    onChangeText={(confirmPassword) => setForm({...form, confirmPassword})}
-                                    placeholder="********"
-                                    placeholderTextColor="#6b7280"
-                                    style={styles.inputControl}
-                                    secureTextEntry={true}
-                                    value={form.confirmPassword}
+                                    value={password}
                                 />
                             </View>
 
+
                             {/* Gender Dropdown */}
-                            <View style={styles.input}>
-                                <Text style={styles.inputLabel}>Gender</Text>
-                                <Dropdown
-                                    style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}
-                                    placeholderStyle={styles.placeholderStyle}
-                                    selectedTextStyle={styles.selectedTextStyle}
-                                    data={genderData}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder={!isFocus ? 'Select gender' : '...'}
-                                    value={form.gender}
-                                    onFocus={() => setIsFocus(true)}
-                                    onBlur={() => setIsFocus(false)}
-                                    onChange={item => {
-                                        setForm({...form, gender: item.value});
-                                        setIsFocus(false);
-                                    }}
-                                />
-                            </View>
+                            {/*<View style={styles.input}>*/}
+                            {/*    <Text style={styles.inputLabel}>Gender</Text>*/}
+                            {/*    <Dropdown*/}
+                            {/*        style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}*/}
+                            {/*        placeholderStyle={styles.placeholderStyle}*/}
+                            {/*        selectedTextStyle={styles.selectedTextStyle}*/}
+                            {/*        data={genderData}*/}
+                            {/*        labelField="label"*/}
+                            {/*        valueField="value"*/}
+                            {/*        placeholder={!isFocus ? 'Select gender' : '...'}*/}
+                            {/*        value={gender}*/}
+                            {/*        onFocus={() => setIsFocus(true)}*/}
+                            {/*        onBlur={() => setIsFocus(false)}*/}
+                            {/*        onChange={item => {*/}
+                            {/*            setGender(item.value);*/}
+                            {/*            setIsFocus(false);*/}
+                            {/*        }}*/}
+                            {/*    />*/}
+                            {/*</View>*/}
 
                             <View style={styles.formAction}>
                                 <TouchableOpacity
-                                    onPress={() => {
-                                        // handle sign-up logic
-                                    }}
+                                    onPress={handleSignUp}
                                 >
                                     <View style={styles.btn}>
                                         <Text style={styles.btnText}>Sign Up</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>
-
-                            {/* Google Sign-Up Button */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    // handle Google sign-up logic
-                                }}
-                                style={styles.googleBtn}
-                            >
-                                <Image
-                                    style={styles.googleLogo}
-                                    //Todo - Change to google_logo.svg
-                                    source={require('@assets/images/google_logo.png')}
-                                />
-                                <Text style={styles.btnText}>Sign up with Google</Text>
-                            </TouchableOpacity>
-
                         </View>
                     </ScrollView>
 
                     <Pressable
-                        onPress={() =>
-                            router.push({
-                                pathname: "/auth/LoginScreen"
-                            })
-                        }
+                        onPress={navigateToSignIn}
                         style={{marginTop: 'auto'}}
                     >
                         <Text style={styles.formFooter}>
@@ -195,6 +196,8 @@ export default function RegisterScreen() {
         </SafeAreaView>
     );
 }
+
+export default SignUp;
 
 const styles = StyleSheet.create({
     backgroundImage: {

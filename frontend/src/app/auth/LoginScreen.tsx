@@ -1,12 +1,39 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { router } from "expo-router";
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable, Alert } from 'react-native';
+import { Firebase_Auth } from "@/firebaseConfig";
+import { signInWithEmailAndPassword } from "@firebase/auth";
 
-export default function Example() {
-    const [form, setForm] = useState({
-        email: '',
-        password: '',
-    });
+const Login = () => {
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const auth = Firebase_Auth;
+
+    const signIn = async () => {
+        if (!email || !password) {
+            Alert.alert("Error", "Please enter both email and password");
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await signInWithEmailAndPassword(auth, email, password);
+            console.log(response);
+            Alert.alert("Success", "Logged in successfully");
+
+            router.push("/tempFolderForRouting/[Id]");
+        } catch (error: any) {
+            console.log(error);
+            Alert.alert("Error", error.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const navigateToSIgnUp = () => {
+        router.push("auth/RegisterScreen");
+    }
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
@@ -23,8 +50,9 @@ export default function Example() {
                                 source={require('@assets/images/logo.png')}
                             />
 
+                            <Text style={[styles.title, { color: '#ec5707' }]}>Thrift Market</Text>
                             <Text style={styles.title}>
-                                Login <Text style={{color: '#ec5707'}}>Thrift Market</Text>
+                                Login
                             </Text>
                             <Text style={styles.subtitle}>
                                 Get started with our app,just create an account and enjoy the experience
@@ -38,11 +66,11 @@ export default function Example() {
                                     autoCorrect={false}
                                     clearButtonMode="while-editing"
                                     keyboardType="email-address"
-                                    onChangeText={(email) => setForm({...form, email})}
+                                    onChangeText={(text) => setEmail(text)}
                                     placeholder="john@example.com"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
-                                    value={form.email}
+                                    value={email}
                                 />
                             </View>
                             <View style={styles.input}>
@@ -50,20 +78,16 @@ export default function Example() {
                                 <TextInput
                                     autoCorrect={false}
                                     clearButtonMode="while-editing"
-                                    onChangeText={(password) => setForm({...form, password})}
+                                    onChangeText={(text) => setPassword(text)}
                                     placeholder="********"
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
                                     secureTextEntry={true}
-                                    value={form.password}
+                                    value={password}
                                 />
                             </View>
                             <View style={styles.formAction}>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        // handle onPress
-                                    }}
-                                >
+                                <TouchableOpacity onPress={signIn}>
                                     <View style={styles.btn}>
                                         <Text style={styles.btnText}>Sign in</Text>
                                     </View>
@@ -98,14 +122,8 @@ export default function Example() {
                         </View>
                     </ScrollView>
 
-                    <Pressable
-                        onPress={() =>
-                            router.push({
-                                pathname: "/auth/RegisterScreen"
-                            })
-                        }
-                        style={{marginTop: 'auto'}}
-                    >
+
+                    <Pressable onPress={navigateToSIgnUp}>
                         <Text style={styles.formFooter}>
                             Don't have an account?{' '}
                             <Text style={{textDecorationLine: 'underline'}}>Sign up</Text>
@@ -115,7 +133,10 @@ export default function Example() {
             </ImageBackground>
         </SafeAreaView>
     );
+
 }
+
+export default Login;
 
 const styles = StyleSheet.create({
     backgroundImage: {

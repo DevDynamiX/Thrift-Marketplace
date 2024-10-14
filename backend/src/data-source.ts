@@ -1,6 +1,5 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
-import { User } from "./entity/User"
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -11,13 +10,13 @@ const envPath = path.resolve(__dirname, '../../../local.env');
 dotenv.config({ path: envPath });
 
 export const AppDataSource = new DataSource({
-    type: process.env.DB_TYPE as any,
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
+    type: 'mysql',
+    host: process.env.DB_HOST  || 'localhost',
+    port: Number(process.env.DB_PORT) || 3306,
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    synchronize: false,
+    synchronize: true,
     logging: false,
     entities: ["src/entity/**/*.ts"],
     migrations: ["src/migration/*.ts"],
