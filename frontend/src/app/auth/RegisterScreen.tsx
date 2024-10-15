@@ -28,7 +28,7 @@ export default function RegisterScreen() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
             <ImageBackground
-                source={require('@assets/images/funky_background.png')}
+                source={require('@assets/images/TMBackground.png')}
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>

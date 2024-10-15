@@ -6,7 +6,7 @@ export default function Menu() {
         <>
             <StatusBar barStyle="light-content" backgroundColor="plum" translucent={true}/>
             <ImageBackground
-                source={require('@assets/images/Profile.png')} // Replace with your background image
+                source={require('@assets/images/TMBackground.png')} // Replace with your background image
                 style={styles.backgroundImage}
             >
                 <SafeAreaView style={styles.safeArea}>
