@@ -29,16 +29,6 @@ const RootLayout = () => {
             }}
         />
         <Stack.Screen
-            name="profile/ProfileScreen"
-            options={{
-                title: "Profile",
-                headerStyle: {
-                    backgroundColor: "blue",
-                },
-                headerTintColor: "white",
-            }}
-        />
-        <Stack.Screen
             name="welcome/WelcomeScreen"
             options={{
                 title: "Welcome",
@@ -91,4 +81,3 @@ const RootLayout = () => {
     </Stack>;
 };
 
-export default RootLayout;

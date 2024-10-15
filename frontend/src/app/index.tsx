@@ -22,7 +22,7 @@ const App = () => {
                     style={styles.button}
                     onPress={() =>
                         router.push({
-                            pathname: "/tempFolderForRouting/[Id]",
+                            pathname: "/(tabs)/HomeScreen",
                         })
                     }
                 >
@@ -43,32 +43,6 @@ const App = () => {
                     <Text style={styles.buttonText}>Authentication Screens</Text>
                 </Pressable>
 
-                {/*/!* Register Button *!/*/}
-                {/*<Pressable*/}
-                {/*    style={styles.button}*/}
-                {/*    onPress={() =>*/}
-                {/*        router.push({*/}
-                {/*            pathname: "/auth/RegisterScreen"*/}
-                {/*        })*/}
-                {/*    }*/}
-                {/*>*/}
-                {/*    <Icon name="person-add-outline" size={24} color="#fff" />*/}
-                {/*    <Text style={styles.buttonText}>Register</Text>*/}
-                {/*</Pressable>*/}
-
-                {/* Profile Button */}
-                <Pressable
-                    style={styles.button}
-                    onPress={() =>
-                        router.push({
-                            pathname: "profile/ProfileScreen"
-                        })
-                    }
-                >
-                    <Icon name="person-circle-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Profile Screen</Text>
-                </Pressable>
-
                 {/* Welcome Button */}
                 <Pressable
                     style={styles.button}
@@ -81,32 +55,6 @@ const App = () => {
                     <Icon name="happy-outline" size={24} color="#fff" />
                     <Text style={styles.buttonText}>Welcome Screen</Text>
                 </Pressable>
-
-                {/* Password recovery Button */}
-                {/*<Pressable*/}
-                {/*    style={styles.button}*/}
-                {/*    onPress={() =>*/}
-                {/*        router.push({*/}
-                {/*            pathname: "auth/PasswordRecoveryScreen"*/}
-                {/*        })*/}
-                {/*    }*/}
-                {/*>*/}
-                {/*    <Icon name="lock-closed-outline" size={24} color="#fff" />*/}
-                {/*    <Text style={styles.buttonText}>Password Recovery</Text>*/}
-                {/*</Pressable>*/}
-
-                {/*/!* Password reset Button *!/*/}
-                {/*<Pressable*/}
-                {/*    style={styles.button}*/}
-                {/*    onPress={() =>*/}
-                {/*        router.push({*/}
-                {/*            pathname: "auth/PasswordResetScreen"*/}
-                {/*        })*/}
-                {/*    }*/}
-                {/*>*/}
-                {/*    <Icon name="refresh-circle-outline" size={24} color="#fff" />*/}
-                {/*    <Text style={styles.buttonText}>Password Link</Text>*/}
-                {/*</Pressable>*/}
 
                 {/* Test Environment Button */}
                 <Pressable
