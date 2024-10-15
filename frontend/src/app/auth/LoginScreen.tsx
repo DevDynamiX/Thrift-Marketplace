@@ -22,7 +22,7 @@ const Login = () => {
             console.log(response);
             Alert.alert("Success", "Logged in successfully");
 
-            router.push("/tempFolderForRouting/[Id]");
+            router.push("(tabs)/HomeScreen");
         } catch (error: any) {
             console.log(error);
             Alert.alert("Error", error.message);

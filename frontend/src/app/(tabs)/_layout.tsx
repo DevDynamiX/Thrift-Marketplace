@@ -69,3 +69,4 @@ const TabsLayout = () => {
     );
 };
 
+export default TabsLayout;

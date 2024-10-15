@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import {StyleSheet, Dimensions, StatusBar} from 'react-native';
+import {Text, View, ImageBackground, StyleSheet, Dimensions, StatusBar} from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 import { Asset } from 'expo-asset';
 import BottomTabs from '../SandraTabs/BottomTabs';

@@ -27,7 +27,7 @@ const SignUp = () => {
         try {
             // create the user with Firebase
             const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
-            console.log("Firebase response:", firebaseResponse);
+            // console.log("Firebase response:", firebaseResponse);
 
             const { user } = firebaseResponse;
             const { email: userEmail, uid } = user;
