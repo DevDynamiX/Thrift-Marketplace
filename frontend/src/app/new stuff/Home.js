@@ -19,9 +19,9 @@ const itemSize = width/3;
 function Home(){
 
     const [fontsLoaded] = useFonts({
-        'montserrat' : require('../assets/Fonts/Montserrat-VariableFont_wght.ttf'),
-        'sulphurPoint' : require('../assets/Fonts/SulphurPoint-Regular.ttf'),
-        'shrikhand': require('../assets/Fonts/Shrikhand-Regular.ttf'),
+        'montserrat' : require('@assets/Fonts/Montserrat-VariableFont_wght.ttf'),
+        'sulphurPoint' : require('@assets/Fonts/SulphurPoint-Regular.ttf'),
+        'shrikhand': require('@assets/Fonts/Shrikhand-Regular.ttf'),
     });
 
     if(!fontsLoaded){
@@ -34,13 +34,13 @@ function Home(){
                 <StatusBar barStyle="light-content" backgroundColor="black" />
 
                 <ImageBackground
-                    source = {require('../assets/Images/TMBackground.png')}
+                    source = {require('@assets/Images/TMBackground.png')}
                     resizeMode="stretch"
                     style = {styles.image}>
 
                     <View style={styles.MainContainer}>
 
-                        <Image source = {require('../assets/Images/TMPageLogo.png')} style={styles.logo}/>
+                        <Image source = {require('@assets/Images/TMPageLogo.png')} style={styles.logo}/>
 
                         <View style = {styles.rowsContainer}>
                             <View style = {styles.clothesRow}>
@@ -48,10 +48,10 @@ function Home(){
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/1024x1024-Mens-SagaOne-Red-102422-Flatlay1_600x.webp")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/5141 Maha Basquiat 5_EEP T-Shirt Black - L _ Black.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/AllSaints Rex Slim Fit Jeans in Jet Black at Nordstrom, Size 30 X 32.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/1024x1024-Mens-SagaOne-Red-102422-Flatlay1_600x.webp")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/5141 Maha Basquiat 5_EEP T-Shirt Black - L _ Black.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/AllSaints Rex Slim Fit Jeans in Jet Black at Nordstrom, Size 30 X 32.jpeg")}/>
                                     </View>
                                 </ScrollView>
                             </View>
@@ -61,10 +61,10 @@ function Home(){
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/Ami De Coeur Short Black Unisex.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/Balenciaga Oversize Double Face Wool Blend Crewneck Sweater in Black at Nordstrom, Size Small.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/da5a8ddd-8db0-43ff-aa7d-4a93141d93e2.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/kkboxly  Men\'s Streetwear Shorts, Chicago Graphic Drawstring Stretchy Short Pants For Workout Fitness, Summer Clothings Men\'s Fashion Outfits - Apricot 1 _ S(31).jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/Ami De Coeur Short Black Unisex.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/Balenciaga Oversize Double Face Wool Blend Crewneck Sweater in Black at Nordstrom, Size Small.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/da5a8ddd-8db0-43ff-aa7d-4a93141d93e2.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/kkboxly  Men\'s Streetwear Shorts, Chicago Graphic Drawstring Stretchy Short Pants For Workout Fitness, Summer Clothings Men\'s Fashion Outfits - Apricot 1 _ S(31).jpeg")}/>
                                     </View>
                                 </ScrollView>
                             </View>
@@ -74,10 +74,10 @@ function Home(){
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/Chomp Mongo Skate Tee.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/LEVI\'S® _ 501® ORIGINAL JEANS.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/Chomp Mongo Skate Tee.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/LEVI\'S® _ 501® ORIGINAL JEANS.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
                                     </View>
                                 </ScrollView>
                             </View>
@@ -87,10 +87,10 @@ function Home(){
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/New Haven Twill Jacket.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/Ami De Coeur Short Black Unisex.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/O\'Neill Men\'s Mixed Bag T-Shirt in Black, Size Medium.jpeg")}/>
-                                        <Image style = {styles.clothesImage} source = {require("../assets/Images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/New Haven Twill Jacket.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/Ami De Coeur Short Black Unisex.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/O\'Neill Men\'s Mixed Bag T-Shirt in Black, Size Medium.jpeg")}/>
+                                        <Image style = {styles.clothesImage} source = {require("@assets/Images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
                                     </View>
                                 </ScrollView>
                             </View>

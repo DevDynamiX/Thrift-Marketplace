@@ -6,11 +6,11 @@ function Profile(){
         <SafeAreaView style = {styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="black" />
             <ImageBackground
-                source = {require('../assets/Images/TMBackground.png')}
+                source = {require('@assets/Images/TMBackground.png')}
                 resizeMode="stretch"
                 style = {styles.image}>
                 <Text>Profile Page</Text>
-                <Image source = {require('../assets/Images/TMPageLogo.png')} style={styles.logo}/>
+                <Image source = {require('@assets/Images/TMPageLogo.png')} style={styles.logo}/>
             </ImageBackground>
         </SafeAreaView>
     );

@@ -8,7 +8,7 @@ import BottomTabs from './BottomTabs';
 import {SafeAreaProvider} from "react-native-safe-area-context";
 
 async function loadAssets() {
-    await Asset.loadAsync(require('../assets/Images/TMBackground.png'));
+    await Asset.loadAsync(require('@assets/Images/TMBackground.png'));
 }
 
 const { width, height } = Dimensions.get('window');
