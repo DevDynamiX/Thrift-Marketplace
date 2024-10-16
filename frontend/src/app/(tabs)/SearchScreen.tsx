@@ -53,7 +53,7 @@ const SearchScreen = () => {
                                     backgroundColor:'#219281',
                                     borderColor: '#219281',
                                     borderRadius: 10,
-                                    shadowColor: '#000',
+                                    shadowColor: 'rgba(26,26,26,0.85)',
                                     shadowOffset: {
                                         width: 0,
                                         height: 2,
