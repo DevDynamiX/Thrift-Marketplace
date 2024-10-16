@@ -66,7 +66,7 @@ const HomeScreen = () => {
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Ami De Coeur Short Black Unisex.jpeg")}/>
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Balenciaga Oversize Double Face Wool Blend Crewneck Sweater in Black at Nordstrom, Size Small.jpeg")}/>
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/da5a8ddd-8db0-43ff-aa7d-4a93141d93e2.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/kkboxly  Men\'s Streetwear Shorts, Chicago Graphic Drawstring Stretchy Short Pants For Workout Fitness, Summer Clothings Men\'s Fashion Outfits - Apricot 1 _ S(31).jpeg")}/>
+                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Men's_Streetwear_Shorts.jpeg")}/>
                                     </View>
                                 </ScrollView>
                             </View>
