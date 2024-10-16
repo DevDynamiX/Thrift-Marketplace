@@ -19,10 +19,10 @@ const Login = () => {
         setLoading(true);
         try {
             const response = await signInWithEmailAndPassword(auth, email, password);
-            console.log(response);
-            Alert.alert("Success", "Logged in successfully");
+            // console.log(response);
+            // Alert.alert("Success", "Logged in successfully");
 
-            router.push("(tabs)/HomeScreen");
+            router.replace("(tabs)/HomeScreen");
         } catch (error: any) {
             console.log(error);
             Alert.alert("Error", error.message);
@@ -53,9 +53,6 @@ const Login = () => {
                             <Text style={[styles.title, { color: '#ec5707' }]}>Thrift Market</Text>
                             <Text style={styles.title}>
                                 Login
-                            </Text>
-                            <Text style={styles.subtitle}>
-                                Get started with our app,just create an account and enjoy the experience
                             </Text>
                         </View>
                         <View style={styles.form}>
@@ -93,21 +90,6 @@ const Login = () => {
                                     </View>
                                 </TouchableOpacity>
                             </View>
-
-                            {/* Google Sign-In Button */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    // handle Google sign-in
-                                }}
-                                style={styles.googleBtn}
-                            >
-                                <Image
-                                    //Todo - Change to google_logo.svg
-                                    source={require('@assets/images/google_logo.png')}
-                                    style={styles.googleLogo}
-                                />
-                                <Text style={styles.btnText}>Sign in with Google</Text>
-                            </TouchableOpacity>
 
                             <Pressable
                                 onPress={() =>

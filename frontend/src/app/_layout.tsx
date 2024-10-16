@@ -71,7 +71,7 @@ const RootLayout = () => {
         <Stack.Screen
             name="index"
             options={{
-                title: "Home",
+                title: "Landing",
                 headerStyle: {
                     backgroundColor: "black",
                 },

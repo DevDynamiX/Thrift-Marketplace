@@ -30,20 +30,7 @@ const App = () => {
                     <Text style={styles.buttonText}>Main App (Alpha build)</Text>
                 </Pressable>
 
-                {/* Auth Button */}
-                <Pressable
-                    style={styles.button}
-                    onPress={() =>
-                        router.push({
-                            pathname: "/auth/LoginScreen"
-                        })
-                    }
-                >
-                    <Icon name="log-in-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Authentication Screens</Text>
-                </Pressable>
-
-                {/* Welcome Button */}
+                {/* Anonymous Lading Button */}
                 <Pressable
                     style={styles.button}
                     onPress={() =>
@@ -53,7 +40,7 @@ const App = () => {
                     }
                 >
                     <Icon name="happy-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Welcome Screen</Text>
+                    <Text style={styles.buttonText}>Anonymous Lading</Text>
                 </Pressable>
 
                 {/* Test Environment Button */}
