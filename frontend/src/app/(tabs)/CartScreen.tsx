@@ -5,13 +5,15 @@ const CartScreen = () =>{
     return (
         <SafeAreaView style = {styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="black" />
-            <ImageBackground
-                source = {require('@assets/images/TMBackground.png')}
-                resizeMode="stretch"
-                style = {styles.image}>
-                <Text>Cart Page</Text>
-                <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
-            </ImageBackground>
+                <ImageBackground
+                    source = {require('@assets/images/TMBackground.png')}
+                    resizeMode="stretch"
+                    style = {styles.image}>
+                    <View style = { styles.mainContainer }>
+                        <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
+                        <Text>Cart Page</Text>
+                    </View>
+                </ImageBackground>
         </SafeAreaView>
     );
 }
@@ -21,6 +23,13 @@ const styles = StyleSheet.create({
         flex:1,
         backgroundColor:'black',
     },
+    mainContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        justifyContent: 'space-evenly',
+    },
     image: {
         flex: 1,
         justifyContent: 'center',
@@ -28,12 +37,12 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-    logo:{
+    logo: {
         resizeMode: 'contain',
-        width: '60%',
-        position: 'relative',
-        right:'20%',
-        bottom: '44%'
+        width: '65%',
+        position: "relative",
+        bottom: '28%',
+        left: "5%"
     },
     text: {
         color: 'black',

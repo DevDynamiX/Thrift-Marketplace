@@ -13,6 +13,8 @@ import {
     ImageStyle
 } from 'react-native';
 import  { useFonts } from 'expo-font';
+import Icon from 'react-native-vector-icons/Ionicons';
+
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
@@ -22,7 +24,10 @@ const HomeScreen = () => {
 
     const [fontsLoaded] = useFonts({
         'montserrat' : require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
+        'montserrat_Italic' : require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint' : require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold' : require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light' : require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
@@ -46,7 +51,7 @@ const HomeScreen = () => {
 
                         <View style = {styles.rowsContainer}>
                             <View style = {styles.clothesRow}>
-                                <Text style = {styles.rowHeader}>Recommended for 'user'</Text>
+                                <Text style = {styles.headerText}>Recommended for 'user'</Text>
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
@@ -56,23 +61,29 @@ const HomeScreen = () => {
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/AllSaints Rex Slim Fit Jeans in Jet Black at Nordstrom, Size 30 X 32.jpeg")}/>
                                     </View>
                                 </ScrollView>
+                                <View style = { styles.columnScrollMarker }>
+                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+                                </View>
                             </View>
 
                             <View style = {styles.clothesRow}>
-                                <Text style = {styles.rowHeader}> On Sale </Text>
+                                <Text style = {styles.headerText}> On Sale </Text>
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Ami De Coeur Short Black Unisex.jpeg")}/>
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Balenciaga Oversize Double Face Wool Blend Crewneck Sweater in Black at Nordstrom, Size Small.jpeg")}/>
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/da5a8ddd-8db0-43ff-aa7d-4a93141d93e2.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/kkboxly  Men\'s Streetwear Shorts, Chicago Graphic Drawstring Stretchy Short Pants For Workout Fitness, Summer Clothings Men\'s Fashion Outfits - Apricot 1 _ S(31).jpeg")}/>
+                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Men's_Streetwear_Shorts.jpeg")}/>
                                     </View>
                                 </ScrollView>
+                                <View style = { styles.columnScrollMarker }>
+                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+                                </View>
                             </View>
 
                             <View style = {styles.clothesRow}>
-                                <Text style = {styles.rowHeader}> New In </Text>
+                                <Text style = {styles.headerText}> New In </Text>
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
@@ -82,10 +93,13 @@ const HomeScreen = () => {
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
                                     </View>
                                 </ScrollView>
+                                <View style = { styles.columnScrollMarker }>
+                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+                                </View>
                             </View>
 
                             <View style = {styles.clothesRow}>
-                                <Text style = {styles.rowHeader}>Recommended for 'user'</Text>
+                                <Text style = {styles.headerText}>Recommended for 'user'</Text>
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style = {styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
@@ -95,6 +109,9 @@ const HomeScreen = () => {
                                         <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
                                     </View>
                                 </ScrollView>
+                                <View style = { styles.columnScrollMarker }>
+                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+                                </View>
                             </View>
                         </View>
                     </View>
@@ -113,7 +130,6 @@ const styles = StyleSheet.create({
     image: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
         width: '100%',
         height: '100%',
     },
@@ -123,6 +139,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         justifyContent: 'center',
+        marginTop: '10%'
     },
 
     logo: {
@@ -130,7 +147,8 @@ const styles = StyleSheet.create({
         width: '65%',
         position: "relative",
         bottom: '10%',
-        marginBottom: '8%'
+        marginBottom: '8%',
+        marginLeft: '5%'
     },
 
     //all the rows and titles
@@ -152,12 +170,7 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         position: "relative",
         bottom: '50%',
-        height: "100%",
-        width:'100%',
         marginVertical:10,
-        display: 'flex',
-        justifyContent: 'center',
-        padding:5,
     },
 
     //each row of images
@@ -186,21 +199,33 @@ const styles = StyleSheet.create({
         margin: 5,
     },
 
-    //page texts
-    text: {
-        color: 'black',
-        fontSize: 42,
-        lineHeight: 40,
-        fontWeight: 'bold',
-        backgroundColor: 'white',
-    },
-    rowHeader: {
+
+
+    //marker
+    columnScrollMarker: {
+        width: '10%',
+        height: '87%',
+        position: "relative",
+        backgroundColor: 'rgba(229, 229, 229, 0.85)',
+        zIndex: 2,
+        position: "absolute",
+        left: 340,
+        top: '13%'
+
+
+},
+    arrowIcon: {
         color: '#212121',
-        //fontFamily: 'arial',
+        position: "relative",
+        top: '45%',
+        left: '5%'
+    },
+
+    headerText: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 18,
-        fontWeight: "bold",
+        color: '#212121',
         marginLeft: 10,
-        fontStyle: "italic",
         paddingBottom:'2%',
     }
 });
