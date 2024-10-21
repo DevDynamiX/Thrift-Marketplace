@@ -88,7 +88,68 @@ const RootLayout = () => {
                 headerTintColor: "white",
             }}
         />
+
+        {/* All the new stuff i added  */}
+    <Stack.Screen
+        name="Admin/Adminpanel"
+        options={{
+            title: "Admin",
+            headerStyle: {
+                backgroundColor: "#5CB7A5",
+            },
+            headerTintColor: "white",
+        }}
+    />
+
+
+        <Stack.Screen
+            name="Admin/InsertProducts"
+            options={{
+                title: "Insert",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="Admin/ViewProduct"
+            options={{
+                title: "Edit Product",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+
+        <Stack.Screen
+            name="Admin/Category"
+            options={{
+                title: "Category",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="Admin/ViewCategory"
+            options={{
+                title: "Category",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
     </Stack>;
+    {/* All the new stuff i added  */}
 };
 
 export default RootLayout;
