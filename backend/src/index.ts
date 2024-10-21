@@ -1,15 +1,20 @@
-import * as express from "express"
-import * as bodyParser from "body-parser"
-import { Request, Response } from "express"
-import { AppDataSource } from "./data-source"
-import { Routes } from "./routes"
+import * as express from "express";
+import * as bodyParser from "body-parser";
 import * as cors from "cors";
+import { Request, Response } from "express";
+import { AppDataSource } from "./data-source";
+import { Routes } from "./routes";
 
 AppDataSource.initialize().then(async () => {
 
-    // create express app
     const app = express();
-    app.use(cors());
+    app.use(cors({
+        origin: 'http://192.168.1.117',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
+    }));
+
     app.use(bodyParser.json());
 
     app.use((req, res, next) => {
@@ -30,12 +35,15 @@ AppDataSource.initialize().then(async () => {
         })
     })
 
-    // setup express app here
-    // ...
+    app.get('/', (req, res) => {
+        res.send('hello world');
+    });
 
     // start express server
-    app.listen(process.env.PORT || 3000)
+    app.listen(Number(process.env.SERVER_PORT), () => {
+        console.log(`Express server has started on port ${process.env.SERVER_PORT}`);
+    });
 
-    console.log("Express server has started on port 3000. Open http://localhost:3000/users to see results")
+    console.log("Express server has started on port 3000. Open http://192.168.1.117:3000/users to see results")
 
 }).catch(error => console.log(error))

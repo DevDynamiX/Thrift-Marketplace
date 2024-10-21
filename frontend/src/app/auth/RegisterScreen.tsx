@@ -15,7 +15,7 @@ const SignUp = () => {
     const [isFocus, setIsFocus] = useState(false);
 
     const handleSignUp = async () => {
-        if (!firstName || !lastName || !email || !password) {
+        if (!email || !password) {
             Alert.alert("Error", "Please fill in all fields");
             return;
         }
@@ -26,41 +26,34 @@ const SignUp = () => {
         setLoading(true);
         try {
             // create the user with Firebase
-            const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
-            // console.log("Firebase response:", firebaseResponse);
+            /*const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
+            console.log("Firebase response:", firebaseResponse);
 
             const { user } = firebaseResponse;
-            const { email: userEmail, uid } = user;
+            const { email: userEmail, uid } = user;*/
 
             // Send the user data to your backend
-            const dbResponse = await fetch("http://localhost:3000/register", { // Update the URL as necessary
+            const dbResponse = await fetch("http://192.168.1.117:3000/register", { // Update the URL as necessary
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    firstName,
-                    lastName,
-                    email: userEmail,
-                    password, // Note: Use a hashed password in the backend
-                    gender,
-                    firebaseUid: uid, // Send Firebase UID to your backend
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    password: password,
                 }),
             });
 
             if (!dbResponse.ok) {
                 const errorData = await dbResponse.json();
-                console.log("Backend error response:", errorData);
+                console.log("Backend error response:", errorData.message);
                 Alert.alert("Error", errorData.message || "Failed to register user in the backend");
                 return;
             }
 
             Alert.alert("Success", "Registered successfully");
-            setFirstName('');
-            setLastName('');
-            setEmail('');
-            setPassword('');
-            setGender('');
         } catch (error:any) {
             console.error("Sign-up error:", error.message);
             Alert.alert("Error", error.message || "An error occurred while signing up");
@@ -91,10 +84,6 @@ const SignUp = () => {
                             <Text style={[styles.title, { color: '#ec5707' }]}>Thrift Market</Text>
                             <Text style={styles.title}>
                                 Sign Up
-                            </Text>
-
-                            <Text style={styles.subtitle}>
-                                Create an account to enjoy our services
                             </Text>
                         </View>
                         <View style={styles.form}>

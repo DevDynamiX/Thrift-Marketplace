@@ -30,12 +30,11 @@ export class UserController {
 
     // Save a new user
     async save(request: Request, response: Response, next: NextFunction) {
-        const { firstName, lastName, age } = request.body;
+        const { email, password } = request.body;
 
         const user = Object.assign(new User(), {
-            firstName,
-            lastName,
-            age
+            email,
+            password
         })
 
         const savedUser = await this.userRepository.save(user);
@@ -58,42 +57,35 @@ export class UserController {
     }
 
     // Register a new user
-    async register(request: Request, response: Response, next: NextFunction) {
-        const { firstName, lastName, email, password, gender, firebaseUid } = request.body;
+async register(req: Request, res: Response) {
+    const { email, password, firstName, lastName, gender, firebaseUid } = req.body;
 
-        // Basic validation
-        if (!firstName || !lastName || !email || !password || !gender) {
-            return response.status(400).json({ message: "All fields are required" });
-        }
+    // Simple validation (you can add more checks here)
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+    }
 
-        // Check if user already exists
-        const existingUser = await this.userRepository.findOne({ where: { email } });
-        if (existingUser) {
-            return response.status(400).json({ message: "User already exists" });
-        }
+    try {
+        // Create a new user instance
+        const newUser = new User();
+        newUser.email = email;
+        newUser.password = password; // For testing, handling raw password (DO NOT do this in production)
+        newUser.firstName = firstName || '';
+        newUser.lastName = lastName || '';
+        newUser.gender = gender || '';
+        newUser.firebaseUid = firebaseUid || '';
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create new user instance
-        const newUser = this.userRepository.create({
-            firstName,
-            lastName,
-            email,
-            password: hashedPassword,
-            gender,
-            firebaseUid, // Save Firebase UID
-        });
-
-        // Save user to the database
+        // Save the user to the database
         await this.userRepository.save(newUser);
 
-        try {
-            const savedUser = await this.userRepository.save(newUser);
-            return response.status(201).json(savedUser);
-        } catch (error) {
-            console.error(error);
-            return response.status(500).json({ message: "Failed to register user" });
-        }
+        // Respond with a plain object containing user details (without circular references)
+        const { password: _, ...userWithoutPassword } = newUser;
+        res.status(201).json({ message: "User registered successfully", user: userWithoutPassword });
+    } catch (error) {
+        console.error('Registration Error:', error); // Log the actual error
+
+        // Send a generic error message
+        res.status(500).json({ message: "An internal server error occurred while registering the user." });
     }
+}
 }
