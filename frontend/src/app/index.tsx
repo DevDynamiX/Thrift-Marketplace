@@ -30,6 +30,19 @@ const App = () => {
                     <Text style={styles.buttonText}>Main App (Alpha build)</Text>
                 </Pressable>
 
+                {/*Admin landing page*/}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "/(tabs)/AdminInventoryUpload",
+                        })
+                    }
+                >
+                    <Icon name="home-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}> Admin Pages (Alpha build)</Text>
+                </Pressable>
+
                 {/* Anonymous Lading Button */}
                 <Pressable
                     style={styles.button}
@@ -40,7 +53,7 @@ const App = () => {
                     }
                 >
                     <Icon name="happy-outline" size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Anonymous Lading</Text>
+                    <Text style={styles.buttonText}>Anonymous Landing</Text>
                 </Pressable>
 
                 {/* Test Environment Button */}

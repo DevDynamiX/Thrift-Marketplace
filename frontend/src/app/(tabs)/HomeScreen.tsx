@@ -21,39 +21,45 @@ import LottieView from 'lottie-react-native';
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-
-
 const HomeScreen = () => {
 
+    // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
-        'montserrat' : require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic' : require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
-        'sulphurPoint' : require('@assets/fonts/SulphurPoint-Regular.ttf'),
-        'sulphurPoint_Bold' : require('@assets/fonts/SulphurPoint-Bold.ttf'),
-        'sulphurPoint_Light' : require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
+        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    if(!fontsLoaded){
-        return <ActivityIndicator size="large" color="white" />;
-    }
-
-    const [ isFavourited, setIsFavourited ] = useState(false);
-    const [ playHeartAnimation, setPlayAnimation ] = useState(false);
-
-    const toggleFavourite = () => {
-             setIsFavourited(!isFavourited);
-             setPlayAnimation(true);
-    };
-
+    // Define states as normal
+    const [isFavourited, setIsFavourited] = useState(false);
+    const [playHeartAnimation, setPlayAnimation] = useState(false);
     const [isAddedToCart, setIsAddedToCart] = useState(false);
     const [playCartAnimation, setPlayCartAnimation] = useState(false);
+
+    const toggleFavourite = () => {
+        setIsFavourited(!isFavourited);
+        setPlayAnimation(true);
+    };
+
     const toggleCart = () => {
         setIsAddedToCart(!isAddedToCart);
         setPlayCartAnimation(true);
+    };
+
+    // If fonts are not loaded, show a loading indicator within the component itself
+    if (!fontsLoaded) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" color="white" />
+            </SafeAreaView>
+        );
     }
 
 
+    // @ts-ignore
     return (
         <SafeAreaView style = {styles.container}>
             <ScrollView>
@@ -70,17 +76,17 @@ const HomeScreen = () => {
 
                         <View style = {styles.rowsContainer}>
                             <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}>Recommended for 'user'</Text>
+                                <Text style = {styles.headerText}>Recommended for user</Text>
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
                                     <View style={styles.RowImages}>
                                         {/*Find way to display max 10 per row then button to view whole section*/}
                                         <View style = { styles.actionButtons }>
                                             <TouchableOpacity>
-                                                { playHeartAnimation ?(
+                                                { playHeartAnimation ? (
                                                     <LottieView source = {require('@assets/animations/likeButtonAnimation.json')}
                                                     autoPlay
                                                     loop = { false }
-                                                    style = { styles.likeButton}
+                                                    //style = { styles.likeButton}
                                                     onAnimationFinish={() => setPlayAnimation(false)}/>
                                                 ):(
                                                     <Icon
@@ -96,7 +102,7 @@ const HomeScreen = () => {
                                                         source={require('@assets/animations/cartAnimation.json')}
                                                         autoPlay
                                                         loop={false}
-                                                        style={styles.cartButton}
+                                                        //style={styles.cartButton}
                                                         onAnimationFinish={() => setPlayCartAnimation(false)}
                                                     />
                                                 ) : (
@@ -106,7 +112,8 @@ const HomeScreen = () => {
                                                         size={30}
                                                     />
                                                 )}
-                                            </TouchableOpacity>                                        </View>
+                                            </TouchableOpacity>
+                                        </View>
                                         <Image style={styles.clothesImage as ImageStyle}
                                                source={require("@assets/images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
                                         <Image style={styles.clothesImage as ImageStyle}
@@ -273,10 +280,9 @@ const styles = StyleSheet.create({
     columnScrollMarker: {
         width: '10%',
         height: '87%',
-        position: "relative",
         backgroundColor: 'rgba(229, 229, 229, 0.85)',
-        zIndex: 2,
         position: "absolute",
+        zIndex: 2,
         left: 340,
         top: '13%'
 
@@ -317,6 +323,13 @@ const styles = StyleSheet.create({
     filledHeart: {
         color: "#FF0000",
     },
+    staticCart: {
+        color: "#93D3AE",
+    },
+    filledCart: {
+        color: "#FF0000",
+    }
+
 });
 
 export default HomeScreen;
