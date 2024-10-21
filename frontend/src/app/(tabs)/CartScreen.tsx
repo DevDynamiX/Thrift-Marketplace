@@ -1,46 +1,31 @@
 import React from 'react';
-import {View, ImageBackground, StyleSheet, StatusBar, SafeAreaView, Image, Text} from 'react-native';
+import { StyleSheet, SafeAreaView, ImageBackground, StatusBar } from 'react-native';
 
-const CartScreen = () =>{
+const CartScreen = () => {
     return (
-        <SafeAreaView style = {styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="black" />
+        <>
+            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true} />
             <ImageBackground
-                source = {require('@assets/images/TMBackground.png')}
-                resizeMode="stretch"
-                style = {styles.image}>
-                <Text>Cart Page</Text>
-                <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
+                source={require('@assets/images/TMBackground.png')} // Replace with your background image
+                style={styles.backgroundImage}
+            >
+                <SafeAreaView style={styles.safeArea}>
+                    {/* You can add other components here if needed */}
+                </SafeAreaView>
             </ImageBackground>
-        </SafeAreaView>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex:1,
-        backgroundColor:'black',
-    },
-    image: {
+    backgroundImage: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        resizeMode: 'cover', // Ensures the background image covers the screen
         width: '100%',
         height: '100%',
     },
-    logo:{
-        resizeMode: 'contain',
-        width: '60%',
-        position: 'relative',
-        right:'20%',
-        bottom: '44%'
-    },
-    text: {
-        color: 'black',
-        fontSize: 42,
-        lineHeight: 40,
-        fontWeight: 'bold',
-        backgroundColor: 'white',
+    safeArea: {
+        flex: 1,
     },
 });
 

@@ -144,3 +144,6 @@ const styles = StyleSheet.create({
         left: 15, // Position the icon on the left side
     },
 });
+
+
+
