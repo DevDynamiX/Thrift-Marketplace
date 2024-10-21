@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable , Alert} from 'react-native';
 import { router } from "expo-router";
+import Constants from 'expo-constants';
 import { Firebase_Auth } from "@/firebaseConfig";
 import { createUserWithEmailAndPassword } from "@firebase/auth";
 
@@ -33,7 +34,7 @@ const SignUp = () => {
             const { email: userEmail, uid } = user;*/
 
             // Send the user data to your backend
-            const dbResponse = await fetch("http://192.168.1.117:3000/register", { // Update the URL as necessary
+            const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/register`, { // Update the URL as necessary
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
