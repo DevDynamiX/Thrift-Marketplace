@@ -4,12 +4,22 @@ import * as cors from "cors";
 import { Request, Response } from "express";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
+import { seedRoles } from "./seeders/seedRoles";
 
 AppDataSource.initialize().then(async () => {
 
+    // Seed roles into the database
+    try {
+        await seedRoles(AppDataSource); // Call the seedRoles function
+        console.log("User roles seeded successfully.");
+    } catch (error) {
+        console.error("Failed to seed user roles:", error);
+        process.exit(1); // Exit if seeding fails to prevent further errors
+    }
+
     const app = express();
     app.use(cors({
-        origin: 'http://192.168.1.117',
+        origin: process.env.DB_HOST,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
@@ -22,28 +32,30 @@ AppDataSource.initialize().then(async () => {
         next();
     });
 
-    // register express routes from defined application routes
+    // Seed roles into the database
+    try {
+        await seedRoles(AppDataSource); // Call the seedRoles function
+        console.log("User roles seeded successfully.");
+    } catch (error) {
+        console.error("Failed to seed user roles:", error);
+    }
+
+    // Register express routes from defined application routes
     Routes.forEach(route => {
         (app as any)[route.method](route.route, (req: Request, res: Response, next: Function) => {
-            const result = (new (route.controller as any))[route.action](req, res, next)
+            const result = (new (route.controller as any))[route.action](req, res, next);
             if (result instanceof Promise) {
-                result.then(result => result !== null && result !== undefined ? res.send(result) : undefined)
-
+                result.then(result => result !== null && result !== undefined ? res.send(result) : undefined);
             } else if (result !== null && result !== undefined) {
-                res.json(result)
+                res.json(result);
             }
-        })
-    })
-
-    app.get('/', (req, res) => {
-        res.send('hello world');
+        });
     });
+
 
     // start express server
     app.listen(Number(process.env.SERVER_PORT), () => {
         console.log(`Express server has started on port ${process.env.SERVER_PORT}`);
     });
 
-    console.log("Express server has started on port 3000. Open http://192.168.1.117:3000/users to see results")
-
-}).catch(error => console.log(error))
+}).catch(error => console.log("Error during Data Source initialization:", error));
