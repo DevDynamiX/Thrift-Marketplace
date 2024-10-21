@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+// backend/src/entity/User.ts
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { UserRole } from './UserRole';
 
-@Entity()
+@Entity('users')
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
@@ -11,15 +13,18 @@ export class User {
     @Column()
     lastName: string;
 
-    @Column()
+    @Column({ unique: true })
     email: string;
 
     @Column()
     password: string;
 
-    @Column()
+    @Column({ nullable: true })
     gender: string;
 
-    @Column()
+    @Column({ nullable: true, unique: true })
     firebaseUid: string;
+
+    @ManyToOne(() => UserRole)
+    role: UserRole;
 }
