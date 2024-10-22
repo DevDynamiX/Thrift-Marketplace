@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     warnLabel: {
-        color: '#FF0000',
+        color: '#F96635',
         marginBottom: 10,
         marginTop: 2
     }
