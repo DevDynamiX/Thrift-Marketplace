@@ -15,12 +15,15 @@ import {router} from "expo-router";
 export default function Menu() {
     return (
         <>
-            <StatusBar barStyle="light-content" backgroundColor="plum" translucent={true}/>
+            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
             <ImageBackground
                 source={require('@assets/images/TMBackground.png')} // Replace with your background image
                 style={styles.backgroundImage}
             >
+
                 <SafeAreaView style={styles.safeArea}>
+                    <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
+
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
                             <Image
@@ -56,7 +59,7 @@ export default function Menu() {
                                 source={require('@assets/images/received.png')} // Replace with your icon
                                 style={styles.icon}
                             />
-                            <Text style={styles.menuText}>Order History</Text>
+                            <Text style={styles.menuText}>Recycle Now</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.menuButton}>
@@ -64,7 +67,7 @@ export default function Menu() {
                                 source={require('@assets/images/retro-game.png')} // Replace with your icon
                                 style={styles.icon}
                             />
-                            <Text style={styles.menuText}>Address Book</Text>
+                            <Text style={styles.menuText}>Order History</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.menuButton}>
@@ -83,10 +86,8 @@ export default function Menu() {
 
 const styles = StyleSheet.create({
     backgroundImage: {
-        flex: 1,
-        resizeMode: 'cover', // Ensures the background image covers the screen
         width: '100%',
-        height: '120%',
+        height: '100%',
     },
     safeArea: {
         flex: 1,
@@ -131,6 +132,8 @@ const styles = StyleSheet.create({
         padding: 20,
         width: '90%',
         alignItems: 'center', // Center everything inside the container
+        position: "relative",
+        bottom: '25%'
     },
     menuButton: {
         flexDirection: 'row',
@@ -154,7 +157,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 15, // Position the icon on the left side
     },
+
+    tmlogo: {
+        resizeMode: 'contain',
+        width: '65%',
+        position: 'relative',
+        bottom: '6%',
+        right: '12%'
+    }
 });
-
-
-

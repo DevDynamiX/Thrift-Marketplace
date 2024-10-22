@@ -3,29 +3,56 @@ import { StyleSheet, SafeAreaView, ImageBackground, StatusBar } from 'react-nati
 
 const CartScreen = () => {
     return (
-        <>
-            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true} />
-            <ImageBackground
-                source={require('@assets/images/TMBackground.png')} // Replace with your background image
-                style={styles.backgroundImage}
-            >
-                <SafeAreaView style={styles.safeArea}>
-                    {/* You can add other components here if needed */}
-                </SafeAreaView>
-            </ImageBackground>
-        </>
+
+        <SafeAreaView style = {styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="black" />
+                <ImageBackground
+                    source = {require('@assets/images/TMBackground.png')}
+                    resizeMode="stretch"
+                    style = {styles.image}>
+                    <View style = { styles.mainContainer }>
+                        <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
+                        <Text>Cart Page</Text>
+                    </View>
+                </ImageBackground>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    backgroundImage: {
+
+    container: {
+        flex:1,
+        backgroundColor:'black',
+    },
+    mainContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        justifyContent: 'space-evenly',
+    },
+    image: {
         flex: 1,
         resizeMode: 'cover', // Ensures the background image covers the screen
         width: '100%',
         height: '100%',
     },
-    safeArea: {
-        flex: 1,
+
+    logo: {
+        resizeMode: 'contain',
+        width: '65%',
+        position: "relative",
+        bottom: '28%',
+        left: "5%"
+    },
+    text: {
+        color: 'black',
+        fontSize: 42,
+        lineHeight: 40,
+        fontWeight: 'bold',
+        backgroundColor: 'white',
+
     },
 });
 

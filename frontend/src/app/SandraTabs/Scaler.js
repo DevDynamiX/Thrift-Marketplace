@@ -2,7 +2,7 @@ import posed from 'react-native-pose';
 
 const Scaler = posed.View({
     active: {
-        scale:1.5
+        scale:2,
     },
     inactive: {
         scale: 1
