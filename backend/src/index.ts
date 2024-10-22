@@ -42,16 +42,21 @@ AppDataSource.initialize().then(async () => {
 
     // Register express routes from defined application routes
     Routes.forEach(route => {
-        (app as any)[route.method](route.route, (req: Request, res: Response, next: Function) => {
-            const result = (new (route.controller as any))[route.action](req, res, next);
-            if (result instanceof Promise) {
-                result.then(result => result !== null && result !== undefined ? res.send(result) : undefined);
-            } else if (result !== null && result !== undefined) {
-                res.json(result);
+        (app as any)[route.method](route.route, async (req: Request, res: Response, next: Function) => {
+            try {
+                const result = (new (route.controller as any))[route.action](req, res, next);
+                if (result instanceof Promise) {
+                    const data = await result;
+                    result.then(result => result !== null && result !== undefined ? res.send(result) : undefined);
+                } else if (result !== null && result !== undefined) {
+                    res.json(result);
+                }
+            } catch (error) {
+                console.error("Error in route:", error); // Log error
+                res.status(500).json({ message: "An internal server error occurred" }); // Send error response
             }
         });
     });
-
 
     // start express server
     app.listen(Number(process.env.SERVER_PORT), () => {

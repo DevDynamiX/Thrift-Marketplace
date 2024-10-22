@@ -1,31 +1,61 @@
 import React, { useState } from 'react';
-import { router } from "expo-router";
 import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable, Alert } from 'react-native';
+import { router } from "expo-router";
+import Constants from 'expo-constants';
 import { Firebase_Auth } from "@/firebaseConfig";
 import { signInWithEmailAndPassword } from "@firebase/auth";
 
 const Login = () => {
 
     const [email, setEmail] = useState('');
+    const username = email;
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const auth = Firebase_Auth;
+    // const auth = Firebase_Auth;
 
     const signIn = async () => {
         if (!email || !password) {
             Alert.alert("Error", "Please enter both email and password");
             return;
         }
+
         setLoading(true);
+
         try {
-            const response = await signInWithEmailAndPassword(auth, email, password);
+            // const response = await signInWithEmailAndPassword(auth, email, password);
             // console.log(response);
             // Alert.alert("Success", "Logged in successfully");
 
-            router.replace("(tabs)/HomeScreen");
-        } catch (error: any) {
-            console.log(error);
-            Alert.alert("Error", error.message);
+            // Fetch user role from the backend
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                Alert.alert("Error", errorData.message || "Failed to log in");
+                return;
+            }
+
+            const data = await response.json(); // Get user details and role
+            console.log("User data:", data); // Check if you receive the correct data
+
+            // Navigate based on user role
+            if (data.role === 'admin') {
+                router.replace("Admin/AdminPanel"); // Replace with your admin panel route
+            } else {
+                router.replace("(tabs)/HomeScreen"); // Replace with your user home screen route
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            Alert.alert("Error", "An error occurred while logging in");
         } finally {
             setLoading(false);
         }
@@ -49,7 +79,7 @@ const Login = () => {
                                 style={styles.headerImg}
                                 source={require('@assets/images/logo.png')}
                             />
-
+                            <Text>API: {Constants.expoConfig?.extra?.BACKEND_HOST}</Text>
                             <Text style={[styles.title, { color: '#ec5707' }]}>Thrift Market</Text>
                             <Text style={styles.title}>
                                 Login

@@ -1,7 +1,7 @@
 // backend/src/entity/UserRole.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('user_roles')
+@Entity()
 export class UserRole {
     @PrimaryGeneratedColumn()
     id: number;
