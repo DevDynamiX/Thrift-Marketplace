@@ -38,7 +38,7 @@ const BottomTabs = () => {
                 <Animated.View style={[styles.activeBackground, animatedStyles]}>
                     <Svg width={110} height={60} viewBox=" 0 0 110 60">
                         <Path
-                            fill="#219281"
+                            fill="red"
                             d="M20 0h70v25c0 19.33-15.67 35-35 35S20 44.33 20 25V0zM20 20V0H0c11.046 0 20 8.954 20 20zm90-20H90v20c0-11.046 8.954-20 20-20z"
                         />
                     </Svg>
@@ -123,7 +123,7 @@ const BottomTabs = () => {
 
                     return (
                         <Scaler pose={focused ? 'active' : 'inactive'}>
-                            <Ionicons name={iconName} size={24} color={focused ? '#219281' : '#219281'}/>
+                            <Ionicons name={iconName} size={24} color={focused ? '#219281FF': '#219281FF'}/>
                         </Scaler>
                     );
 
