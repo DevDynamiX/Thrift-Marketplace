@@ -1,5 +1,16 @@
 import React from 'react';
-import {StyleSheet, SafeAreaView, View, Text, TouchableOpacity, ImageBackground, Image, StatusBar} from 'react-native';
+import {
+    StyleSheet,
+    SafeAreaView,
+    View,
+    Text,
+    TouchableOpacity,
+    ImageBackground,
+    Image,
+    StatusBar,
+    Pressable
+} from 'react-native';
+import {router} from "expo-router";
 
 export default function Menu() {
     return (
@@ -146,6 +157,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 15, // Position the icon on the left side
     },
+
     tmlogo: {
         resizeMode: 'contain',
         width: '65%',

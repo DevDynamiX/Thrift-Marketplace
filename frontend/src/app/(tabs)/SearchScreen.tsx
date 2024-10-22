@@ -99,6 +99,7 @@ const SearchScreen = () => {
                                 </View>
                             </View>
 
+
                             <View style = {styles.clothesRow}>
                                 <Text style = {styles.rowHeader}> On Sale </Text>
                                 <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
@@ -112,6 +113,7 @@ const SearchScreen = () => {
                                 </ScrollView>
                                 <View style = { styles.columnScrollMarker }>
                                     <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+
                                 </View>
                             </View>
 

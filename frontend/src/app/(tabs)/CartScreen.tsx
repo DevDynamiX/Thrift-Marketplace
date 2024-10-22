@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, ImageBackground, StyleSheet, StatusBar, SafeAreaView, Image, Text} from 'react-native';
+import { StyleSheet, SafeAreaView, ImageBackground, StatusBar } from 'react-native';
 
-const CartScreen = () =>{
+const CartScreen = () => {
     return (
+
         <SafeAreaView style = {styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="black" />
                 <ImageBackground
@@ -19,6 +20,7 @@ const CartScreen = () =>{
 }
 
 const styles = StyleSheet.create({
+
     container: {
         flex:1,
         backgroundColor:'black',
@@ -32,11 +34,11 @@ const styles = StyleSheet.create({
     },
     image: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        resizeMode: 'cover', // Ensures the background image covers the screen
         width: '100%',
         height: '100%',
     },
+
     logo: {
         resizeMode: 'contain',
         width: '65%',
@@ -50,6 +52,7 @@ const styles = StyleSheet.create({
         lineHeight: 40,
         fontWeight: 'bold',
         backgroundColor: 'white',
+
     },
 });
 

@@ -13,7 +13,7 @@ const RootLayout = () => {
             options={{
                 title: "Sign In",
                 headerStyle: {
-                    backgroundColor: "purple",
+                    backgroundColor: "#5CB7A5",
                 },
                 headerTintColor: "white",
             }}
@@ -23,7 +23,7 @@ const RootLayout = () => {
             options={{
                 title: "Sign Up",
                 headerStyle: {
-                    backgroundColor: "purple",
+                    backgroundColor: "#5CB7A5",
                 },
                 headerTintColor: "white",
             }}
@@ -33,7 +33,7 @@ const RootLayout = () => {
             options={{
                 title: "Welcome",
                 headerStyle: {
-                    backgroundColor: "green",
+                    backgroundColor: "#5CB7A5",
                 },
                 headerTintColor: "white",
             }}
@@ -43,7 +43,7 @@ const RootLayout = () => {
             options={{
                 title: "Password Recovery",
                 headerStyle: {
-                    backgroundColor: "purple",
+                    backgroundColor: "#5CB7A5",
                 },
                 headerTintColor: "white",
             }}
@@ -53,7 +53,7 @@ const RootLayout = () => {
             options={{
                 title: "Password Reset",
                 headerStyle: {
-                    backgroundColor: "purple",
+                    backgroundColor: "#5CB7A5",
                 },
                 headerTintColor: "white",
             }}
@@ -63,7 +63,7 @@ const RootLayout = () => {
             options={{
                 title: "Test Environment",
                 headerStyle: {
-                    backgroundColor: "red",
+                    backgroundColor: "#5CB7A5",
                 },
                 headerTintColor: "white",
             }}
@@ -71,14 +71,75 @@ const RootLayout = () => {
         <Stack.Screen
             name="index"
             options={{
-                title: "Landing",
+                title: "Home",
                 headerStyle: {
                     backgroundColor: "black",
                 },
                 headerTintColor: "white",
             }}
         />
+
+        {/* All the new stuff i added  */}
+    <Stack.Screen
+        name="Admin/Adminpanel"
+        options={{
+            title: "Admin",
+            headerStyle: {
+                backgroundColor: "#5CB7A5",
+            },
+            headerTintColor: "white",
+        }}
+    />
+
+
+        <Stack.Screen
+            name="Admin/InsertProducts"
+            options={{
+                title: "Insert",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="Admin/ViewProduct"
+            options={{
+                title: "Edit Product",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+
+        <Stack.Screen
+            name="Admin/Category"
+            options={{
+                title: "Category",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="Admin/ViewCategory"
+            options={{
+                title: "Category",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
     </Stack>;
+    {/* All the new stuff i added  */}
 };
 
 export default RootLayout;

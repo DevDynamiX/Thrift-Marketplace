@@ -68,6 +68,25 @@ const App = () => {
                     <Icon name="hammer-outline" size={24} color="#fff" />
                     <Text style={styles.buttonText}>Test Environment</Text>
                 </Pressable>
+
+                {/* All the new stuff i added  */}
+
+                {/* Admin */}
+                <Pressable
+                    style={styles.button}
+                    onPress={() =>
+                        router.push({
+                            pathname: "Admin/Adminpanel"
+                        })
+                    }
+                >
+                    <Icon name="hammer-outline" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Admin</Text>
+                </Pressable>
+                {/* All the new stuff i added  */}
+
+
+
             </View>
         </Animated.View>
     );
