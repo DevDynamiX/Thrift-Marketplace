@@ -1,6 +1,6 @@
-import {View, Text, Pressable} from "react-native";
+import { View, Text, Pressable } from "react-native";
 import React from "react";
-import {router} from "expo-router";
+import { router } from "expo-router";
 
 const dummyData = () => {
     const navigateToSIgnUp = () =>{
