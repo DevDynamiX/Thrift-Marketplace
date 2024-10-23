@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, Image, Button, StyleSheet, TextInput, Modal, Alert, TouchableOpacity } from 'react-native';
+import {useFonts} from "expo-font";
+
 
 // Define the Product type
 type Product = {
@@ -13,6 +15,16 @@ type Product = {
 };
 
 const ViewProducts = () => {
+
+    const [fontsLoaded] = useFonts({
+        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
+        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
+
     const [products, setProducts] = useState<Product[]>([
         {
             id: '1',

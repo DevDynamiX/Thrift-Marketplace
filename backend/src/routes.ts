@@ -1,5 +1,6 @@
 import { UserController } from "./controller/UserController";
-
+import { AdminInventoryController } from "./controller/adminInventoryController";
+import { upload } from "./middleware/inventoryUpload";
 export const Routes = [
     {
         method: "get",
@@ -31,4 +32,43 @@ export const Routes = [
         controller: UserController,
         action: "register",
     },
+
+    //for admin DB
+
+    {
+        method: "get",
+        route: "/inventory",
+        controller: AdminInventoryController,
+        action: "all",
+    },
+    {
+        method: "get",
+        route: "/inventory/:SKU",
+        controller: AdminInventoryController,
+        action: "one",
+    },
+    {
+        method: "post",
+        route: "/inventory",
+        controller: AdminInventoryController,
+        action: "save",
+    },
+    {
+        method: 'post',
+        route: '/inventory',
+        controller: AdminInventoryController,
+        action: "save",
+        middleware: [upload.fields([
+            { name: 'mainImage', maxCount:1 },
+            { name: 'image2', maxCount:1 },
+            { name: 'image3', maxCount:1 },
+        ])]
+    },
+    {
+        method: "delete",
+        route: "/inventory/:SKU",
+        controller: AdminInventoryController,
+        action: "remove",
+    },
+
 ];
