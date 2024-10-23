@@ -1,49 +1,63 @@
-import * as express from "express";
-import * as bodyParser from "body-parser";
-import * as cors from "cors";
-import { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
 
-AppDataSource.initialize().then(async () => {
-
+const createServer = () => {
     const app = express();
+
+    // Configure middleware
     app.use(cors({
-        origin: 'http://192.168.1.117',
+        origin: '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     }));
 
     app.use(bodyParser.json());
+    app.use(requestLogger);
 
-    app.use((req, res, next) => {
-        console.log(`Received request: ${req.method} ${req.url}`);
-        next();
-    });
+    // Register routes
+    registerRoutes(app);
 
-    // register express routes from defined application routes
+    return app;
+};
+
+const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+    console.log(`Received request: ${req.method} ${req.url}`);
+    next();
+};
+
+const registerRoutes = (app: express.Application) => {
     Routes.forEach(route => {
-        (app as any)[route.method](route.route, (req: Request, res: Response, next: Function) => {
-            const result = (new (route.controller as any))[route.action](req, res, next)
-            if (result instanceof Promise) {
-                result.then(result => result !== null && result !== undefined ? res.send(result) : undefined)
-
-            } else if (result !== null && result !== undefined) {
-                res.json(result)
+        const controllerInstance = new (route.controller as any)();
+        app[route.method as keyof express.Application](route.route, async (req: Request, res: Response) => {
+            try {
+                const result = await controllerInstance[route.action](req, res);
+                if (result) {
+                    res.json(result);
+                }
+            } catch (error) {
+                console.error(error);
+                res.status(500).send("Internal Server Error");
             }
-        })
-    })
-
-    app.get('/', (req, res) => {
-        res.send('hello world');
+        });
     });
+};
 
-    // start express server
-    app.listen(Number(process.env.SERVER_PORT), () => {
-        console.log(`Express server has started on port ${process.env.SERVER_PORT}`);
-    });
+const startServer = async () => {
+    const app = createServer();
 
-    console.log("Express server has started on port 3000. Open http://192.168.1.117:3000/users to see results")
+    try {
+        await AppDataSource.initialize();
+        const port = Number(process.env.SERVER_PORT) || 3000;
+        app.listen(port, () => {
+            console.log(`Express server has started on ${process.env.BACKEND_HOST}.`);
+        });
+    } catch (error) {
+        console.error("Error initializing AppDataSource:", error);
+    }
+};
 
-}).catch(error => console.log(error))
+startServer();
