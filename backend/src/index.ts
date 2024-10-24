@@ -1,23 +1,14 @@
-import * as express from "express";
-import * as bodyParser from "body-parser";
-import * as cors from "cors";
-import { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
 import { seedRoles } from "./seeders/seedRoles";
 
-AppDataSource.initialize().then(async () => {
-
-    // Seed roles into the database
-    try {
-        await seedRoles(AppDataSource); // Call the seedRoles function
-        console.log("User roles seeded successfully.");
-    } catch (error) {
-        console.error("Failed to seed user roles:", error);
-        process.exit(1); // Exit if seeding fails to prevent further errors
-    }
-
+const createServer = () => {
     const app = express();
+
+    // Configure middleware
     app.use(cors({
         origin: process.env.DB_HOST,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -26,11 +17,18 @@ AppDataSource.initialize().then(async () => {
     }));
 
     app.use(bodyParser.json());
+    app.use(requestLogger);
 
-    app.use((req, res, next) => {
-        console.log(`Received request: ${req.method} ${req.url}`);
-        next();
-    });
+    // Register routes
+    registerRoutes(app);
+
+    return app;
+};
+
+const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+    console.log(`Received request: ${req.method} ${req.url}`);
+    next();
+};
 
     // Seed roles into the database
     try {
@@ -41,26 +39,35 @@ AppDataSource.initialize().then(async () => {
     }
 
     // Register express routes from defined application routes
+const registerRoutes = (app: express.Application) => {
     Routes.forEach(route => {
-        (app as any)[route.method](route.route, async (req: Request, res: Response, next: Function) => {
+        const controllerInstance = new (route.controller as any)();
+        app[route.method as keyof express.Application](route.route, async (req: Request, res: Response) => {
             try {
-                const result = (new (route.controller as any))[route.action](req, res, next);
-                if (result instanceof Promise) {
-                    const data = await result;
-                    result.then(result => result !== null && result !== undefined ? res.send(result) : undefined);
-                } else if (result !== null && result !== undefined) {
+                const result = await controllerInstance[route.action](req, res);
+                if (result) {
                     res.json(result);
                 }
             } catch (error) {
-                console.error("Error in route:", error); // Log error
-                res.status(500).json({ message: "An internal server error occurred" }); // Send error response
+                console.error(error);
+                res.status(500).send("Internal Server Error");
             }
         });
     });
+};
 
-    // start express server
-    app.listen(Number(process.env.SERVER_PORT), () => {
-        console.log(`Express server has started on port ${process.env.SERVER_PORT}`);
-    });
+const startServer = async () => {
+    const app = createServer();
 
-}).catch(error => console.log("Error during Data Source initialization:", error));
+    try {
+        await AppDataSource.initialize();
+        const port = Number(process.env.SERVER_PORT) || 3000;
+        app.listen(port, () => {
+            console.log(`Express server has started on ${process.env.BACKEND_HOST}.`);
+        });
+    } catch (error) {
+        console.error("Error initializing AppDataSource:", error);
+    }
+};
+
+startServer();

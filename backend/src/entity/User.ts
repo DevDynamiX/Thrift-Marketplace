@@ -4,24 +4,24 @@ import { UserRole } from './UserRole';
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column()
-    firstName: string;
+    firstName!: string;
 
     @Column()
-    lastName: string;
+    lastName!: string;
 
     @Column({ unique: true })
-    email: string;
+    email!: string;
 
     @Column()
-    password: string;
+    password!: string;
 
     @Column({ unique: true })
-    username: string;
+    username!: string;
 
     @ManyToOne(() => UserRole)
     @JoinColumn({ name: 'roleId' })
-    role: UserRole;
+    role!: UserRole;
 }

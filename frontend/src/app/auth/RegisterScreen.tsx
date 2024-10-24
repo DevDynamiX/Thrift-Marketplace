@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable , Alert} from 'react-native';
+import {
+    StyleSheet,
+    SafeAreaView,
+    View,
+    Image,
+    Text,
+    TouchableOpacity,
+    TextInput,
+    ScrollView,
+    ImageBackground,
+    Pressable,
+    Alert, StatusBar
+} from 'react-native';
 import { router } from "expo-router";
 import Constants from 'expo-constants';
 import { Firebase_Auth } from "@/firebaseConfig";
@@ -69,6 +81,7 @@ const SignUp = () => {
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
+            <StatusBar barStyle="light-content" backgroundColor="black" />
             <ImageBackground
                 source={require('@assets/images/TMBackground.png')}
                 style={styles.backgroundImage}

@@ -52,7 +52,7 @@ const AdminDashboard = () => {
 
             {/* Button Section */}
             <ScrollView contentContainerStyle={styles.buttonSection}>
-                <CustomButton text="Insert Products" path="/Admin/InsertProducts" navigateTo={navigateTo} />
+                <CustomButton text="Insert Products" path="/Admin/AdminInventoryUpload" navigateTo={navigateTo} />
                 <CustomButton text="View Products" path="/Admin/ViewProduct" navigateTo={navigateTo} />
                 <CustomButton text="Insert Categories" path="/Admin/Category" navigateTo={navigateTo} />
                 <CustomButton text="View Categories" path="/Admin/ViewCategory" navigateTo={navigateTo} />
