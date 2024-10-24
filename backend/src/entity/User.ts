@@ -1,8 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
+let primaryGeneratedColumn = PrimaryGeneratedColumn();
+
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
+    @primaryGeneratedColumn
     id!: number;
 
     @Column()

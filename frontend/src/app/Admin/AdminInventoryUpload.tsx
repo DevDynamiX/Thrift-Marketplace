@@ -45,6 +45,7 @@ const InsertProdScreen = () => {
         material: Yup.string().required('Material is required'),
     });
 
+
     const [imageUris, setImageUris] = useState({
         mainImage: '',
         image2: '',
@@ -115,15 +116,21 @@ const InsertProdScreen = () => {
         image3: string;
     }
 
+    //displaying on sale fields if toggled
+    const [ onSale, setOnSale ] = useState(false);
+
     const handleInventoryUpload = async (values: InventoryFormValues) => {
         setLoading(true);
 
         try {
             const formData = new FormData();
             //formData.append('adminID', adminId);
+
+            const itemPrice = onSale ? null : values.itemPrice;
+
             formData.append('SKU', values.SKU);
             formData.append('itemName', values.itemName);
-            formData.append('itemPrice', values.itemPrice);
+            formData.append('itemPrice', itemPrice);
             formData.append('description', values.description);
             formData.append('category', values.category);
             formData.append('size', values.size);
@@ -131,9 +138,9 @@ const InsertProdScreen = () => {
             formData.append('sex', values.sex);
             formData.append('damage', values.damage);
             formData.append('material', values.material);
-            formData.append('onSale', values.onSale);
-            formData.append('salePrice', values.salePrice);
-            formData.append('discountPercent', values.discountPercent);
+            formData.append('onSale', onSale);
+            formData.append('salePrice', onSale ? values.salePrice : '');
+            formData.append('discountPercent', onSale ? values.discountPercent : '');
 
             if (values.mainImage) {
                 const mainImage = {
@@ -162,6 +169,8 @@ const InsertProdScreen = () => {
                 formData.append('image3', image3);
             }
 
+            console.log("Form Data:", formData);
+
             //send form data to database
             const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/save`, {
                 method: 'POST',
@@ -175,7 +184,6 @@ const InsertProdScreen = () => {
                 const errorData = await dbResponse.json();
                 Alert.alert("Error", errorData.message || "An Error occurred while updating inventory.");
             }
-
             Alert.alert("Success", "Item successfully added to inventory!");
         } catch (error) {
             console.error("Inventory update Error.");
@@ -210,7 +218,7 @@ const InsertProdScreen = () => {
                                 sex: '',
                                 damage: '',
                                 material: '',
-                                onSale: '',
+                                onSale: false,
                                 salePrice: '',
                                 discountPercent: '',
                                 mainImage: '',
@@ -357,42 +365,51 @@ const InsertProdScreen = () => {
                                     <View style={styles.radioContainerSale}>
                                         <TouchableOpacity
                                             style={styles.radioButton}
-                                            onPress={() => setFieldValue('onSale', true)}
+                                            onPress={() => {setOnSale(true);
+                                                setFieldValue('onSale', true);
+                                                setFieldValue('itemPrice', '');
+                                        }}
                                         >
                                             <View style={[styles.radioCircle, values.onSale === true && styles.selectedRadio]} />
                                             <Text style={styles.radioLabel}>Yes</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             style={styles.radioButton}
-                                            onPress={() => setFieldValue('onSale', false)}
+                                            onPress={() => {
+                                                setOnSale(false);
+                                                setFieldValue('onSale', false);
+                                            }}
                                         >
                                             <View style={[styles.radioCircle, values.onSale === false && styles.selectedRadio]} />
                                             <Text style={styles.radioLabel}>No</Text>
                                         </TouchableOpacity>
                                     </View>
 
+                                    { onSale && (
+                                        <>
+                                            <Text style={styles.label}>Sale Price: </Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                onChangeText={handleChange('salePrice')}
+                                                onBlur={handleBlur('salePrice')}
+                                                placeholderTextColor="#6b7280"
+                                                value={values.salePrice}
+                                                placeholder="Enter the sale price of the item"
+                                                keyboardType= 'numeric'
+                                            />
 
-                                    <Text style={styles.label}>Sale Price: </Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        onChangeText={handleChange('salePrice')}
-                                        onBlur={handleBlur('salePrice')}
-                                        placeholderTextColor="#6b7280"
-                                        value={values.salePrice}
-                                        placeholder="Enter the sale price of the item"
-                                        keyboardType= 'numeric'
-                                    />
-
-                                    <Text style={styles.label}>Discount Percent (%): </Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        onChangeText={handleChange('discountPercent')}
-                                        onBlur={handleBlur('discountPercent')}
-                                        placeholderTextColor="#6b7280"
-                                        value={values.discountPercent}
-                                        placeholder="Enter the percentage of the item discount (e.g. 10%, 20% )"
-                                        keyboardType= 'numeric'
-                                    />
+                                            <Text style={styles.label}>Discount Percent (%): </Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                onChangeText={handleChange('discountPercent')}
+                                                onBlur={handleBlur('discountPercent')}
+                                                placeholderTextColor="#6b7280"
+                                                value={values.discountPercent}
+                                                placeholder="Enter the percentage of the item discount (e.g. 10%, 20% )"
+                                                keyboardType= 'numeric'
+                                            />
+                                        </>
+                                    )}
 
                                     <Text style={styles.label}>Main Image*:</Text>
                                     <TouchableOpacity
