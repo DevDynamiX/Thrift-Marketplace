@@ -1,9 +1,38 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {StyleSheet, View, Text, Pressable, Animated} from "react-native";
 import {router} from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
+import {checkUserSession, clearUserSession} from "@/app/auth/LoginScreen";
+import {Firebase_Auth} from "@/firebaseConfig";
+
+export const handleLogout = async () => {
+    await Firebase_Auth.signOut();
+    await clearUserSession();
+    router.replace("auth/LoginScreen");
+
+}
+
+const logoutButton = ()=>{
+    return(
+        <Pressable
+            onPress={handleLogout}
+            style={styles.button}
+        ><Text>Logout</Text></Pressable>
+    );
+};
 
 const App = () => {
+
+    useEffect(() => {
+        const checkSession = async ()=>{
+            const {isLoggedIn} = await checkUserSession();
+            if(isLoggedIn){
+                router.replace("(tabs)/HomeScreen");
+            }
+        };
+        checkSession();
+    }, []);
+
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     React.useEffect(() => {

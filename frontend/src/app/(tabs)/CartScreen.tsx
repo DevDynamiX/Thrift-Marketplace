@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, SafeAreaView, ImageBackground, StatusBar } from 'react-native';
+import {StyleSheet, SafeAreaView, ImageBackground, StatusBar, Image, Text, View} from 'react-native';
 
 const CartScreen = () => {
     return (
