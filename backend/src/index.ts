@@ -35,12 +35,14 @@ const registerRoutes = (app: express.Application) => {
         app[route.method as keyof express.Application](route.route, async (req: Request, res: Response) => {
             try {
                 const result = await controllerInstance[route.action](req, res);
-                if (result) {
-                    res.json(result);
+                if (result !== undefined) {
+                    return res.json(result);
                 }
             } catch (error) {
-                console.error(error);
-                res.status(500).send("Internal Server Error");
+                console.error("Error processing request:", error);
+                if (!res.headersSent) {
+                    return res.status(500).send("Internal Server Error");
+                }
             }
         });
     });

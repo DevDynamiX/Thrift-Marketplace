@@ -17,9 +17,9 @@ import { Formik } from 'formik';
 import * as ImagePicker from 'expo-image-picker';
 import { useFonts } from "expo-font";
 import Icon from 'react-native-vector-icons/Ionicons';
-import * as Yup from 'yup';
 import Constants from 'expo-constants';
 import { Picker } from '@react-native-picker/picker';
+
 
 const InsertProdScreen = () => {
 
@@ -31,20 +31,6 @@ const InsertProdScreen = () => {
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
-
-    const validationSchema = Yup.object().shape({
-        SKU: Yup.string().required('SKU is required'),
-        itemName: Yup.string().required('Item Name is required'),
-        itemPrice: Yup.number().required('Item Price is required').positive('Price must be positive'),
-        description: Yup.string().required('Description is required'),
-        category: Yup.string().required('Category is required'),
-        size: Yup.string().required('Size is required'),
-        colour: Yup.string().required('Colour is required'),
-        sex: Yup.string().required('Sex is required'),
-        damage: Yup.string().required('Damage is required'),
-        material: Yup.string().required('Material is required'),
-    });
-
 
     const [imageUris, setImageUris] = useState({
         mainImage: '',
@@ -63,7 +49,7 @@ const InsertProdScreen = () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
             quality: 1,
         });
 
@@ -100,7 +86,7 @@ const InsertProdScreen = () => {
     interface InventoryFormValues {
         SKU: string;
         itemName: string;
-        itemPrice: string;
+        itemPrice: number;
         description: string;
         category: string;
         size: string;
@@ -108,9 +94,9 @@ const InsertProdScreen = () => {
         sex: string;
         damage: string;
         material: string;
-        onSale: string;
-        salePrice: string;
-        discountPercent: string;
+        onSale: boolean;
+        salePrice: number;
+        discountPercent: number;
         mainImage: string;
         image2: string;
         image3: string;
@@ -119,6 +105,7 @@ const InsertProdScreen = () => {
     //displaying on sale fields if toggled
     const [ onSale, setOnSale ] = useState(false);
 
+    //saving the form data
     const handleInventoryUpload = async (values: InventoryFormValues) => {
         setLoading(true);
 
@@ -172,7 +159,7 @@ const InsertProdScreen = () => {
             console.log("Form Data:", formData);
 
             //send form data to database
-            const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/save`, {
+            const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -180,14 +167,28 @@ const InsertProdScreen = () => {
                 body: formData,
             });
 
+            const responseText = await dbResponse.text();
+            const responseData = JSON.parse(responseText);
+
+            console.log("Raw response:", responseData);
+
+            if (!responseData.success) {
+                alert(`Error: ${responseData.message}`);
+                return;
+            }
             if (!dbResponse.ok) {
-                const errorData = await dbResponse.json();
+                const errorData = JSON.parse(responseText);
                 Alert.alert("Error", errorData.message || "An Error occurred while updating inventory.");
             }
             Alert.alert("Success", "Item successfully added to inventory!");
         } catch (error) {
-            console.error("Inventory update Error.");
-            Alert.alert("Error: ", "An error occurred while updating inventory. ");
+            if (error.response && error.response.data) {
+                console.log('Error response:', error.response.data);
+                Alert.alert("Error", error.response.data.message || "An error occurred while updating inventory.");
+            } else {
+                console.log('Unexpected error format:', error);
+                Alert.alert("Error", error.message || "An unexpected error occurred. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
@@ -226,7 +227,6 @@ const InsertProdScreen = () => {
                                 image3: '',
                             }}
 
-                            validationSchema={validationSchema}
                             onSubmit={handleInventoryUpload}
                         >
                             {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
         fontFamily: 'sulphurPoint',
         color: '#93D3AE',
         fontSize: 18,
-        marginRight: 15,
+        marginRight: 5,
     },
     previewContainer: {
         marginTop: 20,

@@ -8,7 +8,7 @@ interface MulterFile {
     mimetype: string;
     buffer: Buffer;
     size: number;
-    path: string; // Add more properties as necessary
+    path: string;
 }
 
 declare global {

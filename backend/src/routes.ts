@@ -34,7 +34,6 @@ export const Routes = [
     },
 
     //for admin DB
-
     {
         method: "get",
         route: "/inventory",
@@ -46,12 +45,6 @@ export const Routes = [
         route: "/inventory/:SKU",
         controller: AdminInventoryController,
         action: "one",
-    },
-    {
-        method: "post",
-        route: "/inventory",
-        controller: AdminInventoryController,
-        action: "save",
     },
     {
         method: 'post',

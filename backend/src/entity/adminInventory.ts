@@ -56,8 +56,4 @@ export class Inventory {
     @Column({ type: 'text', nullable: false })
     image3!: string;
 
-    // Function will override original price if sale price is set
-    getFinalPrice(): number {
-        return this.onSale && this.salePrice ? this.salePrice : this.itemPrice;
-    }
 }

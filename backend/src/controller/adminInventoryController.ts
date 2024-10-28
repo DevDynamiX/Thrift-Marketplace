@@ -2,6 +2,7 @@ import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Inventory } from "../entity/adminInventory";
 import { unlink } from 'fs';
+import {DeepPartial} from "typeorm";
 
 export class AdminInventoryController {
 
@@ -38,44 +39,41 @@ export class AdminInventoryController {
     }
 
     // Save a new item
-    async save(request: Request, response: Response, next: NextFunction) {
-        const { adminID,
-                SKU,
-                itemName,
-                itemPrice,
-                description,
-                category,
-                size,
-                colour,
-                sex,
-                damage,
-                material,
-                onSale,
-                salePrice,
-                discountPercent,
-                } = request.body;
+    async save(req: Request, res: Response) {
+        const {
+            SKU,
+            itemName,
+            itemPrice,
+            description,
+            category,
+            size,
+            colour,
+            sex,
+            damage,
+            material,
+            onSale,
+            salePrice,
+            discountPercent,
+        } = req.body;
+
+
 
         if (!SKU || !itemName || !itemPrice) {
-            return response.status(400).json({success: false, message: "Enter required fields."});
+            return res.status(400).json({ success: false, message: "Enter required fields." });
         }
 
         if (onSale && !salePrice) {
-            return  response.status(400).json({success: false, message: "Sale price is required." });
+            return res.status(400).json({ success: false, message: "Sale price is required." });
         }
 
         try {
-            const files = request.files as { [key: string]: Express.Multer.File[] } | undefined;
+            const files = req.files as { [key: string]: Express.Multer.File[] } | undefined;
 
-            if (!files) {
-                throw new Error("No files were uploaded.");
-            }
+            const mainImage = files?.['mainImage']?.[0]?.path || null;
+            const image2 = files?.['image2']?.[0]?.path || null;
+            const image3 = files?.['image3']?.[0]?.path || null;
 
-            const mainImage =  files['mainImage'] ? files['mainImage'][0].path : null;
-            const image2 = files['image2'] ? files['image2'][0].path : null;
-            const image3 = files['image3'] ? files['image3'][0].path : null;
-
-            const inventory = Object.assign(new Inventory(), {
-                adminID,
+            const savedItem = await this.inventoryRepository.save({
                 SKU,
                 itemName,
                 itemPrice,
@@ -92,15 +90,20 @@ export class AdminInventoryController {
                 mainImage,
                 image2,
                 image3
-            });
+            } as DeepPartial<Inventory>);
 
-            const savedItem = await this.inventoryRepository.save(inventory);
-            return response.status(201).json({success: false, data: savedItem});
+
+            // Only return essential details
+            return res.json({
+                success: true,
+                message: "Item saved successfully.",
+            });
         } catch (error) {
-            console.error("Error Saving Item to Inventory: ", error);
-            return response.status(500).json({ success: false, message: "Error saving to Inventory." });
+            console.error("Error Saving Item to Inventory: ", (error as Error).message);
+            return res.status(500).json({ success: false, message: "Error saving to Inventory." });
         }
     }
+
 
     // Remove a item
     async remove(request: Request, response: Response, next: NextFunction) {
@@ -115,7 +118,7 @@ export class AdminInventoryController {
 
             await this.inventoryRepository.remove(itemToRemove)
 
-            const imagePaths = [itemToRemove.mainImage, itemToRemove.image2, itemToRemove.mainImage];
+            const imagePaths = [itemToRemove.mainImage, itemToRemove.image2, itemToRemove.image3];
 
             imagePaths.forEach(imagePath => {
                 if(imagePath) {
