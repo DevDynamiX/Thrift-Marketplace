@@ -8,9 +8,10 @@ import {
     ImageBackground,
     Image,
     StatusBar,
-    Pressable
+    Pressable, Button
 } from 'react-native';
-import {router} from "expo-router";
+import {handleLogout} from '../index';
+
 
 export default function Menu() {
     return (
@@ -75,7 +76,7 @@ export default function Menu() {
                                 source={require('@assets/images/videogame.png')} // Replace with your icon
                                 style={styles.icon}
                             />
-                            <Text style={styles.menuText}>Logout</Text>
+                            <Button title="Logout" onPress={handleLogout}/>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>

@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import Constants from 'expo-constants';
 import { Firebase_Auth } from "@/firebaseConfig";
 import { signInWithEmailAndPassword } from "@firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = () => {
 
@@ -12,6 +13,17 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     // const auth = Firebase_Auth;
+
+    const storeUserSession = async(userToken:string):Promise<void> =>{
+        try{
+            await AsyncStorage.setItem('userToken', userToken);
+            await AsyncStorage.setItem('userEmail', email);
+            await AsyncStorage.setItem('lastLoginTime',new Date().toISOString() );
+        }
+        catch(error){
+            console.log(error);
+        }
+    }
 
     const signIn = async () => {
         if (!email || !password) {
@@ -56,6 +68,13 @@ const Login = () => {
         } catch (error) {
             console.error("Login error:", error);
             Alert.alert("Error", "An error occurred while logging in");
+            const token = await response.user.getIdToken();
+            await storeUserSession(token);
+
+            router.replace("(tabs)/HomeScreen");
+        } catch (error: any) {
+            console.log(error);
+            Alert.alert("Error", error.message);
         } finally {
             setLoading(false);
         }
@@ -146,6 +165,34 @@ const Login = () => {
         </SafeAreaView>
     );
 
+}
+
+export const checkUserSession = async () => {
+    try {
+        const userToken = await AsyncStorage.getItem('userToken');
+        const userEmail = await AsyncStorage.getItem('userEmail');
+
+        return {
+            isLoggedIn: !!userToken,
+            userToken,
+            userEmail
+        };
+    }catch(error) {
+        console.log(error);
+        return {
+            isLoggedIn: false,
+            userToken: null,
+            userEmail: null
+        };
+    }
+};
+
+export const clearUserSession = async () => {
+    try {
+        await AsyncStorage.multiRemove(['userToken', 'userEmail', 'lastLoginTime']);
+    }catch(error) {
+        console.log(error);
+    }
 }
 
 export default Login;
