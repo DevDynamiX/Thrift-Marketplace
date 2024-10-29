@@ -3,22 +3,21 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
-import { upload, errorHandler } from './middleware/inventoryUpload';
-
+import { seedRoles } from "./scripts/seeders/seedRoles";
 
 const createServer = () => {
     const app = express();
 
     // Configure middleware
     app.use(cors({
-        origin: '*',
+        origin: process.env.DB_HOST,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     }));
 
-    app.use(requestLogger);
     app.use(bodyParser.json());
+    app.use(requestLogger);
 
     // Register routes
     registerRoutes(app);
@@ -32,32 +31,24 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
     next();
 };
 
+// Register express routes from defined application routes
 const registerRoutes = (app: express.Application) => {
     Routes.forEach(route => {
-        const controllerInstance = new (route.controller as any)();
-        const isFileUploadRoute = route.action === "upload";
-
         app[route.method as keyof express.Application](route.route, async (req: Request, res: Response) => {
             try {
-                if (isFileUploadRoute && req.file) {
-                    console.log('Received file:', req.file);
-                } else if (isFileUploadRoute) {
-                    return res.status(400).json({ message: 'No file uploaded.' });
-                }
-
+                const controllerInstance = new route.controller();
                 const result = await controllerInstance[route.action](req, res);
-                if (result !== undefined) {
-                    return res.json(result);
+
+                if (!res.headersSent) {
+                    res.json(result);
                 }
             } catch (error) {
-                console.error("Error processing request:", error);
+                console.error("Error in route handler:", error);
                 if (!res.headersSent) {
-                    return res.status(500).send("Internal Server Error");
+                    res.status(500).json({ message: "Internal Server Error" });
                 }
             }
-        },
-        errorHandler
-        );
+        });
     });
 };
 
@@ -65,7 +56,18 @@ const startServer = async () => {
     const app = createServer();
 
     try {
+        // Initialize the data source (database connection)
         await AppDataSource.initialize();
+
+        //Seed roles into the database
+        try {
+            await seedRoles(AppDataSource); // Call the seedRoles function
+            console.log("User roles seeded successfully.");
+        } catch (error) {
+            console.error("Failed to seed user roles:", error);
+        }
+
+        // Start the server
         const port = Number(process.env.SERVER_PORT) || 3000;
         app.listen(port, () => {
             console.log(`Express server has started on ${process.env.BACKEND_HOST}.`);
@@ -75,4 +77,8 @@ const startServer = async () => {
     }
 };
 
-startServer();
+startServer().then(
+    response => console.log("Server started successfully.")
+).catch(
+    error => console.error("Failed to start server:", error)
+);

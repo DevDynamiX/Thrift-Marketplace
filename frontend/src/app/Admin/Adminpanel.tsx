@@ -61,7 +61,7 @@ const AdminDashboard = () => {
                 <CustomButton text="All Orders" path="/auth/AllOrders" navigateTo={navigateTo} />
                 <CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />
                 <CustomButton text="List Users" path="/auth/ListUsers" navigateTo={navigateTo} />
-                <CustomButton text="Logout" path="/auth/Logout" navigateTo={navigateTo} />
+                <CustomButton text="Logout" path="/auth/LoginScreen" navigateTo={navigateTo} />
             </ScrollView>
 
             {/* Bottom White Bar */}

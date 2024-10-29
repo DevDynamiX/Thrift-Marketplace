@@ -1,15 +1,16 @@
 import { AppDataSource } from "../data-source";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Inventory } from "../entity/adminInventory";
 import { unlink } from 'fs';
 import {DeepPartial} from "typeorm";
+import { BaseInventoryController } from '../core/base/controllers/BaseInventoryController'; // Assuming you create this file
 
-export class AdminInventoryController {
+export class AdminInventoryController implements BaseInventoryController {
 
     private inventoryRepository = AppDataSource.getRepository(Inventory)
 
     // Get all in inventory table
-    async all(request: Request, response: Response, next: NextFunction) {
+    async all(request: Request, response: Response) {
         try {
             const inventory = await this.inventoryRepository.find();
             return response.json(inventory);
@@ -20,7 +21,7 @@ export class AdminInventoryController {
     }
 
     // Get an item by ID
-    async one(request: Request, response: Response, next: NextFunction) {
+    async one(request: Request, response: Response) {
         const id = parseInt(request.params.id)
 
         try {
@@ -121,7 +122,7 @@ export class AdminInventoryController {
 
 
     // Remove a item
-    async remove(request: Request, response: Response, next: NextFunction) {
+    async remove(request: Request, response: Response) {
         const id = parseInt(request.params.id)
 
         try {
