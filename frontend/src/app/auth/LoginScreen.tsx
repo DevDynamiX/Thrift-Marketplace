@@ -45,9 +45,9 @@ const Login = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    email,
+                    username,
                     password,
-                }),
+                })
             });
 
             if (!response.ok) {
@@ -60,21 +60,21 @@ const Login = () => {
             console.log("User data:", data); // Check if you receive the correct data
 
             // Navigate based on user role
-            if (data.role === 'admin') {
-                router.replace("Admin/AdminPanel"); // Replace with your admin panel route
-            } else {
-                router.replace("(tabs)/HomeScreen"); // Replace with your user home screen route
+            switch (data.role) {
+                case 'Admin':
+                    router.replace("Admin/Adminpanel"); // Replace with your admin panel route
+                    break;
+                default:
+                    router.replace("(tabs)/HomeScreen"); // Replace with your user home screen route
+                    break;
             }
         } catch (error) {
             console.error("Login error:", error);
             Alert.alert("Error", "An error occurred while logging in");
-            const token = await response.user.getIdToken();
-            await storeUserSession(token);
+            // const token = await Response.user.getIdToken();
+            // await storeUserSession(token);
 
             router.replace("(tabs)/HomeScreen");
-        } catch (error: any) {
-            console.log(error);
-            Alert.alert("Error", error.message);
         } finally {
             setLoading(false);
         }
