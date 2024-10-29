@@ -110,90 +110,76 @@ const InsertProdScreen = () => {
         setLoading(true);
 
         try {
-            const formData = new FormData();
-            //formData.append('adminID', adminId);
 
-            const itemPrice = onSale ? null : values.itemPrice;
+            let adjustedSalePrice =  values.salePrice;
 
-            formData.append('SKU', values.SKU);
-            formData.append('itemName', values.itemName);
-            formData.append('itemPrice', itemPrice);
-            formData.append('description', values.description);
-            formData.append('category', values.category);
-            formData.append('size', values.size);
-            formData.append('colour', values.colour);
-            formData.append('sex', values.sex);
-            formData.append('damage', values.damage);
-            formData.append('material', values.material);
-            formData.append('onSale', onSale);
-            formData.append('salePrice', onSale ? values.salePrice : '');
-            formData.append('discountPercent', onSale ? values.discountPercent : '');
+            if (values.onSale){
+                if (!adjustedSalePrice) {
+                    alert('A sale price is required if an item is on sale.');
+                    setLoading(false);
+                    return;
+                }}
 
-            if (values.mainImage) {
-                const mainImage = {
-                    uri: values.mainImage,
-                    type: 'image/jpeg',
+            const formData = {
+                SKU: values.SKU,
+                itemName: values.itemName,
+                itemPrice: values.salePrice ? values.salePrice : values.itemPrice,
+                description: values.description,
+                category: values.category,
+                size: values.size,
+                colour: values.colour,
+                sex: values.sex,
+                damage: values.damage,
+                material: values.material,
+                onSale: values.onSale,
+                salePrice: values.onSale ?  adjustedSalePrice : null,
+                discountPercent: values.onSale ? values.discountPercent : null,
+                mainImage: imageUris.mainImage ? {
+                    uri: imageUris.mainImage,
                     name: 'mainImage.jpg',
-                } as any;
-                formData.append('mainImage', mainImage);
-            }
-
-            if (values.image2) {
-                const image2 = {
-                    uri: values.image2,
                     type: 'image/jpeg',
+                }: null,
+                image2: imageUris.image2 ? {
+                    uri: imageUris.image2,
                     name: 'image2.jpg',
-                } as any;
-                formData.append('image2', image2);
-            }
-
-            if (values.image3) {
-                const image3 = {
-                    uri: values.image3,
-                    type: 'image/jpeg',
+                    type: 'image/jpeg'
+                }: null,
+                image3: imageUris.image3 ? {
+                    uri: imageUris.image3,
                     name: 'image3.jpg',
-                } as any;
-                formData.append('image3', image3);
-            }
+                    type: 'image/jpeg'
+                }:null,
+            };
 
-            console.log("Form Data:", formData);
+            console.log("Form data:", formData);
 
-            //send form data to database
             const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'application/json',
                 },
-                body: formData,
+                body: JSON.stringify(formData),
             });
-
             const responseText = await dbResponse.text();
             const responseData = JSON.parse(responseText);
-
             console.log("Raw response:", responseData);
 
             if (!responseData.success) {
                 alert(`Error: ${responseData.message}`);
                 return;
             }
-            if (!dbResponse.ok) {
-                const errorData = JSON.parse(responseText);
-                Alert.alert("Error", errorData.message || "An Error occurred while updating inventory.");
-            }
+
+
             Alert.alert("Success", "Item successfully added to inventory!");
         } catch (error) {
-            if (error.response && error.response.data) {
-                console.log('Error response:', error.response.data);
-                Alert.alert("Error", error.response.data.message || "An error occurred while updating inventory.");
-            } else {
-                console.log('Unexpected error format:', error);
-                Alert.alert("Error", error.message || "An unexpected error occurred. Please try again.");
-            }
+            console.error('Error:', error);
+            Alert.alert("Error", "An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);
         }
-
     };
+
+
 
     return (
         <SafeAreaView style = {styles.container}>
@@ -220,11 +206,11 @@ const InsertProdScreen = () => {
                                 damage: '',
                                 material: '',
                                 onSale: false,
-                                salePrice: '',
-                                discountPercent: '',
-                                mainImage: '',
-                                image2: '',
-                                image3: '',
+                                salePrice: null,
+                                discountPercent: null,
+                                mainImage: null,
+                                image2: null,
+                                image3: null,
                             }}
 
                             onSubmit={handleInventoryUpload}
@@ -367,7 +353,6 @@ const InsertProdScreen = () => {
                                             style={styles.radioButton}
                                             onPress={() => {setOnSale(true);
                                                 setFieldValue('onSale', true);
-                                                setFieldValue('itemPrice', '');
                                         }}
                                         >
                                             <View style={[styles.radioCircle, values.onSale === true && styles.selectedRadio]} />
@@ -378,6 +363,9 @@ const InsertProdScreen = () => {
                                             onPress={() => {
                                                 setOnSale(false);
                                                 setFieldValue('onSale', false);
+                                                setFieldValue('salePrice', null);
+                                                setFieldValue('discountPercent', null);
+
                                             }}
                                         >
                                             <View style={[styles.radioCircle, values.onSale === false && styles.selectedRadio]} />
@@ -584,7 +572,7 @@ const styles = StyleSheet.create({
         fontFamily: 'sulphurPoint',
         color: '#93D3AE',
         fontSize: 18,
-        marginRight: 5,
+        marginRight: 15,
     },
     previewContainer: {
         marginTop: 20,

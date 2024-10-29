@@ -5,8 +5,9 @@ export class Inventory {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column({ nullable: false })
-    adminID!: string;
+    //TODO: Change to null when can be fetched from Session
+    @Column({ nullable: true })
+    adminID?: string;
 
     @Column({ nullable: false, unique: true })
     SKU!: string;
@@ -14,7 +15,7 @@ export class Inventory {
     @Column({ nullable: false })
     itemName!: string;
 
-    @Column("decimal", { precision: 10, scale: 2, nullable: false })
+    @Column("decimal", { precision: 10, scale: 2, nullable: false, default: 0 })
     itemPrice!: number;
 
     @Column({ type: 'text', nullable: false })
@@ -41,19 +42,20 @@ export class Inventory {
     @Column({ default: false, nullable: true })
     onSale!: boolean;
 
-    @Column("decimal", { precision: 10, scale: 2, default: false, nullable: true })
-    salePrice!: number;
+    @Column("decimal", { precision: 10, scale: 2,  nullable: true })
+    salePrice?: number;
 
-    @Column({ type: 'float', default: false, nullable: true })
-    discountPercent!: number;
+    @Column({ type: 'float', nullable: true })
+    discountPercent?: number;
 
-    @Column({ type: 'text', nullable: false })
-    mainImage!: string;
+    //TODO: reset to nullable: false
+    @Column({ type: 'text', nullable: true })
+    mainImage?: string;
 
-    @Column({ type: 'text', nullable: false })
-    image2!: string;
+    @Column({ type: 'text', nullable: true })
+    image2?: string;
 
-    @Column({ type: 'text', nullable: false })
-    image3!: string;
+    @Column({ type: 'text', nullable: true })
+    image3?: string;
 
 }

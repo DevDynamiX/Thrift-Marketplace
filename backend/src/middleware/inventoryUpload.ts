@@ -30,3 +30,15 @@ export const upload = multer ({
     limits: {fileSize: 5 * 1024 * 1024},
     fileFilter
 });
+
+
+export const errorHandler = (err: any, req: any, res: any, next: any) => {
+    if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        return res.status(500).json({ message: err.message });
+    } else if (err) {
+        // An unknown error occurred when uploading.
+        return res.status(400).json({ message: err.message });
+    }
+    next();
+};

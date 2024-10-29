@@ -54,11 +54,13 @@ export class AdminInventoryController {
             onSale,
             salePrice,
             discountPercent,
+            mainImage,
+            image2,
+            image3
         } = req.body;
 
 
-
-        if (!SKU || !itemName || !itemPrice) {
+        if (!SKU || !itemName ||  (onSale ? false : !itemPrice)) {
             return res.status(400).json({ success: false, message: "Enter required fields." });
         }
 
@@ -67,11 +69,19 @@ export class AdminInventoryController {
         }
 
         try {
-            const files = req.files as { [key: string]: Express.Multer.File[] } | undefined;
+            //checking if SKU exists
+            const existingItem =  await this.inventoryRepository.findOne({where: { SKU }});
 
-            const mainImage = files?.['mainImage']?.[0]?.path || null;
-            const image2 = files?.['image2']?.[0]?.path || null;
-            const image3 = files?.['image3']?.[0]?.path || null;
+            if (existingItem) {
+                return res.status(400).json({ success: false,  message: "Item with this SKU already exists" })
+            }
+
+            // const files = req.files as {
+            //     [key: string]: Express.Multer.File[]
+            // } | undefined;
+            // const mainImage = files?.['mainImage']?.[0]?.path || null;
+            // const image2 = files?.['image2']?.[0]?.path || null;
+            // const image3 = files?.['image3']?.[0]?.path || null;
 
             const savedItem = await this.inventoryRepository.save({
                 SKU,
@@ -87,10 +97,15 @@ export class AdminInventoryController {
                 onSale,
                 salePrice,
                 discountPercent,
-                mainImage,
-                image2,
-                image3
+                mainImage: mainImage?.uri || null,
+                image2: image2?.uri || null,
+                image3: image3?.uri || null,
             } as DeepPartial<Inventory>);
+
+            console.log("Parsed Request Body:", req.body);
+            console.log('Files:', req.files);
+
+            //console.log("SKU:", SKU, "itemName:", itemName, "itemPrice:", itemPrice);
 
 
             // Only return essential details
