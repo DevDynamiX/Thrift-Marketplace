@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     ImageBackground,
@@ -16,6 +16,7 @@ import {
 import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
+import Constants from "expo-constants";
 
 
 const { width } = Dimensions.get('window');
@@ -33,11 +34,12 @@ const HomeScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    // Define states as normal
     const [isFavourited, setIsFavourited] = useState(false);
     const [playHeartAnimation, setPlayAnimation] = useState(false);
     const [isAddedToCart, setIsAddedToCart] = useState(false);
     const [playCartAnimation, setPlayCartAnimation] = useState(false);
+    const [inventoryItems, setInventoryItems ] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const toggleFavourite = () => {
         setIsFavourited(!isFavourited);
@@ -59,6 +61,20 @@ const HomeScreen = () => {
     }
 
 
+    useEffect(() => {
+        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`)
+            .then(response => response.json())
+            .then( data => {
+                setInventoryItems(data);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching inventory: ", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+
     // @ts-ignore
     return (
         <SafeAreaView style = {styles.container}>
@@ -71,57 +87,54 @@ const HomeScreen = () => {
                     style = {styles.image}>
 
                     <View style={styles.MainContainer}>
-
                         <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
                         <View style = {styles.rowsContainer}>
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}>Recommended for user</Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
+                            <View style={styles.clothesRow}>
+                                <Text style={styles.headerText}>Recommended for you</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     <View style={styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <TouchableOpacity>
-                                                { playHeartAnimation ? (
-                                                    <LottieView source = {require('@assets/animations/likeButtonAnimation.json')}
-                                                    autoPlay
-                                                    loop = { false }
-                                                    //style = { styles.likeButton}
-                                                    onAnimationFinish={() => setPlayAnimation(false)}/>
-                                                ):(
-                                                    <Icon
-                                                        name={ isFavourited ? 'heart' : 'heart-outline'}
-                                                        style = {[styles.staticHeart, isFavourited && styles.filledHeart]}
-                                                        size = { 30 }
-                                                    />
-                                                )}
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={toggleCart}>
-                                                {playCartAnimation ? (
-                                                    <LottieView
-                                                        source={require('@assets/animations/cartAnimation.json')}
-                                                        autoPlay
-                                                        loop={false}
-                                                        //style={styles.cartButton}
-                                                        onAnimationFinish={() => setPlayCartAnimation(false)}
-                                                    />
-                                                ) : (
-                                                    <Icon
-                                                        name={isAddedToCart ? "cart" : "cart-outline"}
-                                                        style={[styles.staticCart, isAddedToCart && styles.filledCart]}
-                                                        size={30}
-                                                    />
-                                                )}
-                                            </TouchableOpacity>
-                                        </View>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/1024x1024-Mens-SagaOne-Red-102422-Flatlay1_600x.webp")}/>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/5141 Maha Basquiat 5_EEP T-Shirt Black - L _ Black.jpeg")}/>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/AllSaints Rex Slim Fit Jeans in Jet Black at Nordstrom, Size 30 X 32.jpeg")}/>
+                                        {inventoryItems.slice(0, 10).map((item) => (
+                                            <View key={item.id} style={styles.imageContainer}>
+                                                <Image style={styles.clothesImage} source={ { uri: item.mainImage } } />
+
+                                                <View style={styles.actionButtons}>
+                                                    <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
+                                                        {playHeartAnimation ? (
+                                                            <LottieView
+                                                                source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                autoPlay
+                                                                loop={false}
+                                                                onAnimationFinish={() => setPlayAnimation(false)}
+                                                            />
+                                                        ) : (
+                                                            <Icon
+                                                                name={item.isFavourited ? 'heart' : 'heart-outline'}
+                                                                style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                size={30}
+                                                            />
+                                                        )}
+                                                    </TouchableOpacity>
+
+                                                    <TouchableOpacity onPress={() => toggleCart(item.id)}>
+                                                        {playCartAnimation ? (
+                                                            <LottieView
+                                                                source={require('@assets/animations/cartAnimation.json')}
+                                                                autoPlay
+                                                                loop={false}
+                                                                onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                            />
+                                                        ) : (
+                                                            <Icon
+                                                                name={item.isAddedToCart ? 'cart' : 'cart-outline'}
+                                                                style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
+                                                                size={30}
+                                                            />
+                                                        )}
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        ))}
                                     </View>
                                 </ScrollView>
                                 <View style = { styles.columnScrollMarker }>
@@ -129,65 +142,8 @@ const HomeScreen = () => {
                                 </View>
                             </View>
 
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}> On Sale </Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style = {styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <Icon name="heart-outline" style = { styles.likeButton } size={ 30 }></Icon>
-                                            <Icon name = "cart-outline" style = {styles.cartButton } size = { 30 }></Icon>
-                                        </View>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Ami De Coeur Short Black Unisex.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Balenciaga Oversize Double Face Wool Blend Crewneck Sweater in Black at Nordstrom, Size Small.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/da5a8ddd-8db0-43ff-aa7d-4a93141d93e2.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Men's_Streetwear_Shorts.jpeg")}/>
-                                    </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
-                                </View>
-                            </View>
+                            {/*TODO: ADD sales and new*/}
 
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}> New In </Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style = {styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <Icon name="heart" style = { styles.likeButton } size={ 30 }></Icon>
-                                            <Icon name = "cart" style = {styles.cartButton } size = { 30 }></Icon>
-                                        </View>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Chomp Mongo Skate Tee.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/LEVI\'S® _ 501® ORIGINAL JEANS.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
-                                    </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
-                                </View>
-                            </View>
-
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}>Recommended for 'user'</Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style = {styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <Icon name="heart" style = { styles.likeButton } size={ 30 }></Icon>
-                                            <Icon name = "cart" style = {styles.cartButton } size = { 30 }></Icon>
-                                        </View>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/New Haven Twill Jacket.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Ami De Coeur Short Black Unisex.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/O\'Neill Men\'s Mixed Bag T-Shirt in Black, Size Medium.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
-                                    </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
-                                </View>
-                            </View>
                         </View>
                     </View>
                 </ImageBackground>
@@ -214,7 +170,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         justifyContent: 'center',
-        marginTop: '10%'
+        marginTop: '4%'
     },
 
     logo: {
@@ -241,10 +197,12 @@ const styles = StyleSheet.create({
 
     //each row of images with title
     clothesRow: {
-        flex: 1,
+        //flex: 1,
+        width: '100%',
+        height: 200,
         flexDirection: "column",
         position: "relative",
-        bottom: '50%',
+        bottom: '60%',
         marginVertical:10,
     },
 
@@ -275,6 +233,21 @@ const styles = StyleSheet.create({
     },
 
 
+    imageContainer: {
+        height: 170,
+        width: itemSize,
+        borderRadius: 5,
+        resizeMode: 'cover' as ImageStyle['resizeMode'],
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 2,
+            height: 2,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 5,
+        margin: 5,
+    },
 
     //marker
     columnScrollMarker: {
@@ -284,10 +257,8 @@ const styles = StyleSheet.create({
         position: "absolute",
         zIndex: 2,
         left: 340,
-        top: '13%'
-
-
-},
+        top: '14%'
+    },
     arrowIcon: {
         color: '#212121',
         position: "relative",
@@ -307,7 +278,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         position: "absolute",
         zIndex: 2,
-        left: '12%',
+        left: '50%',
         bottom: '1%',
 
     },
