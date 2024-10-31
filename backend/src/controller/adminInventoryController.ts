@@ -11,7 +11,9 @@ export class AdminInventoryController {
     // Get all in inventory table
     async all(request: Request, response: Response, next: NextFunction) {
         try {
-            const inventory = await this.inventoryRepository.find();
+            const inventory = await this.inventoryRepository.find({
+                order: {id: "DESC"}
+            });
             return response.json(inventory);
         } catch (error) {
             console.error("Error Fetching Inventory: ", error);
