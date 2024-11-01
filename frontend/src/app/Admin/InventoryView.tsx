@@ -16,7 +16,8 @@ import {
     Modal
 } from 'react-native';
 import { Formik } from 'formik';
-import * as ImagePicker from 'expo-image-picker'; import * as Yup from 'yup';
+import * as ImagePicker from 'expo-image-picker';
+import * as Yup from 'yup';
 import {useFonts} from "expo-font";
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Table, TableWrapper, Row, Cell } from 'react-native-table-component';
