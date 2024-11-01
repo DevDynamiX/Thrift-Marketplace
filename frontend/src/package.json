@@ -14,8 +14,6 @@
   "jest": {
     "preset": "jest-expo"
   },
-
-//  TODO: remove this
   "detox": {
     "configurations": {
       "ios.sim.debug": {
