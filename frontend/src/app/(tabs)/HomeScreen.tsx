@@ -133,7 +133,6 @@ const HomeScreen = () => {
 
                             {/*TODO: Filter by gender*/}
 
-
                             <View style={styles.rowsContainer}>
                                 {/*Recommended Row*/}
                                 <View style={styles.clothesRow}>
@@ -145,10 +144,11 @@ const HomeScreen = () => {
                                         onScroll={(event) => setRecommendedScrollX((event.nativeEvent.contentOffset.x))}
                                         scrollEventThrottle={16}
                                         style={{flexGrow: 0}}
+                                        testID = "recommendedScrollView"
                                     >
                                         <View style={styles.RowImages}>
                                             {inventoryItems.slice(0, 10).map((item) => (
-                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
+                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item]`}>
                                                     <View key={item.id} style={styles.imageContainer}>
                                                         <Image style={styles.clothesImage}
                                                                source={{uri: item.mainImage}}/>
