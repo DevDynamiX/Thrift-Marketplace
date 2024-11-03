@@ -20,7 +20,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { Picker } from '@react-native-picker/picker';
 
-
+//TODO: RESET FORM AFTER SUCCESSFUL UPLOAD
+// TODO: add date stamp
 const InsertProdScreen = () => {
 
     const [fontsLoaded] = useFonts({

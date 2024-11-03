@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     ImageBackground,
@@ -11,11 +11,14 @@ import {
     ActivityIndicator,
     ScrollView,
     ImageStyle,
-    TouchableOpacity
+    TouchableOpacity,
+    Modal,
+    FlatList
 } from 'react-native';
 import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
+import Constants from "expo-constants";
 
 
 const { width } = Dimensions.get('window');
@@ -33,11 +36,25 @@ const HomeScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    // Define states as normal
     const [isFavourited, setIsFavourited] = useState(false);
     const [playHeartAnimation, setPlayAnimation] = useState(false);
     const [isAddedToCart, setIsAddedToCart] = useState(false);
     const [playCartAnimation, setPlayCartAnimation] = useState(false);
+
+    const [inventoryItems, setInventoryItems ] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const recommendedScrollRef = useRef(null);
+    const [recommendedScrollX, setRecommendedScrollX] = useState(0);
+    const saleScrollRef = useRef(null);
+    const [saleScrollX, setSaleScrollX] = useState(0);
+    const newInScrollRef = useRef(null);
+    const [newInScrollX, setNewInScrollX] = useState(0);
+
+    const [isItemModalVisible, setIsItemModalVisible] = useState(false); // Main item modal
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const toggleFavourite = () => {
         setIsFavourited(!isFavourited);
@@ -58,142 +75,408 @@ const HomeScreen = () => {
         );
     }
 
+    useEffect(() => {
+        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`)
+            .then(response => response.json())
+            .then( data => {
+                setInventoryItems(data);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching inventory: ", error);
+                setIsLoading(false);
+            });
+    }, []);
 
-    // @ts-ignore
-    return (
-        <SafeAreaView style = {styles.container}>
-            <ScrollView>
-                <StatusBar barStyle="light-content" backgroundColor="black" />
+    const saleItems =  inventoryItems.filter(item => item.onSale);
 
-                <ImageBackground
-                    source = {require('@assets/images/TMBackground.png')}
-                    resizeMode="stretch"
-                    style = {styles.image}>
+    const handleScrollRight = (scrollRef, currentScrollX, setScrollX) => {
+        if (scrollRef.current) {
+            const newScrollPosition = currentScrollX + 100; // scroll by 100 pixels
+            scrollRef.current.scrollTo({ x: newScrollPosition, animated: true });
+            setScrollX(newScrollPosition); // update the current scroll position
+        }
+    };
 
-                    <View style={styles.MainContainer}>
+    const toggleItemModal = (item) => {
+        setSelectedItem(item);
+        setIsItemModalVisible(!isItemModalVisible);
+    };
 
-                        <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
+    const openImageModal = (index) => {
+        setSelectedImageIndex(index);
+        setIsImageModalVisible(true);
+    };
 
-                        <View style = {styles.rowsContainer}>
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}>Recommended for user</Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style={styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <TouchableOpacity>
-                                                { playHeartAnimation ? (
-                                                    <LottieView source = {require('@assets/animations/likeButtonAnimation.json')}
-                                                    autoPlay
-                                                    loop = { false }
-                                                    //style = { styles.likeButton}
-                                                    onAnimationFinish={() => setPlayAnimation(false)}/>
-                                                ):(
-                                                    <Icon
-                                                        name={ isFavourited ? 'heart' : 'heart-outline'}
-                                                        style = {[styles.staticHeart, isFavourited && styles.filledHeart]}
-                                                        size = { 30 }
-                                                    />
-                                                )}
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={toggleCart}>
-                                                {playCartAnimation ? (
-                                                    <LottieView
-                                                        source={require('@assets/animations/cartAnimation.json')}
-                                                        autoPlay
-                                                        loop={false}
-                                                        //style={styles.cartButton}
-                                                        onAnimationFinish={() => setPlayCartAnimation(false)}
-                                                    />
-                                                ) : (
-                                                    <Icon
-                                                        name={isAddedToCart ? "cart" : "cart-outline"}
-                                                        style={[styles.staticCart, isAddedToCart && styles.filledCart]}
-                                                        size={30}
-                                                    />
-                                                )}
-                                            </TouchableOpacity>
+    const closeImageModal = () => {
+        setIsImageModalVisible(false);
+    };
+
+    const images = selectedItem ? [
+        { uri: selectedItem.mainImage },
+        { uri: selectedItem.image2 },
+        { uri: selectedItem.image3 }
+    ] : [];
+
+        return (
+            <SafeAreaView style={styles.container}>
+                <ScrollView>
+                    <StatusBar barStyle="light-content" backgroundColor="black"/>
+
+                    <ImageBackground
+                        source={require('@assets/images/TMBackground.png')}
+                        resizeMode="stretch"
+                        style={styles.image}>
+
+                        <View style={styles.MainContainer}>
+                            <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
+
+                            {/*TODO: Filter by gender*/}
+
+                            <View style={styles.rowsContainer}>
+                                {/*Recommended Row*/}
+                                <View style={styles.clothesRow}>
+                                    <Text style={styles.headerText}>Recommended for you</Text>
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        ref={recommendedScrollRef}
+                                        onScroll={(event) => setRecommendedScrollX((event.nativeEvent.contentOffset.x))}
+                                        scrollEventThrottle={16}
+                                        style={{flexGrow: 0}}
+                                        testID = "recommendedScrollView"
+                                    >
+                                        <View style={styles.RowImages}>
+                                            {inventoryItems.slice(0, 10).map((item) => (
+                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item]`}>
+                                                    <View key={item.id} style={styles.imageContainer}>
+                                                        <Image style={styles.clothesImage}
+                                                               source={{uri: item.mainImage}}/>
+
+                                                        {item.onSale && (
+                                                            <View style={styles.discountBanner}>
+                                                                <Text style={styles.discountText}>
+                                                                    {`Now R${item.salePrice}`}
+                                                                </Text>
+                                                            </View>
+                                                        )}
+
+                                                        <View style={styles.actionButtons}>
+                                                            <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
+                                                                {playHeartAnimation ? (
+                                                                    <LottieView
+                                                                        source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                        autoPlay
+                                                                        loop={false}
+                                                                        onAnimationFinish={() => setPlayAnimation(false)}
+                                                                    />
+                                                                ) : (
+                                                                    <Icon
+                                                                        name={item.isFavourited ? 'heart' : 'heart-outline'}
+                                                                        style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                        size={30}
+                                                                    />
+                                                                )}
+                                                            </TouchableOpacity>
+
+                                                            <TouchableOpacity onPress={() => toggleCart(item.id)}>
+                                                                {playCartAnimation ? (
+                                                                    <LottieView
+                                                                        source={require('@assets/animations/cartAnimation.json')}
+                                                                        autoPlay
+                                                                        loop={false}
+                                                                        onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                                    />
+                                                                ) : (
+                                                                    <Icon
+                                                                        name={item.isAddedToCart ? 'cart' : 'cart-outline'}
+                                                                        style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
+                                                                        size={30}
+                                                                    />
+                                                                )}
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            ))}
                                         </View>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/1024x1024-Mens-SagaOne-Red-102422-Flatlay1_600x.webp")}/>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/5141 Maha Basquiat 5_EEP T-Shirt Black - L _ Black.jpeg")}/>
-                                        <Image style={styles.clothesImage as ImageStyle}
-                                               source={require("@assets/images/AllSaints Rex Slim Fit Jeans in Jet Black at Nordstrom, Size 30 X 32.jpeg")}/>
-                                    </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
-                                </View>
-                            </View>
-
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}> On Sale </Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style = {styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <Icon name="heart-outline" style = { styles.likeButton } size={ 30 }></Icon>
-                                            <Icon name = "cart-outline" style = {styles.cartButton } size = { 30 }></Icon>
+                                    </ScrollView>
+                                    <TouchableOpacity style={styles.columnScrollMarker}
+                                                      onPress={() => handleScrollRight(recommendedScrollRef, recommendedScrollX, setRecommendedScrollX)}>
+                                        <View>
+                                            <Icon name="chevron-forward-outline" style={styles.arrowIcon} size={30}/>
                                         </View>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Ami De Coeur Short Black Unisex.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Balenciaga Oversize Double Face Wool Blend Crewneck Sweater in Black at Nordstrom, Size Small.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/da5a8ddd-8db0-43ff-aa7d-4a93141d93e2.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Men's_Streetwear_Shorts.jpeg")}/>
-                                    </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+                                    </TouchableOpacity>
                                 </View>
-                            </View>
 
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}> New In </Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style = {styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <Icon name="heart" style = { styles.likeButton } size={ 30 }></Icon>
-                                            <Icon name = "cart" style = {styles.cartButton } size = { 30 }></Icon>
-                                        </View>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Chomp Mongo Skate Tee.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/LEVI\'S® _ 501® ORIGINAL JEANS.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Metallica T Shirt Mop Photo Damage Inc Tour Official Womens Junior Fit Black.jpeg")}/>
-                                    </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
-                                </View>
-                            </View>
+                                {/*On Sale Row*/}
+                                {saleItems.length > 0 && (
+                                    <View style={styles.clothesRow}>
+                                        <Text style={styles.headerText}>On Sale:</Text>
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            ref={saleScrollRef}
+                                            onScroll={(event) => setSaleScrollX((event.nativeEvent.contentOffset.x))}
+                                            scrollEventThrottle={16}
+                                            style={{flexGrow: 0}}
+                                        >
+                                            <View style={styles.RowImages}>
+                                                {saleItems.map((item) => (
+                                                    <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
+                                                        <View key={item.id} style={styles.imageContainer}>
+                                                            <Image style={styles.clothesImage}
+                                                                   source={{uri: item.mainImage}}/>
 
-                            <View style = {styles.clothesRow}>
-                                <Text style = {styles.headerText}>Recommended for 'user'</Text>
-                                <ScrollView  horizontal={true} showsHorizontalScrollIndicator={false}>
-                                    <View style = {styles.RowImages}>
-                                        {/*Find way to display max 10 per row then button to view whole section*/}
-                                        <View style = { styles.actionButtons }>
-                                            <Icon name="heart" style = { styles.likeButton } size={ 30 }></Icon>
-                                            <Icon name = "cart" style = {styles.cartButton } size = { 30 }></Icon>
-                                        </View>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/New Haven Twill Jacket.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/Ami De Coeur Short Black Unisex.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/O\'Neill Men\'s Mixed Bag T-Shirt in Black, Size Medium.jpeg")}/>
-                                        <Image style = {styles.clothesImage as ImageStyle} source = {require("@assets/images/\'Le Sirenuse\' Limoncello Shirt (Tencel).jpeg")}/>
+                                                            {item.salePrice && (
+                                                                <View style={styles.discountBanner}>
+                                                                    <Text style={styles.discountText}>
+                                                                        {`Now R${item.salePrice}`}
+                                                                    </Text>
+                                                                </View>
+                                                            )}
+
+                                                            <View style={styles.actionButtons}>
+                                                                <TouchableOpacity
+                                                                    onPress={() => toggleFavourite(item.id)}>
+                                                                    {playHeartAnimation ? (
+                                                                        <LottieView
+                                                                            source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                            autoPlay
+                                                                            loop={false}
+                                                                            onAnimationFinish={() => setPlayAnimation(false)}
+                                                                        />
+                                                                    ) : (
+                                                                        <Icon
+                                                                            name={item.isFavourited ? 'heart' : 'heart-outline'}
+                                                                            style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                            size={30}
+                                                                        />
+                                                                    )}
+                                                                </TouchableOpacity>
+
+                                                                <TouchableOpacity onPress={() => toggleCart(item.id)}>
+                                                                    {playCartAnimation ? (
+                                                                        <LottieView
+                                                                            source={require('@assets/animations/cartAnimation.json')}
+                                                                            autoPlay
+                                                                            loop={false}
+                                                                            onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                                        />
+                                                                    ) : (
+                                                                        <Icon
+                                                                            name={item.isAddedToCart ? 'cart' : 'cart-outline'}
+                                                                            style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
+                                                                            size={30}
+                                                                        />
+                                                                    )}
+                                                                </TouchableOpacity>
+                                                            </View>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        </ScrollView>
+                                        <TouchableOpacity style={styles.columnScrollMarker}
+                                                          onPress={() => handleScrollRight(saleScrollRef, saleScrollX, setSaleScrollX)}>
+                                            <View>
+                                                <Icon name="chevron-forward-outline" style={styles.arrowIcon}
+                                                      size={30}/>
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
-                                </ScrollView>
-                                <View style = { styles.columnScrollMarker }>
-                                    <Icon name="chevron-forward-outline" style = {styles.arrowIcon} size={ 30 } />
+                                )}
+
+                                {/* New In Row*/}
+                                <View style={styles.clothesRow}>
+                                    <Text style={styles.headerText}> New In </Text>
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        ref={newInScrollRef}
+                                        onScroll={(event) => setNewInScrollX((event.nativeEvent.contentOffset.x))}
+                                        scrollEventThrottle={16}
+                                        style={{flexGrow: 0}}
+                                    >
+                                        <View style={styles.RowImages}>
+                                            {inventoryItems.slice(0, 10).map((item) => (
+                                                <TouchableOpacity key={item.id} onPress={() => toggleModal(item)}>
+                                                    <View key={item.id} style={styles.imageContainer}>
+                                                        <Image style={styles.clothesImage}
+                                                               source={{uri: item.mainImage}}/>
+
+                                                        {item.onSale && (
+                                                            <View style={styles.discountBanner}>
+                                                                <Text style={styles.discountText}>
+                                                                    {`Now R${item.salePrice}`}
+                                                                </Text>
+                                                            </View>
+                                                        )}
+
+                                                        <View style={styles.actionButtons}>
+                                                            <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
+                                                                {playHeartAnimation ? (
+                                                                    <LottieView
+                                                                        source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                        autoPlay
+                                                                        loop={false}
+                                                                        onAnimationFinish={() => setPlayAnimation(false)}
+                                                                    />
+                                                                ) : (
+                                                                    <Icon
+                                                                        name={item.isFavourited ? 'heart' : 'heart-outline'}
+                                                                        style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                        size={30}
+                                                                    />
+                                                                )}
+                                                            </TouchableOpacity>
+
+                                                            <TouchableOpacity onPress={() => toggleCart(item.id)}>
+                                                                {playCartAnimation ? (
+                                                                    <LottieView
+                                                                        source={require('@assets/animations/cartAnimation.json')}
+                                                                        autoPlay
+                                                                        loop={false}
+                                                                        onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                                    />
+                                                                ) : (
+                                                                    <Icon
+                                                                        name={item.isAddedToCart ? 'cart' : 'cart-outline'}
+                                                                        style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
+                                                                        size={30}
+                                                                    />
+                                                                )}
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                    </ScrollView>
+                                    <TouchableOpacity style={styles.columnScrollMarker}
+                                                      onPress={() => handleScrollRight(newInScrollRef, newInScrollX, setNewInScrollX)}>
+                                        <View>
+                                            <Icon name="chevron-forward-outline" style={styles.arrowIcon} size={30}/>
+                                        </View>
+                                    </TouchableOpacity>
                                 </View>
+
+                                {selectedItem && (
+                                    <Modal
+                                        animationType="slide"
+                                        transparent={true}
+                                        visible={isItemModalVisible}
+                                        onRequestClose={() => setIsItemModalVisible(false)}
+                                    >
+                                        <View style={styles.modalContainer}>
+                                            <View>
+                                                <TouchableOpacity
+                                                    style={styles.closeButton}
+                                                    onPress={() => setIsItemModalVisible(false)}
+                                                >
+                                                    <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
+                                                    <Text style={styles.closeButtonText}>Back to Home</Text>
+                                                </TouchableOpacity>
+                                            </View>
+
+                                            <View style={styles.modalContent}>
+                                                <View style={styles.titleRow}>
+                                                    <View style = { styles.modalTitleContainer}>
+                                                        <Text style={styles.modalTitle}>{selectedItem.itemName}</Text>
+                                                    </View>
+                                                    <Text style={styles.modalTitlePrice}>{`R${selectedItem.itemPrice}`}</Text>
+                                                </View>
+                                                <View style={styles.separator} />
+
+                                                <View style={styles.imageGrid}>
+                                                    {/* Trigger the image modal when any image is clicked */}
+                                                    <TouchableOpacity onPress={() => openImageModal(0)}>
+                                                        <View style={styles.modalImage}>
+                                                            {selectedItem.onSale && (
+                                                                <View style={styles.discountBanner}>
+                                                                    <Text style={styles.discountText}>
+                                                                        {`Now R${selectedItem.salePrice}`}
+                                                                    </Text>
+                                                                </View>
+                                                            )}
+                                                            <Image style={styles.modalImage} source={{ uri: selectedItem.mainImage }} />
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                    <View style={styles.imagesLeft}>
+                                                        <TouchableOpacity onPress={() => openImageModal(1)}>
+                                                            <Image style={styles.modalImage2} source={{ uri: selectedItem.image2 }} />
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity onPress={() => openImageModal(2)}>
+                                                            <Image style={styles.modalImage3} source={{ uri: selectedItem.image3 }} />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
+
+                                                {/* Additional item details and buttons */}
+                                                <View style={styles.separator} />
+                                                <View style={styles.itemInfo}>
+                                                    <View style={styles.topRow}>
+                                                        <Text style={styles.modalInfoTitle}>{selectedItem.itemName}</Text>
+                                                        <Text style={styles.modalInfoSKU}>{`Ref: ${selectedItem.SKU}`}</Text>
+                                                    </View>
+                                                    <Text style={styles.modalInfo}>{`Colour: ${selectedItem.colour}`}</Text>
+                                                    <Text style={styles.modalInfo}>{`Size: ${selectedItem.size}`}</Text>
+                                                    <Text style={styles.modalInfo}>{`Damage: ${selectedItem.damage}`}</Text>
+                                                    <Text style={styles.modalDescription}>{selectedItem.description}</Text>
+                                                </View>
+                                                <View style={styles.modalActionButtons}>
+                                                    <TouchableOpacity style={styles.modalLikeButton}>
+                                                        <Icon name="heart-outline" style={styles.modalLikeButtonIcon} size={45} />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity style={styles.addToCartButton}>
+                                                        <Icon name="cart-outline" style={styles.cartButton} size={30} />
+                                                        <Text style={styles.addToCartText}> Add To Cart</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </Modal>
+                                )}
+
+                                {/* Image modal - Separate from the main item modal */}
+                                <Modal
+                                    visible={isImageModalVisible}
+                                    transparent={true}
+                                    onRequestClose={closeImageModal}
+                                >
+                                    <View style={styles.modalBackground}>
+                                        <TouchableOpacity
+                                            style={styles.closeImageButton}
+                                            onPress={closeImageModal}
+                                        >
+                                            <Text style={styles.closeImageButtonText}>
+                                                <Icon name="close-outline" size={45} />
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        {/* FlatList to scroll through images */}
+                                        <FlatList
+                                            data={images}
+                                            horizontal
+                                            pagingEnabled
+                                            showsHorizontalScrollIndicator={false}
+                                            keyExtractor={(_, index) => index.toString()}
+                                            renderItem={({ item }) => (
+                                                <Image style={styles.fullscreenImage} source={item} />
+                                            )}
+                                            initialScrollIndex={selectedImageIndex}
+                                            getItemLayout={(data, index) => (
+                                                { length: width, offset: width * index, index }
+                                            )}
+                                        />
+                                    </View>
+                                </Modal>
                             </View>
                         </View>
-                    </View>
-                </ImageBackground>
-            </ScrollView>
-        </SafeAreaView>
-    );
+                    </ImageBackground>
+                </ScrollView>
+            </SafeAreaView>
+        );
 }
 
 const styles = StyleSheet.create({
@@ -214,7 +497,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         justifyContent: 'center',
-        marginTop: '10%'
+        marginTop: '4%'
     },
 
     logo: {
@@ -241,10 +524,12 @@ const styles = StyleSheet.create({
 
     //each row of images with title
     clothesRow: {
-        flex: 1,
+        //flex: 1,
+        width: '100%',
+        height: 200,
         flexDirection: "column",
         position: "relative",
-        bottom: '50%',
+        bottom: '60%',
         marginVertical:10,
     },
 
@@ -275,23 +560,36 @@ const styles = StyleSheet.create({
     },
 
 
+    imageContainer: {
+        height: 170,
+        width: itemSize,
+        borderRadius: 5,
+        resizeMode: 'cover' as ImageStyle['resizeMode'],
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 2,
+            height: 2,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 5,
+        margin: 5,
+    },
 
     //marker
     columnScrollMarker: {
-        width: '10%',
+        width: '15%',
         height: '87%',
         backgroundColor: 'rgba(229, 229, 229, 0.85)',
         position: "absolute",
         zIndex: 2,
         left: 340,
-        top: '13%'
-
-
-},
+        top: '14%'
+    },
     arrowIcon: {
         color: '#212121',
         position: "relative",
-        top: '45%',
+        top: 70,
         left: '5%'
     },
 
@@ -307,7 +605,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         position: "absolute",
         zIndex: 2,
-        left: '12%',
+        left: '50%',
         bottom: '1%',
 
     },
@@ -328,8 +626,233 @@ const styles = StyleSheet.create({
     },
     filledCart: {
         color: "#FF0000",
-    }
+    },
+    discountBanner: {
+        position: 'absolute',
+        top: 15,
+        right: 0,
+        backgroundColor: '#FF0000',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        zIndex: 1,
+    },
+    discountText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    titleRow: {
+        width: '100%', 
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    modalContent: {
+        width: '90%',
+        height: 'auto',
+        padding: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        borderRadius: 10,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 2,
+            height: 2,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalTitleContainer: {
+        width: '80%'
+    },
+    modalTitle: {
+        fontFamily: 'sulphurPoint_Bold',
+        color:'#212121',
+        fontSize: 24,
+        marginBottom: 5,
+    },
+    modalTitlePrice: {
+        fontFamily: 'sulphurPoint_Bold',
+        color:'#212121',
+        fontSize: 24,
+        marginBottom: 5,
+    },
+    imageGrid: {
+        width: '95%',
+        height:250,
+        flexDirection: 'row-reverse',
+        marginTop: 10,
+        marginBottom: 10,
+        marginLeft: 25,
+    },
+    modalImage: {
+        width: 170,
+        height: '100%',
+        marginBottom: 10,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.8,
+        shadowRadius: 8,
+        elevation: 10,
 
+    },
+    imagesLeft: {
+        flexDirection: 'column',
+        width:'45%',
+        marginRight: 10
+    },
+    modalImage2: {
+        width: '100%',
+        height:135,
+        marginBottom: 10,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.8,
+        shadowRadius: 8,
+        elevation: 10,
+    },
+    modalImage3: {
+        width: '100%',
+        height: 105,
+        marginBottom: 10,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.8,
+        shadowRadius: 8,
+        elevation: 10,
+    },
+    itemInfo: {
+        display: 'flex',
+        flexDirection: 'column', 
+        width: '100%',
+    },
+    topRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: "space-between",
+        marginBottom: 20
+    },
+    modalInfoTitle: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 21,
+        color:'#212121',
+    },
+    modalInfoSKU: {
+        fontFamily: 'sulphurPoint',
+        color: '#63656B',
+        fontSize: 13,
+    },
+    modalInfo: {
+        fontFamily: 'sulphurPoint',
+        color: '#63656B',
+        marginBottom: 15,
+        fontSize: 17,
+    },
+    modalDescription: {
+        fontFamily: 'sulphurPoint',
+        color: '#63656B',
+        marginBottom: 25,
+        fontSize: 19,
+        marginTop: 15,
+    },
+    modalActionButtons: {
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+
+    },
+    addToCartButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#219281FF',
+        padding: 10,
+        paddingLeft: 25,
+        paddingRight: 25,
+        borderRadius: 10,
+    },
+    addToCartText: {
+        color: '#93D3AE',
+        fontFamily: 'sulphurPoint',
+        fontSize: 22
+    },
+    modalLikeButton: {},
+    modalLikeButtonIcon: {
+        color: '#212121'
+    },
+
+    closeButton: {
+        width: 350,
+        display:'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderRadius: 5,
+    },
+    backIcon: {
+        transform: [{ rotate: '180deg' }],
+        color: '#93D3AE',
+    },
+    closeButtonText: {
+        fontFamily: 'sulphurPoint',
+        color: '#93D3AE',
+        fontSize: 20
+    },
+    separator: {
+        height: 1,
+        backgroundColor: 'rgba(55,55,55,0.18)',
+        marginVertical: 10,
+        width: '100%',
+    },
+    modalBackground: {
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    closeImageButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        zIndex: 1,
+    },
+    closeImageButtonText: {
+        backgroundColor: '#93D3AE',
+        color: '#219281FF',
+        fontSize: 16,
+        borderRadius: 50
+    },
+    fullscreenImage: {
+        width: width,
+        height: width,
+        resizeMode: 'contain',
+    },
+    imageModalContainer: {
+        backgroundColor: 'red'
+    }
 });
 
 export default HomeScreen;

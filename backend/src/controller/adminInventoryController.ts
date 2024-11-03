@@ -11,7 +11,9 @@ export class AdminInventoryController {
     // Get all in inventory table
     async all(request: Request, response: Response, next: NextFunction) {
         try {
-            const inventory = await this.inventoryRepository.find();
+            const inventory = await this.inventoryRepository.find({
+                order: {id: "DESC"}
+            });
             return response.json(inventory);
         } catch (error) {
             console.error("Error Fetching Inventory: ", error);
@@ -76,12 +78,6 @@ export class AdminInventoryController {
                 return res.status(400).json({ success: false,  message: "Item with this SKU already exists" })
             }
 
-            // const files = req.files as {
-            //     [key: string]: Express.Multer.File[]
-            // } | undefined;
-            // const mainImage = files?.['mainImage']?.[0]?.path || null;
-            // const image2 = files?.['image2']?.[0]?.path || null;
-            // const image3 = files?.['image3']?.[0]?.path || null;
 
             const savedItem = await this.inventoryRepository.save({
                 SKU,

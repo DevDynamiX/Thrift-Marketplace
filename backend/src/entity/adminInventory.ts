@@ -1,11 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
 
 @Entity()
 export class Inventory {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    //TODO: Change to null when can be fetched from Session
     @Column({ nullable: true })
     adminID?: string;
 
@@ -42,13 +41,12 @@ export class Inventory {
     @Column({ default: false, nullable: true })
     onSale!: boolean;
 
-    @Column("decimal", { precision: 10, scale: 2,  nullable: true })
+    @Column("decimal", { precision: 10, scale: 2, nullable: true })
     salePrice?: number;
 
     @Column({ type: 'float', nullable: true })
     discountPercent?: number;
 
-    //TODO: reset to nullable: false
     @Column({ type: 'text', nullable: true })
     mainImage?: string;
 
@@ -58,4 +56,7 @@ export class Inventory {
     @Column({ type: 'text', nullable: true })
     image3?: string;
 
+    //TODO: SEE IF CAN ADD
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt!: Date;
 }
