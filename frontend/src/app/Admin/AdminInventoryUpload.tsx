@@ -21,7 +21,6 @@ import Constants from 'expo-constants';
 import { Picker } from '@react-native-picker/picker';
 
 //TODO: RESET FORM AFTER SUCCESSFUL UPLOAD
-// TODO: add date stamp
 const InsertProdScreen = () => {
 
     const [fontsLoaded] = useFonts({
@@ -670,7 +669,17 @@ const styles = StyleSheet.create({
         color: '#219281FF',
         backgroundColor: 'rgba(255, 255, 255, 0.5)',
         marginBottom: '5%'
-    }
+    },
+    header: {
+        fontSize: 24,
+        fontFamily: 'shrikhand',
+        textAlign: 'center',
+        marginBottom: 20,
+        color: '#219281FF',
+        fontWeight: 'bold',
+    },
+
+
 });
 
 export default InsertProdScreen;

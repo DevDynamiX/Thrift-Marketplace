@@ -132,7 +132,6 @@ const HomeScreen = () => {
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
                             {/*TODO: Filter by gender*/}
-
                             <View style={styles.rowsContainer}>
                                 {/*Recommended Row*/}
                                 <View style={styles.clothesRow}>
@@ -148,7 +147,7 @@ const HomeScreen = () => {
                                     >
                                         <View style={styles.RowImages}>
                                             {inventoryItems.slice(0, 10).map((item) => (
-                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item]`}>
+                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item}`}>
                                                     <View key={item.id} style={styles.imageContainer}>
                                                         <Image style={styles.clothesImage}
                                                                source={{uri: item.mainImage}}/>
@@ -298,6 +297,7 @@ const HomeScreen = () => {
                                         scrollEventThrottle={16}
                                         style={{flexGrow: 0}}
                                     >
+
                                         <View style={styles.RowImages}>
                                             {inventoryItems.slice(0, 10).map((item) => (
                                                 <TouchableOpacity key={item.id} onPress={() => toggleModal(item)}>
@@ -360,6 +360,7 @@ const HomeScreen = () => {
                                         </View>
                                     </TouchableOpacity>
                                 </View>
+                                <Text> hi </Text>
 
                                 {selectedItem && (
                                     <Modal

@@ -59,9 +59,15 @@ export const Routes = [
     },
     {
         method: "delete",
-        route: "/inventory/:SKU",
+        route: "/inventory/:id",
         controller: AdminInventoryController,
         action: "remove",
+    },
+    {
+        method: "put",
+        route: "/inventory/:SKU",
+        controller: AdminInventoryController,
+        action: "update",
     },
 
 ];
