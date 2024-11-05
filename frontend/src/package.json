@@ -14,24 +14,6 @@
   "jest": {
     "preset": "jest-expo"
   },
-
-//  TODO: remove this
-  "detox": {
-    "configurations": {
-      "ios.sim.debug": {
-        "type": "ios.simulator",
-        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/",
-        "build": "xcodebuild -workspace ios/thrift-market.xcworkspace -scheme thrift-market -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
-        "device": { "type": "iPhone 11" }
-      },
-      "android.emu.debug": {
-        "type": "android.emulator",
-        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-        "build": "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug",
-        "device": { "avdName": "Pixel_2_API_29" }
-      }
-    }
-  },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
     "@react-native-async-storage/async-storage": "^1.24.0",

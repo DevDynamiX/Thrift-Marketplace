@@ -1,8 +1,20 @@
 import React, { useRef } from 'react';
 import { View, Text, Image, Animated, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { router } from "expo-router"; // Ensure you have this for navigation
+import { router } from "expo-router";
+import {useFonts} from "expo-font";
+
 
 const AdminDashboard = () => {
+
+    const [fontsLoaded] = useFonts({
+        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
+        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
+
     const buttonScale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -20,7 +32,7 @@ const AdminDashboard = () => {
     };
 
     const navigateTo = (path: string) => {
-        router.push(path); // Replace with your router logic
+        router.push(path);
     };
 
     return (
@@ -39,25 +51,26 @@ const AdminDashboard = () => {
                 <Text style={styles.headerText}>Manage Details</Text>
             </View>
 
-            {/* Admin Details */}
-            <View style={styles.adminSection}>
-                <View style={styles.adminImageContainer}>
-                    <Image
-                        source={require('@assets/images/logo.png')}
-                        style={styles.adminImage}
-                    />
-                    <Text style={styles.adminName}>Admin</Text>
-                </View>
-            </View>
+            {/*/!* Admin Details *!/*/}
+            {/*<View style={styles.adminSection}>*/}
+            {/*    <View style={styles.adminImageContainer}>*/}
+            {/*        <Image*/}
+            {/*            source={require('@assets/images/logo.png')}*/}
+            {/*            style={styles.adminImage}*/}
+            {/*        />*/}
+            {/*        <Text style={styles.adminName}>Admin</Text>*/}
+            {/*    </View>*/}
+            {/*</View>*/}
 
             {/* Button Section */}
             <ScrollView contentContainerStyle={styles.buttonSection}>
                 <CustomButton text="Insert Products" path="/Admin/AdminInventoryUpload" navigateTo={navigateTo} />
                 <CustomButton text="View Products" path="/Admin/ViewProduct" navigateTo={navigateTo} />
-                <CustomButton text="Insert Categories" path="/Admin/Category" navigateTo={navigateTo} />
-                <CustomButton text="View Categories" path="/Admin/ViewCategory" navigateTo={navigateTo} />
-                <CustomButton text="Insert Brands" path="/auth/InsertBrands" navigateTo={navigateTo} />
-                <CustomButton text="View Brands" path="/auth/ViewBrands" navigateTo={navigateTo} />
+                <CustomButton text="View Recycling" path="/Admin/Recycling" navigateTo={navigateTo} />
+                {/*<CustomButton text="Insert Categories" path="/Admin/Category" navigateTo={navigateTo} />*/}
+                {/*<CustomButton text="View Categories" path="/Admin/ViewCategory" navigateTo={navigateTo} />*/}
+                {/*<CustomButton text="Insert Brands" path="/auth/InsertBrands" navigateTo={navigateTo} />*/}
+                {/*<CustomButton text="View Brands" path="/auth/ViewBrands" navigateTo={navigateTo} />*/}
                 <CustomButton text="All Orders" path="/auth/AllOrders" navigateTo={navigateTo} />
                 <CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />
                 <CustomButton text="List Users" path="/auth/ListUsers" navigateTo={navigateTo} />
@@ -102,8 +115,8 @@ const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 onPress={() => {
-                    console.log(`Navigating to: ${path}`); // For debugging
-                    navigateTo(path); // Call the navigate function
+                    console.log(`Navigating to: ${path}`);
+                    navigateTo(path);
                 }}
                 style={styles.button}
             >
@@ -114,10 +127,9 @@ const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
 };
 
 const styles = StyleSheet.create({
-    // ... (your existing styles)
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#93D3AE',
     },
     navbar: {
         backgroundColor: '#4DAE91',
@@ -133,48 +145,51 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     navText: {
-        color: '#fff',
+        fontFamily:'sulphurPoint',
+        color: '#1a1a1a',
         fontSize: 18,
         fontWeight: 'bold',
     },
     header: {
-        backgroundColor: '#f1f3f5',
+        fontFamily: 'shrikhand',
+        backgroundColor: '#219281FF',
         padding: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#dee2e6',
+        borderBottomColor: '#cacaca',
     },
     headerText: {
+        color: '#cacaca',
         textAlign: 'center',
         fontSize: 22,
         fontWeight: 'bold',
     },
-    adminSection: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#6c757d',
-        borderBottomWidth: 1,
-        borderBottomColor: '#dee2e6',
-    },
-    adminImageContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    adminImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        resizeMode: 'contain',
-        borderWidth: 2,
-        borderColor: '#fff',
-        marginBottom: 10,
-    },
-    adminName: {
-        color: '#fff',
-        textAlign: 'center',
-        fontSize: 18,
-        fontWeight: '500',
-    },
+    // adminSection: {
+    //     flexDirection: 'row',
+    //     alignItems: 'center',
+    //     padding: 20,
+    //     backgroundColor: '#6c757d',
+    //     borderBottomWidth: 1,
+    //     borderBottomColor: '#dee2e6',
+    // },
+    // adminImageContainer: {
+    //     flex: 1,
+    //     alignItems: 'center',
+    // },
+    // adminImage: {
+    //     width: 100,
+    //     height: 100,
+    //     borderRadius: 50,
+    //     resizeMode: 'contain',
+    //     borderWidth: 2,
+    //     borderColor: '#fff',
+    //     marginBottom: 10,
+    // },
+    // adminName: {
+    //     color: '#fff',
+    //     textAlign: 'center',
+    //     fontSize: 18,
+    //     fontWeight: '500',
+    // },
     buttonSection: {
         flexGrow: 1,
         paddingHorizontal: 20,
