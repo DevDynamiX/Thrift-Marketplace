@@ -19,8 +19,17 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-import {boolean} from "yup";
 
+import {boolean} from "yup";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import items from "ajv/lib/vocabularies/applicator/items";
+
+interface Product {
+    id: number;
+    itemName: string;
+    itemPrice: number;
+    salePrice: number;
+}
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
@@ -44,7 +53,8 @@ const HomeScreen = () => {
     const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
 
     const [inventoryItems, setInventoryItems ] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [cartItems, setCartItems] = useState([]);
 
     const recommendedScrollRef = useRef(null);
     const [recommendedScrollX, setRecommendedScrollX] = useState(0);
@@ -58,6 +68,32 @@ const HomeScreen = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetch(`http://localhost:3000/inventory`)
+            .then(response => response.json())
+            .then( data => {
+                setInventoryItems(data);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching inventory: ", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    const toggleFavourite = () => {
+        setIsFavourited(!isFavourited);
+        setPlayAnimation(true);
+    };
+
+    const toggleCart = () => {
+        setIsAddedToCart(!isAddedToCart);
+        setPlayCartAnimation(true);
+    };
+
+    // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
         return (
             <SafeAreaView style={styles.container}>
@@ -143,22 +179,34 @@ const HomeScreen = () => {
             });
     }, []);
 
-    const saleItems =  inventoryItems.filter(item => item.onSale);
 
-    const handleScrollRight = (scrollRef, currentScrollX, setScrollX) => {
+
+    const saleItems =  inventoryItems.filter(item => item.onSale)||[];
+
+    const handleScrollRight = (scrollRef:any, currentScrollX:any, setScrollX:any) => {
         if (scrollRef.current) {
             const newScrollPosition = currentScrollX + 100; // scroll by 100 pixels
             scrollRef.current.scrollTo({ x: newScrollPosition, animated: true });
             setScrollX(newScrollPosition); // update the current scroll position
         }
     };
+    const addToCart = () => {
+        const existingItemIndex = cartItems.findIndex(item => item.id === selectedItem);
 
-    const toggleItemModal = (item) => {
+        if(existingItemIndex !== -1) {
+            const updatedCartItems = [...cartItems];
+            updatedCartItems[existingItemIndex].quantity +=1;
+        }
+        else {
+            setCartItems(cartItems);
+        }
+    }
+    const toggleItemModal = (item:any) => {
         setSelectedItem(item);
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-    const openImageModal = (index) => {
+    const openImageModal = (index:any) => {
         setSelectedImageIndex(index);
         setIsImageModalVisible(true);
     };
@@ -555,6 +603,7 @@ const HomeScreen = () => {
                                                         )}
                                                     </TouchableOpacity>
 
+
                                                     <TouchableOpacity onPress={() => toggleCart(selectedItem.id)} style={styles.addToCartButton}>
                                                         {isAddedToCart[selectedItem.id] && playCartAnimation[selectedItem.id] ? (
                                                             <LottieView
@@ -577,6 +626,10 @@ const HomeScreen = () => {
                                                         <Text style={styles.addToCartText}>
                                                             {isAddedToCart[selectedItem.id] ? 'Added to cart' : 'Add to cart'}
                                                         </Text>
+                                                    <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(item)}>
+                                                        <Icon name="cart-outline" style={styles.cartButton} size={30} />
+                                                        <Text style={styles.addToCartText}> Add To Cart</Text>
+
                                                     </TouchableOpacity>
 
 
@@ -772,7 +825,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     titleRow: {
-        width: '100%', 
+        width: '100%',
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
@@ -876,7 +929,7 @@ const styles = StyleSheet.create({
     },
     itemInfo: {
         display: 'flex',
-        flexDirection: 'column', 
+        flexDirection: 'column',
         width: '100%',
     },
     topRow: {
