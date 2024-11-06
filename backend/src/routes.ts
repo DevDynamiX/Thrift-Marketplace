@@ -1,6 +1,8 @@
 import { UserController } from "./controller/UserController";
-import { AdminInventoryController } from "./controller/adminInventoryController";
-import { upload } from "./middleware/inventoryUpload";
+import {AdminInventoryController} from "./controller/adminInventoryController";
+import {CartController} from "./controller/CartController";
+import {OrderController} from "./controller/OrderController";
+
 export const Routes = [
     {
         method: "get",
@@ -32,8 +34,6 @@ export const Routes = [
         controller: UserController,
         action: "register",
     },
-
-    //for admin DB
     {
         method: "get",
         route: "/inventory",
@@ -42,20 +42,15 @@ export const Routes = [
     },
     {
         method: "get",
-        route: "/inventory/:SKU",
+        route: "/inventory/:id",
         controller: AdminInventoryController,
         action: "one",
     },
     {
-        method: 'post',
-        route: '/inventory',
+        method: "post",
+        route: "/inventory",
         controller: AdminInventoryController,
         action: "save",
-        middleware: [upload.fields([
-            { name: 'mainImage', maxCount:1 },
-            { name: 'image2', maxCount:1 },
-            { name: 'image3', maxCount:1 },
-        ])]
     },
     {
         method: "delete",
@@ -63,11 +58,51 @@ export const Routes = [
         controller: AdminInventoryController,
         action: "remove",
     },
-    {
         method: "put",
         route: "/inventory/:SKU",
         controller: AdminInventoryController,
         action: "update",
     },
-
+    {
+        method: "get",
+        route: "/carts",
+        controller: CartController,
+        action: "all",
+    },
+    {
+        method: "get",
+        route: "/carts/:id",
+        controller: CartController,
+        action: "one",
+    },
+    {
+        method: "post",
+        route: "/carts",
+        controller: CartController,
+        action: "save",
+    },
+    {
+        method: "post",
+        route: "/carts/:id/items",
+        controller: CartController,
+        action: "addItem",
+    },
+    {
+        method: "delete",
+        route: "/carts/:id/items/:itemId",
+        controller: CartController,
+        action: "removeItem",
+    },
+    {
+        method: "delete",
+        route: "/carts/:id",
+        controller: CartController,
+        action: "remove",
+    },
+    {
+     method: "post",
+        route: "/orders",
+        controller: OrderController,
+        action: "createOrder",
+    },
 ];
