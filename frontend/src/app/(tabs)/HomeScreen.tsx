@@ -19,7 +19,15 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import items from "ajv/lib/vocabularies/applicator/items";
 
+interface Product {
+    id: number;
+    itemName: string;
+    itemPrice: number;
+    salePrice: number;
+}
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
@@ -42,7 +50,8 @@ const HomeScreen = () => {
     const [playCartAnimation, setPlayCartAnimation] = useState(false);
 
     const [inventoryItems, setInventoryItems ] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [cartItems, setCartItems] = useState([]);
 
     const recommendedScrollRef = useRef(null);
     const [recommendedScrollX, setRecommendedScrollX] = useState(0);
@@ -55,6 +64,20 @@ const HomeScreen = () => {
     const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetch(`http://localhost:3000/inventory`)
+            .then(response => response.json())
+            .then( data => {
+                setInventoryItems(data);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching inventory: ", error);
+                setIsLoading(false);
+            });
+    }, []);
 
     const toggleFavourite = () => {
         setIsFavourited(!isFavourited);
@@ -75,35 +98,34 @@ const HomeScreen = () => {
         );
     }
 
-    useEffect(() => {
-        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`)
-            .then(response => response.json())
-            .then( data => {
-                setInventoryItems(data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Error fetching inventory: ", error);
-                setIsLoading(false);
-            });
-    }, []);
 
-    const saleItems =  inventoryItems.filter(item => item.onSale);
 
-    const handleScrollRight = (scrollRef, currentScrollX, setScrollX) => {
+    const saleItems =  inventoryItems.filter(item => item.onSale)||[];
+
+    const handleScrollRight = (scrollRef:any, currentScrollX:any, setScrollX:any) => {
         if (scrollRef.current) {
             const newScrollPosition = currentScrollX + 100; // scroll by 100 pixels
             scrollRef.current.scrollTo({ x: newScrollPosition, animated: true });
             setScrollX(newScrollPosition); // update the current scroll position
         }
     };
+    const addToCart = () => {
+        const existingItemIndex = cartItems.findIndex(item => item.id === selectedItem);
 
-    const toggleItemModal = (item) => {
+        if(existingItemIndex !== -1) {
+            const updatedCartItems = [...cartItems];
+            updatedCartItems[existingItemIndex].quantity +=1;
+        }
+        else {
+            setCartItems(cartItems);
+        }
+    }
+    const toggleItemModal = (item:any) => {
         setSelectedItem(item);
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-    const openImageModal = (index) => {
+    const openImageModal = (index:any) => {
         setSelectedImageIndex(index);
         setIsImageModalVisible(true);
     };
@@ -148,7 +170,7 @@ const HomeScreen = () => {
                                     >
                                         <View style={styles.RowImages}>
                                             {inventoryItems.slice(0, 10).map((item) => (
-                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item]`}>
+                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item}`}>
                                                     <View key={item.id} style={styles.imageContainer}>
                                                         <Image style={styles.clothesImage}
                                                                source={{uri: item.mainImage}}/>
@@ -428,7 +450,7 @@ const HomeScreen = () => {
                                                     <TouchableOpacity style={styles.modalLikeButton}>
                                                         <Icon name="heart-outline" style={styles.modalLikeButtonIcon} size={45} />
                                                     </TouchableOpacity>
-                                                    <TouchableOpacity style={styles.addToCartButton}>
+                                                    <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(item)}>
                                                         <Icon name="cart-outline" style={styles.cartButton} size={30} />
                                                         <Text style={styles.addToCartText}> Add To Cart</Text>
                                                     </TouchableOpacity>
@@ -649,7 +671,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     titleRow: {
-        width: '100%', 
+        width: '100%',
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
@@ -744,7 +766,7 @@ const styles = StyleSheet.create({
     },
     itemInfo: {
         display: 'flex',
-        flexDirection: 'column', 
+        flexDirection: 'column',
         width: '100%',
     },
     topRow: {
