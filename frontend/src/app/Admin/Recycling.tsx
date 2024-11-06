@@ -119,7 +119,7 @@ const ViewProducts = () => {
                 <Text style={styles.productTitle}>User Email</Text>
                 <Text>User Phone</Text>
                 <Text>Description of donation</Text>
-                <Text> Dropoff location </Text>
+                <Text>Dropoff location </Text>
 
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity

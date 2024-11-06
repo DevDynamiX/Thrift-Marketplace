@@ -19,6 +19,8 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
+
+import {boolean} from "yup";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import items from "ajv/lib/vocabularies/applicator/items";
 
@@ -44,10 +46,11 @@ const HomeScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    const [isFavourited, setIsFavourited] = useState(false);
-    const [playHeartAnimation, setPlayAnimation] = useState(false);
-    const [isAddedToCart, setIsAddedToCart] = useState(false);
-    const [playCartAnimation, setPlayCartAnimation] = useState(false);
+    const [isFavourited, setIsFavourited] = useState({});
+    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
+    const [isAddedToCart, setAddedToCart] = useState({});
+    const [playCartAnimation, setPlayCartAnimation] = useState({});
+    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
 
     const [inventoryItems, setInventoryItems ] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +67,7 @@ const HomeScreen = () => {
     const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
 
     useEffect(() => {
         setIsLoading(true);
@@ -97,6 +101,83 @@ const HomeScreen = () => {
             </SafeAreaView>
         );
     }
+
+    const toggleFavourite = (id) => {
+        console.log(`Toggling favourite for ${id}`);
+
+        const newIsFavourited = !isFavourited[id];
+
+        setIsFavourited((prev) => ({
+            ...prev,
+            [id]:  newIsFavourited,
+        }));
+
+        if(newIsFavourited) {
+            setPlayHeartAnimation((prev) => ({
+                ...prev,
+                [id]: true,
+            }));
+        }else{
+            setPlayHeartAnimation((prev) => ({
+                ...prev,
+                [id]: false,
+            }));
+        }
+    };
+
+    const toggleCart = (id) => {
+        console.log(`Toggling cart for ${id}`);
+
+        const newAddedToCart = !isAddedToCart[id];
+
+        setAddedToCart((prev) => ({
+            ...prev,
+            [id]: newAddedToCart,
+        }));
+
+        if(newAddedToCart) {
+            if(!isCartAnimationCompleted[id]) {
+                setPlayCartAnimation((prev) => ({
+                    ...prev,
+                    [id]: true,
+                }));
+            }
+        } else {
+            setPlayCartAnimation((prev) => ({
+                ...prev,
+                [id]: false,
+            }));
+            setIsCartAnimationCompleted((prev) => ({
+                ...prev,
+                [id]: false
+            }));
+        }
+    };
+
+    const handleAnimationFinish = (id) => {
+       setIsCartAnimationCompleted((prev) => ({
+           ...prev,
+           [id]: true,
+       }));
+       setPlayCartAnimation((prev) => ({
+           ...prev,
+           [id]: false,
+       }));
+    }
+
+    //fetch inventory from Table
+    useEffect(() => {
+        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`)
+            .then(response => response.json())
+            .then( data => {
+                setInventoryItems(data);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching inventory: ", error);
+                setIsLoading(false);
+            });
+    }, []);
 
 
 
@@ -184,35 +265,48 @@ const HomeScreen = () => {
 
                                                         <View style={styles.actionButtons}>
                                                             <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
-                                                                {playHeartAnimation ? (
+                                                                {isFavourited[item.id] && playHeartAnimation[item.id] ? (
                                                                     <LottieView
                                                                         source={require('@assets/animations/likeButtonAnimation.json')}
                                                                         autoPlay
                                                                         loop={false}
-                                                                        onAnimationFinish={() => setPlayAnimation(false)}
+                                                                        onAnimationFinish={() =>
+                                                                            setPlayHeartAnimation((prev) => ({
+                                                                            ...prev,
+                                                                            [item.id]: false,
+                                                                        }))
+                                                                        }
+                                                                        style={styles.heartAnimation}
                                                                     />
                                                                 ) : (
                                                                     <Icon
-                                                                        name={item.isFavourited ? 'heart' : 'heart-outline'}
-                                                                        style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                        name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
+                                                                        style={[
+                                                                            styles.staticHeart,
+                                                                            isFavourited[item.id] && styles.filledHeart,
+                                                                        ]}
                                                                         size={30}
                                                                     />
                                                                 )}
                                                             </TouchableOpacity>
 
                                                             <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                                {playCartAnimation ? (
+                                                                {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
                                                                     <LottieView
                                                                         source={require('@assets/animations/cartAnimation.json')}
                                                                         autoPlay
                                                                         loop={false}
-                                                                        onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                                        onAnimationFinish={() => handleAnimationFinish(item.id)}
+                                                                        style = { styles.cartAnimation }
                                                                     />
                                                                 ) : (
                                                                     <Icon
-                                                                        name={item.isAddedToCart ? 'cart' : 'cart-outline'}
-                                                                        style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
-                                                                        size={30}
+                                                                        name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                        style={[
+                                                                            styles.staticCart,
+                                                                            isAddedToCart[item.id] && styles.filledCart
+                                                                        ]}
+                                                                        size={32}
                                                                     />
                                                                 )}
                                                             </TouchableOpacity>
@@ -258,37 +352,49 @@ const HomeScreen = () => {
                                                             )}
 
                                                             <View style={styles.actionButtons}>
-                                                                <TouchableOpacity
-                                                                    onPress={() => toggleFavourite(item.id)}>
-                                                                    {playHeartAnimation ? (
+                                                                <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
+                                                                    {isFavourited[item.id] && playHeartAnimation[item.id] ? (
                                                                         <LottieView
                                                                             source={require('@assets/animations/likeButtonAnimation.json')}
                                                                             autoPlay
                                                                             loop={false}
-                                                                            onAnimationFinish={() => setPlayAnimation(false)}
+                                                                            onAnimationFinish={() =>
+                                                                                setPlayHeartAnimation((prev) => ({
+                                                                                    ...prev,
+                                                                                    [item.id]: false,
+                                                                                }))
+                                                                            }
+                                                                            style={styles.heartAnimation}
                                                                         />
                                                                     ) : (
                                                                         <Icon
-                                                                            name={item.isFavourited ? 'heart' : 'heart-outline'}
-                                                                            style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                            name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
+                                                                            style={[
+                                                                                styles.staticHeart,
+                                                                                isFavourited[item.id] && styles.filledHeart,
+                                                                            ]}
                                                                             size={30}
                                                                         />
                                                                     )}
                                                                 </TouchableOpacity>
 
                                                                 <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                                    {playCartAnimation ? (
+                                                                    {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
                                                                         <LottieView
                                                                             source={require('@assets/animations/cartAnimation.json')}
                                                                             autoPlay
                                                                             loop={false}
-                                                                            onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                                            onAnimationFinish={() => handleAnimationFinish(item.id)}
+                                                                            style = { styles.cartAnimation }
                                                                         />
                                                                     ) : (
                                                                         <Icon
-                                                                            name={item.isAddedToCart ? 'cart' : 'cart-outline'}
-                                                                            style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
-                                                                            size={30}
+                                                                            name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                            style={[
+                                                                                styles.staticCart,
+                                                                                isAddedToCart[item.id] && styles.filledCart
+                                                                            ]}
+                                                                            size={32}
                                                                         />
                                                                     )}
                                                                 </TouchableOpacity>
@@ -322,7 +428,7 @@ const HomeScreen = () => {
 
                                         <View style={styles.RowImages}>
                                             {inventoryItems.slice(0, 10).map((item) => (
-                                                <TouchableOpacity key={item.id} onPress={() => toggleModal(item)}>
+                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
                                                     <View key={item.id} style={styles.imageContainer}>
                                                         <Image style={styles.clothesImage}
                                                                source={{uri: item.mainImage}}/>
@@ -334,42 +440,55 @@ const HomeScreen = () => {
                                                                 </Text>
                                                             </View>
                                                         )}
-
                                                         <View style={styles.actionButtons}>
                                                             <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
-                                                                {playHeartAnimation ? (
+                                                                {isFavourited[item.id] && playHeartAnimation[item.id] ? (
                                                                     <LottieView
                                                                         source={require('@assets/animations/likeButtonAnimation.json')}
                                                                         autoPlay
                                                                         loop={false}
-                                                                        onAnimationFinish={() => setPlayAnimation(false)}
+                                                                        onAnimationFinish={() =>
+                                                                            setPlayHeartAnimation((prev) => ({
+                                                                                ...prev,
+                                                                                [item.id]: false,
+                                                                            }))
+                                                                        }
+                                                                        style={styles.heartAnimation}
                                                                     />
                                                                 ) : (
                                                                     <Icon
-                                                                        name={item.isFavourited ? 'heart' : 'heart-outline'}
-                                                                        style={[styles.staticHeart, item.isFavourited && styles.filledHeart]}
+                                                                        name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
+                                                                        style={[
+                                                                            styles.staticHeart,
+                                                                            isFavourited[item.id] && styles.filledHeart,
+                                                                        ]}
                                                                         size={30}
                                                                     />
                                                                 )}
                                                             </TouchableOpacity>
 
                                                             <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                                {playCartAnimation ? (
+                                                                {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
                                                                     <LottieView
                                                                         source={require('@assets/animations/cartAnimation.json')}
                                                                         autoPlay
                                                                         loop={false}
-                                                                        onAnimationFinish={() => setPlayCartAnimation(false)}
+                                                                        onAnimationFinish={() => handleAnimationFinish(item.id)}
+                                                                        style = { styles.cartAnimation }
                                                                     />
                                                                 ) : (
                                                                     <Icon
-                                                                        name={item.isAddedToCart ? 'cart' : 'cart-outline'}
-                                                                        style={[styles.staticCart, item.isAddedToCart && styles.filledCart]}
-                                                                        size={30}
+                                                                        name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                        style={[
+                                                                            styles.staticCart,
+                                                                            isAddedToCart[item.id] && styles.filledCart
+                                                                        ]}
+                                                                        size={32}
                                                                     />
                                                                 )}
                                                             </TouchableOpacity>
                                                         </View>
+
                                                     </View>
                                                 </TouchableOpacity>
                                             ))}
@@ -384,6 +503,7 @@ const HomeScreen = () => {
                                 </View>
                                 <Text> hi </Text>
 
+                                {/*when you click on an item*/}
                                 {selectedItem && (
                                     <Modal
                                         animationType="slide"
@@ -407,7 +527,16 @@ const HomeScreen = () => {
                                                     <View style = { styles.modalTitleContainer}>
                                                         <Text style={styles.modalTitle}>{selectedItem.itemName}</Text>
                                                     </View>
-                                                    <Text style={styles.modalTitlePrice}>{`R${selectedItem.itemPrice}`}</Text>
+
+                                                    <Text
+                                                        style={[
+                                                            styles.modalTitlePrice,
+                                                            selectedItem.onSale && styles.salePriceText
+                                                        ]}
+                                                    >
+                                                        {`R${selectedItem.itemPrice}`}
+                                                    </Text>
+
                                                 </View>
                                                 <View style={styles.separator} />
 
@@ -448,13 +577,62 @@ const HomeScreen = () => {
                                                     <Text style={styles.modalDescription}>{selectedItem.description}</Text>
                                                 </View>
                                                 <View style={styles.modalActionButtons}>
-                                                    <TouchableOpacity style={styles.modalLikeButton}>
-                                                        <Icon name="heart-outline" style={styles.modalLikeButtonIcon} size={45} />
+                                                    <TouchableOpacity onPress={() => toggleFavourite(selectedItem.id)} style={styles.modalLikeButton}>
+                                                        {isFavourited[selectedItem.id] && playHeartAnimation[selectedItem.id] ? (
+                                                            <LottieView
+                                                                source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                autoPlay
+                                                                loop={false}
+                                                                onAnimationFinish={() =>
+                                                                    setPlayHeartAnimation((prev) => ({
+                                                                        ...prev,
+                                                                        [selectedItem.id]: false,
+                                                                    }))
+                                                                }
+                                                                style={styles.likeAnimation}
+                                                            />
+                                                        ) : (
+                                                            <Icon
+                                                                name={isFavourited[selectedItem.id] ? 'heart' : 'heart-outline'}
+                                                                style={[
+                                                                    styles.staticHeartModal,
+                                                                    isFavourited[selectedItem.id] && styles.filledHeartModal,
+                                                                ]}
+                                                                size={45}
+                                                            />
+                                                        )}
                                                     </TouchableOpacity>
+
+
+                                                    <TouchableOpacity onPress={() => toggleCart(selectedItem.id)} style={styles.addToCartButton}>
+                                                        {isAddedToCart[selectedItem.id] && playCartAnimation[selectedItem.id] ? (
+                                                            <LottieView
+                                                                source={require('@assets/animations/cartAnimation.json')}
+                                                                autoPlay
+                                                                loop={false}
+                                                                onAnimationFinish={() => handleAnimationFinish(selectedItem.id)}
+                                                                style = { styles.cartAnimationModal }
+                                                            />
+                                                        ) : (
+                                                            <Icon
+                                                                name={isAddedToCart[selectedItem.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                style={[
+                                                                    styles.staticCartModal,
+                                                                    isAddedToCart[selectedItem.id] && styles.filledCartModal
+                                                                ]}
+                                                                size={32}
+                                                            />
+                                                        )}
+                                                        <Text style={styles.addToCartText}>
+                                                            {isAddedToCart[selectedItem.id] ? 'Added to cart' : 'Add to cart'}
+                                                        </Text>
                                                     <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(item)}>
                                                         <Icon name="cart-outline" style={styles.cartButton} size={30} />
                                                         <Text style={styles.addToCartText}> Add To Cart</Text>
+
                                                     </TouchableOpacity>
+
+
                                                 </View>
                                             </View>
                                         </View>
@@ -495,6 +673,8 @@ const HomeScreen = () => {
                                     </View>
                                 </Modal>
                             </View>
+                            <Text> i</Text>
+
                         </View>
                     </ImageBackground>
                 </ScrollView>
@@ -623,33 +803,6 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         paddingBottom:'2%',
     },
-    actionButtons: {
-        display: 'flex',
-        flexDirection: 'row',
-        position: "absolute",
-        zIndex: 2,
-        left: '50%',
-        bottom: '1%',
-
-    },
-    likeButton: {
-        color: "#93D3AE",
-    },
-    cartButton: {
-        color: "#93D3AE"
-    },
-    staticHeart: {
-        color: "#93D3AE",
-    },
-    filledHeart: {
-        color: "#FF0000",
-    },
-    staticCart: {
-        color: "#93D3AE",
-    },
-    filledCart: {
-        color: "#FF0000",
-    },
     discountBanner: {
         position: 'absolute',
         top: 15,
@@ -709,6 +862,15 @@ const styles = StyleSheet.create({
         fontSize: 24,
         marginBottom: 5,
     },
+    salePriceText: {
+        position:'relative',
+        right: '15%',
+        top:'1%',
+        fontSize: 16,
+        textDecorationLine: 'line-through',
+        color: 'gray',
+    },
+
     imageGrid: {
         width: '95%',
         height:250,
@@ -821,7 +983,8 @@ const styles = StyleSheet.create({
     addToCartText: {
         color: '#93D3AE',
         fontFamily: 'sulphurPoint',
-        fontSize: 22
+        fontSize: 22,
+        marginLeft: '10%'
     },
     modalLikeButton: {},
     modalLikeButtonIcon: {
@@ -875,7 +1038,90 @@ const styles = StyleSheet.create({
     },
     imageModalContainer: {
         backgroundColor: 'red'
-    }
+    },
+    heartAnimation: {
+        width:115,
+        height: 115,
+        display: 'flex',
+        flexDirection: 'row',
+        position: "absolute",
+        zIndex: 2,
+        left: -43,
+        bottom: -40
+    },
+    cartAnimation: {
+        width:40,
+        height: 40,
+        display: 'flex',
+        flexDirection: 'row',
+        position: "relative",
+        zIndex: 2,
+        right: '-20%',
+        bottom: '12%',
+        //backgroundColor: 'green'
+    },
+    actionButtons: {
+        width: '50%',
+        height:'20%',
+        display: 'flex',
+        flexDirection: 'row',
+        position: "absolute",
+        zIndex: 2,
+        justifyContent: 'space-between',
+        left:'52%',
+        top:'80%'
+    },
+    staticHeart: {
+        position: 'absolute',
+        zIndex: 3,
+        left: 2,
+        color: "#93D3AE",
+    },
+    filledCart:{
+        color: '#219281FF',
+        position: 'relative',
+        bottom: '4%'
+    },
+    filledHeart: {
+        color: '#FF0000',
+    },
+    staticCart: {
+        color: "#93D3AE",
+    },
+    filledHeartModal:{
+        color: '#FF0000',
+
+    },
+    staticHeartModal:{
+        color: "#93D3AE",
+
+    },
+    likeAnimation: {
+        width:200,
+        height: 200,
+        position: "absolute",
+        zIndex: 2,
+        bottom: -100,
+        left: -77
+    },
+    staticCartModal: {
+        color: "#93D3AE",
+
+    },
+    filledCartModal: {
+        color: "#93D3AE",
+    },
+    cartAnimationModal: {
+        width:35,
+        height: 35,
+        display: 'flex',
+        flexDirection: 'row',
+        position: "relative",
+        zIndex: 2,
+        right: '0%',
+        bottom: 0,
+    },
+
 });
 
 export default HomeScreen;
