@@ -58,6 +58,11 @@ export const Routes = [
         controller: AdminInventoryController,
         action: "remove",
     },
+        method: "put",
+        route: "/inventory/:SKU",
+        controller: AdminInventoryController,
+        action: "update",
+    },
     {
         method: "get",
         route: "/carts",
