@@ -1,7 +1,7 @@
 import { UserController } from "./controller/UserController";
 import {AdminInventoryController} from "./controller/adminInventoryController";
 import {CartController} from "./controller/CartController";
-import {OrderController} from "./controller/OrderController";
+import {OrderController} from "./controller/OrdersController";
 
 export const Routes = [
     {
@@ -58,6 +58,7 @@ export const Routes = [
         controller: AdminInventoryController,
         action: "remove",
     },
+    {
         method: "put",
         route: "/inventory/:SKU",
         controller: AdminInventoryController,

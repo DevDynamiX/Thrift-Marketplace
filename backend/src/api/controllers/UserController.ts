@@ -1,7 +1,7 @@
-import { AppDataSource } from "../data-source";
+import { AppDataSource } from "../../config/data-source";
 import { Request, Response } from "express";
-import { BaseUserController } from '../core/base/controllers/BaseUserController';
-import { User } from "../entity/User";
+import { BaseUserController } from '../../core/base/controllers/BaseUserController';
+import { User } from "../../core/entity/User";
 import * as bcrypt from "bcrypt";
 
 export class UserController implements BaseUserController {

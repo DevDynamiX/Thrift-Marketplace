@@ -20,7 +20,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 
-import {boolean} from "yup";
+import {boolean, number} from "yup";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import items from "ajv/lib/vocabularies/applicator/items";
 
@@ -29,6 +29,16 @@ interface Product {
     itemName: string;
     itemPrice: number;
     salePrice: number;
+    onSale: boolean;
+    quantity: number;
+    mainImage: string;
+    image2: string;
+    image3: string;
+    SKU: string;
+    colour: string;
+    size: string
+    damage: string;
+    description: string;
 }
 
 const { width } = Dimensions.get('window');
@@ -46,15 +56,15 @@ const HomeScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    const [isFavourited, setIsFavourited] = useState({});
-    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
-    const [isAddedToCart, setAddedToCart] = useState({});
-    const [playCartAnimation, setPlayCartAnimation] = useState({});
-    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
+    const [isFavourited, setIsFavourited] = useState<{ [key: number]: boolean }>({});
+    const [playHeartAnimation, setPlayHeartAnimation] = useState<{ [key: number]: boolean }>({});
+    const [isAddedToCart, setAddedToCart] = useState<{ [key: number]: boolean }>({});
+    const [playCartAnimation, setPlayCartAnimation] = useState<{ [key: number]: boolean }>({});
+    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState<{ [key: number]: boolean }>({});
 
-    const [inventoryItems, setInventoryItems ] = useState([]);
+    const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [cartItems, setCartItems] = useState([]);
+    const [cartItems, setCartItems] = useState<Product[]>([]);
 
     const recommendedScrollRef = useRef(null);
     const [recommendedScrollX, setRecommendedScrollX] = useState(0);
@@ -65,7 +75,7 @@ const HomeScreen = () => {
 
     const [isItemModalVisible, setIsItemModalVisible] = useState(false); // Main item modal
     const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
-    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedItem, setSelectedItem] = useState<Product | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
 
@@ -83,15 +93,15 @@ const HomeScreen = () => {
             });
     }, []);
 
-    const toggleFavourite = () => {
-        setIsFavourited(!isFavourited);
-        setPlayAnimation(true);
-    };
-
-    const toggleCart = () => {
-        setIsAddedToCart(!isAddedToCart);
-        setPlayCartAnimation(true);
-    };
+    // const toggleFavourite = () => {
+    //     setIsFavourited(!isFavourited);
+    //     setPlayAnimation(true);
+    // };
+    //
+    // const toggleCart = () => {
+    //     setIsAddedToCart(!isAddedToCart);
+    //     setPlayCartAnimation(true);
+    // };
 
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
@@ -102,7 +112,7 @@ const HomeScreen = () => {
         );
     }
 
-    const toggleFavourite = (id) => {
+    const toggleFavourite = (id: number) => {
         console.log(`Toggling favourite for ${id}`);
 
         const newIsFavourited = !isFavourited[id];
@@ -125,7 +135,7 @@ const HomeScreen = () => {
         }
     };
 
-    const toggleCart = (id) => {
+    const toggleCart = (id: number) => {
         console.log(`Toggling cart for ${id}`);
 
         const newAddedToCart = !isAddedToCart[id];
@@ -154,7 +164,7 @@ const HomeScreen = () => {
         }
     };
 
-    const handleAnimationFinish = (id) => {
+    const handleAnimationFinish = (id: number) => {
        setIsCartAnimationCompleted((prev) => ({
            ...prev,
            [id]: true,
@@ -190,8 +200,9 @@ const HomeScreen = () => {
             setScrollX(newScrollPosition); // update the current scroll position
         }
     };
+
     const addToCart = () => {
-        const existingItemIndex = cartItems.findIndex(item => item.id === selectedItem);
+        const existingItemIndex = cartItems.findIndex(item => item.id === selectedItem?.id);
 
         if(existingItemIndex !== -1) {
             const updatedCartItems = [...cartItems];
@@ -626,12 +637,12 @@ const HomeScreen = () => {
                                                         <Text style={styles.addToCartText}>
                                                             {isAddedToCart[selectedItem.id] ? 'Added to cart' : 'Add to cart'}
                                                         </Text>
+                                                    </TouchableOpacity>
+
                                                     <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(item)}>
                                                         <Icon name="cart-outline" style={styles.cartButton} size={30} />
                                                         <Text style={styles.addToCartText}> Add To Cart</Text>
-
                                                     </TouchableOpacity>
-
 
                                                 </View>
                                             </View>
