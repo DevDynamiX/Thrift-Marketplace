@@ -69,30 +69,6 @@ const HomeScreen = () => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
 
-    useEffect(() => {
-        setIsLoading(true);
-        fetch(`http://localhost:3000/inventory`)
-            .then(response => response.json())
-            .then( data => {
-                setInventoryItems(data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Error fetching inventory: ", error);
-                setIsLoading(false);
-            });
-    }, []);
-
-    const toggleFavourite = () => {
-        setIsFavourited(!isFavourited);
-        setPlayAnimation(true);
-    };
-
-    const toggleCart = () => {
-        setIsAddedToCart(!isAddedToCart);
-        setPlayCartAnimation(true);
-    };
-
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
         return (
@@ -179,8 +155,6 @@ const HomeScreen = () => {
             });
     }, []);
 
-
-
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
 
     const handleScrollRight = (scrollRef:any, currentScrollX:any, setScrollX:any) => {
@@ -218,10 +192,9 @@ const HomeScreen = () => {
     const images = selectedItem ? [
         { uri: selectedItem.mainImage },
         { uri: selectedItem.image2 },
-        { uri: selectedItem.image3 }
-    ] : [];
+        { uri: selectedItem.image3 }] : [];
 
-        return (
+    return (
             <SafeAreaView style={styles.container}>
                 <ScrollView>
                     <StatusBar barStyle="light-content" backgroundColor="black"/>
@@ -626,19 +599,12 @@ const HomeScreen = () => {
                                                         <Text style={styles.addToCartText}>
                                                             {isAddedToCart[selectedItem.id] ? 'Added to cart' : 'Add to cart'}
                                                         </Text>
-                                                    <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(item)}>
-                                                        <Icon name="cart-outline" style={styles.cartButton} size={30} />
-                                                        <Text style={styles.addToCartText}> Add To Cart</Text>
-
                                                     </TouchableOpacity>
-
-
                                                 </View>
                                             </View>
                                         </View>
                                     </Modal>
                                 )}
-
                                 {/* Image modal - Separate from the main item modal */}
                                 <Modal
                                     visible={isImageModalVisible}
@@ -673,13 +639,12 @@ const HomeScreen = () => {
                                     </View>
                                 </Modal>
                             </View>
-                            <Text> i</Text>
-
+                            <Text>..</Text>
                         </View>
                     </ImageBackground>
                 </ScrollView>
             </SafeAreaView>
-        );
+    );
 }
 
 const styles = StyleSheet.create({
@@ -761,8 +726,6 @@ const styles = StyleSheet.create({
         elevation: 5,
         margin: 5,
     },
-
-
     imageContainer: {
         height: 170,
         width: itemSize,

@@ -1,6 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Image, Alert } from "react-native";
+import {
+    View,
+    Text,
+    TextInput,
+    Button,
+    StyleSheet,
+    Image,
+    Alert,
+    ImageBackground,
+    SafeAreaView,
+    ActivityIndicator,
+    ImageStyle, TouchableOpacity
+} from "react-native";
 import { useLocalSearchParams } from "expo-router";
+import {useFonts} from "expo-font";
+import Icon from "react-native-vector-icons/Ionicons";
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
@@ -11,6 +25,23 @@ const PaymentScreen = () => {
     const [email, setEmail] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+
+    const [fontsLoaded] = useFonts({
+        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
+        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
+
+    if (!fontsLoaded) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" color="white" />
+            </SafeAreaView>
+        );
+    }
 
     const handlePayment = async () => {
         // basic validation , adjust if required
@@ -67,89 +98,104 @@ const PaymentScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <View>
-                <Text>Total Amount: R{Number(total).toFixed(2)}</Text>
+        <ImageBackground
+            source={require('@assets/images/TMBackground.png')}
+            resizeMode="stretch"
+            style={styles.image}>
+            <View style = {styles.mainContainer}>
+                <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
+
+                <View style={styles.container}>
+                    <View style = {styles.totalTextContainer}>
+                        <Text style = {styles.totalText}>Total Amount: R{Number(total).toFixed(2)}</Text>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Email"
+                            value={email}
+                            onChangeText={setEmail}
+                            keyboardType="email-address"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Card Number"
+                            value={cardNumber}
+                            onChangeText={setCardNumber}
+                            keyboardType="numeric"
+                            maxLength={16}
+                        />
+                        {(cardNumber[0] === '2' || cardNumber[0] === '5') && ( // use of a card identifier to add more vailidation limiting the amount of fruadulent acts
+                            <Image
+                                // card identifier
+                                source={{ uri: 'https://icon2.cleanpng.com/20180824/kxc/kisspng-mastercard-logo-credit-card-visa-brand-mastercard-logo-icon-paypal-icon-logo-png-and-v-1713949472663.webp' }}
+                                style={styles.cardImage}
+                            />
+                        )}
+                        {cardNumber[0] === '3' && (
+                            <Image
+                                // card identifier
+                                source={{ uri: 'https://image.similarpng.com/very-thumbnail/2020/06/Logo-VISA-transparent-PNG.png' }}
+                                style={styles.cardImage}
+                            />
+                        )}
+                        {cardNumber[0] === '4' && (
+                            <Image
+                                // card identifier
+                                source={{ uri: 'https://banner2.cleanpng.com/20180805/kii/a59ea355d7df4a5d908dd47ca00ef3ee.webp' }}
+                                style={styles.cardImage}
+                            />
+                        )}
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Expiry Date (MM/YY)"
+                            value={expiryDate}
+                            onChangeText={handleExpiryDateChange}
+                            keyboardType="numeric"
+                            maxLength={5}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="CVV"
+                            value={cvv}
+                            onChangeText={setCVV}
+                            keyboardType="numeric"
+                            maxLength={4}
+                        />
+                    </View>
+
+                    <TouchableOpacity  style = {styles.payButton} onPress={handlePayment}  disabled={isProcessing}>
+                        <Text style = {styles.payText}> {isProcessing ? "Processing..." : "Pay Now"} </Text>
+                        <Icon
+                            name={ 'card-outline'}
+                            style={[
+                                styles.cardIcon,]}
+                            size={30}
+                        />
+                    </TouchableOpacity>
+
+
+
+                    {isProcessing && <Text style={styles.processingText}>Processing Payment...</Text>}
+
+                    {statusMessage ? (
+                        <Text style={statusMessage.includes('Complete') ? styles.successText : styles.failText}>
+                            {statusMessage}
+                        </Text>
+                    ) : null}
+                </View>
             </View>
-
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Card Number"
-                    value={cardNumber}
-                    onChangeText={setCardNumber}
-                    keyboardType="numeric"
-                    maxLength={16}
-                />
-                {(cardNumber[0] === '2' || cardNumber[0] === '5') && ( // use of a card identifier to add more vailidation limiting the amount of fruadulent acts
-                    <Image
-                        // card identifier
-                        source={{ uri: 'https://icon2.cleanpng.com/20180824/kxc/kisspng-mastercard-logo-credit-card-visa-brand-mastercard-logo-icon-paypal-icon-logo-png-and-v-1713949472663.webp' }}
-                        style={styles.cardImage}
-                    />
-                )}
-                {cardNumber[0] === '3' && (
-                    <Image
-                        // card identifier
-                        source={{ uri: 'https://image.similarpng.com/very-thumbnail/2020/06/Logo-VISA-transparent-PNG.png' }}
-                        style={styles.cardImage}
-                    />
-                )}
-                {cardNumber[0] === '4' && (
-                    <Image
-                        // card identifier
-                        source={{ uri: 'https://banner2.cleanpng.com/20180805/kii/a59ea355d7df4a5d908dd47ca00ef3ee.webp' }}
-                        style={styles.cardImage}
-                    />
-                )}
-            </View>
-
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Expiry Date (MM/YY)"
-                    value={expiryDate}
-                    onChangeText={handleExpiryDateChange}
-                    keyboardType="numeric"
-                    maxLength={5}
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="CVV"
-                    value={cvv}
-                    onChangeText={setCVV}
-                    keyboardType="numeric"
-                    maxLength={4}
-                />
-            </View>
-
-            <Button
-                title={isProcessing ? "Processing..." : "Pay Now"}
-                onPress={handlePayment}
-                disabled={isProcessing}
-            />
-
-            {isProcessing && <Text style={styles.processingText}>Processing Payment...</Text>}
-
-            {statusMessage ? (
-                <Text style={statusMessage.includes('Complete') ? styles.successText : styles.failText}>
-                    {statusMessage}
-                </Text>
-            ) : null}
-        </View>
+        </ImageBackground>
     );
 };
 export default PaymentScreen;
@@ -158,23 +204,50 @@ const styles = StyleSheet.create({
     container: {
         padding:20,
         justifyContent:"center",
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        margin: 10,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 2,
+            height: 2,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    mainContainer: {
+        position: 'relative',
+        bottom: '10%'
+    },
+    logo: {
+        resizeMode: 'contain',
+        width: '100%',
+        height: '20%',
+        position: "relative",
+        right: '18%'
     },
     input:{
+        width: '100%',
+        fontSize: 16,
         borderWidth:0,
         marginVertical:10,
         paddingHorizontal:5,
+        fontFamily: 'sulphurPoint'
     },
     processingText:{
       marginTop:20,
-      color:'blue',
+      color:'#219281FF',
     },
     successText:{
         color:'green',
     },
     failText:{
-        color:'red',
+        color:'#FF0000',
     },
     inputContainer: {
+        fontFamily: 'sulphurPoint',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
@@ -186,5 +259,36 @@ const styles = StyleSheet.create({
     cardImage:{
         width:40,
         height:25,
+        position: "relative",
+        right: 45
     },
+    image:{
+        flex: 1,
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+    },
+    totalTextContainer: {},
+    totalText: {
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 25,
+        color: '#333333'
+    },
+    payButton: {
+        backgroundColor: '#219281',
+        padding: 15,
+        borderRadius: 10,
+        justifyContent: "space-around",
+        display: "flex",
+        flexDirection: "row-reverse"
+    },
+    payText: {
+        fontFamily: 'sulphurPoint',
+        color:'rgb(180,238,206)',
+        fontSize: 25,
+    },
+    cardIcon: {
+        color:'rgb(180,238,206)',
+    }
+
 });
