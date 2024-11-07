@@ -138,7 +138,57 @@ const RootLayout = () => {
             }}
         />
 
-    </Stack>;
+
+
+
+
+
+
+    <Stack.Screen
+        name="Admin/userlist"
+        options={{
+            title: "Registred Users",
+            headerStyle: {
+                backgroundColor: "#5CB7A5",
+            },
+            headerTintColor: "white",
+        }}
+    />
+
+        <Stack.Screen
+            name="Admin/Recycling"
+            options={{
+                title: "Recyling",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+        <Stack.Screen
+            name="Admin/AdminInventoryUpload"
+            options={{
+                title: "Inventory Upload",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+</Stack>;
+
+
+
+
+
+
+
+
+
     {/* All the new stuff i added  */}
 };
 

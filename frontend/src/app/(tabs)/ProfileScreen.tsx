@@ -8,22 +8,24 @@ import {
     ImageBackground,
     Image,
     StatusBar,
-    Pressable, Button
+    Linking
 } from 'react-native';
-import {handleLogout} from '../index';
-
+import { handleLogout } from '../index';
 
 export default function Menu() {
+    const openTermsAndConditions = () => {
+        Linking.openURL('https://thriftmarket.netlify.app/');
+    };
+
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
             <ImageBackground
-                source={require('@assets/images/TMBackground.png')} // Replace with your background image
+                source={require('@assets/images/TMBackground.png')}
                 style={styles.backgroundImage}
             >
-
                 <SafeAreaView style={styles.safeArea}>
-                    <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
+                    <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
 
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
@@ -33,7 +35,6 @@ export default function Menu() {
                             />
                             <View style={styles.greetingContainer}>
                                 <Text style={styles.greeting}>Hello,</Text>
-                                {/*TODO: display user name here*/}
                                 <Text style={styles.username}>User</Text>
                             </View>
                         </View>
@@ -48,7 +49,6 @@ export default function Menu() {
                             <Text style={styles.menuText}>Your Details</Text>
                         </TouchableOpacity>
 
-                        {/*TODO: Create a 'favourites' list*/}
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
                                 source={require('@assets/images/heart.png')}
@@ -57,7 +57,6 @@ export default function Menu() {
                             <Text style={styles.menuText}>Your Favorites</Text>
                         </TouchableOpacity>
 
-                        {/*TODO: Add redirections to recycle now page*/}
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
                                 source={require('@assets/images/received.png')}
@@ -79,7 +78,15 @@ export default function Menu() {
                                 source={require('@assets/images/videogame.png')}
                                 style={styles.icon}
                             />
-                            <Text style = {styles.menuText}>Logout</Text>
+                            <Text style={styles.menuText}>Logout</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.menuButton} onPress={openTermsAndConditions}>
+                            <Image
+                                source={require('@assets/images/logo.png')}
+                                style={styles.icon}
+                            />
+                            <Text style={styles.menuText}>Terms and Conditions</Text>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -137,7 +144,7 @@ const styles = StyleSheet.create({
         width: '90%',
         alignItems: 'center',
         position: "relative",
-        bottom: '25%'
+        bottom: '25%',
     },
     menuButton: {
         flexDirection: 'row',
@@ -161,13 +168,11 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 15,
     },
-
     tmlogo: {
         resizeMode: 'contain',
         width: '65%',
         position: 'relative',
         bottom: '6%',
-        right: '12%'
+        right: '12%',
     },
-
 });

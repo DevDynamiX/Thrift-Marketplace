@@ -73,7 +73,7 @@ const AdminDashboard = () => {
                 {/*<CustomButton text="View Brands" path="/auth/ViewBrands" navigateTo={navigateTo} />*/}
                 <CustomButton text="All Orders" path="/auth/AllOrders" navigateTo={navigateTo} />
                 <CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />
-                <CustomButton text="List Users" path="/auth/ListUsers" navigateTo={navigateTo} />
+                <CustomButton text="List Users" path="/Admin/userlist" navigateTo={navigateTo} />
                 <CustomButton text="Logout" path="/auth/LoginScreen" navigateTo={navigateTo} />
             </ScrollView>
 
