@@ -179,6 +179,29 @@ const RootLayout = () => {
         />
 
 
+        <Stack.Screen
+            name="webview/TermsOfService"
+            options={{
+                title: "Terms Of Service",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+        <Stack.Screen
+            name="webview/ContactUs"
+            options={{
+                title: "Contact Us",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
 </Stack>;
 
 

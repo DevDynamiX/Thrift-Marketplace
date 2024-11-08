@@ -69,6 +69,9 @@ const UsersList = () => {
 
     const renderItem = ({ item }) => (
         <View style={styles.userRow}>
+            {/* Display userId */}
+            <Text style={styles.userId}>ID: {item.id}</Text>
+
             <Text style={styles.userName}>{item.firstName} {item.lastName}</Text>
             <Text
                 style={styles.userEmail}
@@ -76,8 +79,6 @@ const UsersList = () => {
             >
                 {item.email}
             </Text>
-
-
 
             <View style={styles.buttonsContainer}>
                 <TouchableOpacity
@@ -118,7 +119,7 @@ const UsersList = () => {
 
                 {/* Button to email all users */}
                 <TouchableOpacity
-                    style={[styles.button, styles.contactButton]}
+                    style={[styles.button, styles.contactButton, styles.emailAllButton]} // Apply new style here
                     onPress={emailAllUsers}
                 >
                     <Text style={styles.buttonText}>Email All Users</Text>
@@ -167,6 +168,11 @@ const styles = StyleSheet.create({
         elevation: 5,
         marginVertical: 10,
     },
+    userId: {
+        fontSize: 14,
+        color: "#555",
+        marginBottom: 5,
+    },
     userName: {
         fontSize: 18,
         fontWeight: 'bold',
@@ -201,6 +207,12 @@ const styles = StyleSheet.create({
     },
     contactButton: {
         backgroundColor: "#6b87cc",
+    },
+    emailAllButton: {
+        minWidth: 200,
+        alignSelf: "center",
+        marginBottom: 20,
+        minHeight: 60
     },
     buttonText: {
         color: "white",

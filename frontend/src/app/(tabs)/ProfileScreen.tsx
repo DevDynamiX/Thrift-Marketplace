@@ -8,13 +8,41 @@ import {
     ImageBackground,
     Image,
     StatusBar,
-    Linking
 } from 'react-native';
+import { router } from "expo-router";
 import { handleLogout } from '../index';
 
+// Define the types for props in MenuButton
+type MenuButtonProps = {
+    text: string;
+    iconSource: any;
+    path?: string;
+    navigateTo?: (path: string) => void;
+    onPress?: () => void; // Mark as optional because not all buttons need it
+}
+
+const MenuButton = ({ text, iconSource, path, navigateTo, onPress }: MenuButtonProps) => {
+    return (
+        <TouchableOpacity
+            onPress={() => {
+                if (onPress) {
+                    onPress(); // Call the onPress if provided (for logout)
+                } else if (path && navigateTo) {
+                    navigateTo(path); // Call navigateTo if path is provided
+                }
+            }}
+            style={styles.menuButton}
+        >
+            <Image source={iconSource} style={styles.icon} />
+            <Text style={styles.menuText}>{text}</Text>
+        </TouchableOpacity>
+    );
+}
+
 export default function Menu() {
-    const openTermsAndConditions = () => {
-        Linking.openURL('https://thriftmarket.netlify.app/');
+
+    const navigateTo = (path: string) => {
+        router.push(path);
     };
 
     return (
@@ -26,7 +54,6 @@ export default function Menu() {
             >
                 <SafeAreaView style={styles.safeArea}>
                     <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
-
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
                             <Image
@@ -41,53 +68,57 @@ export default function Menu() {
 
                         <View style={styles.greenLine}></View>
 
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/gamer.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Your Details</Text>
-                        </TouchableOpacity>
+                        {/* Menu Buttons */}
+                        <MenuButton
+                            text="Your Details"
+                            iconSource={require('@assets/images/gamer.png')}
+                            path="/YourDetails"
+                            navigateTo={navigateTo}
+                        />
+                        <MenuButton
+                            text="Your Favorites"
+                            iconSource={require('@assets/images/heart.png')}
+                            path="/Favorites"
+                            navigateTo={navigateTo}
+                        />
+                        <MenuButton
+                            text="Recycle Now"
+                            iconSource={require('@assets/images/received.png')}
+                            path="/RecycleNow"
+                            navigateTo={navigateTo}
+                        />
+                        <MenuButton
+                            text="Order History"
+                            iconSource={require('@assets/images/retro-game.png')}
+                            path="/OrderHistory"
+                            navigateTo={navigateTo}
+                        />
+                        {/* Logout button */}
+                        <MenuButton
+                            text="Logout"
+                            iconSource={require('@assets/images/videogame.png')}
+                            onPress={() => {
+                                console.log("Logging out");
 
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/heart.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Your Favorites</Text>
-                        </TouchableOpacity>
+                                handleLogout();
+                            }}
+                        />
 
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/received.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Recycle Now</Text>
-                        </TouchableOpacity>
+                        <MenuButton
+                            text="Terms and Conditions"
+                            iconSource={require('@assets/images/logo.png')}
+                            path="../webview/TermsOfService"
+                            navigateTo={navigateTo}
+                        />
 
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/retro-game.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Order History</Text>
-                        </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
-                            <Image
-                                source={require('@assets/images/videogame.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Logout</Text>
-                        </TouchableOpacity>
+                        <MenuButton
+                            text="Contact Us"
+                            iconSource={require('@assets/images/adaptive-icon.png')}
+                            path="../webview/ContactUs"
+                            navigateTo={navigateTo}
+                        />
 
-                        <TouchableOpacity style={styles.menuButton} onPress={openTermsAndConditions}>
-                            <Image
-                                source={require('@assets/images/logo.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Terms and Conditions</Text>
-                        </TouchableOpacity>
                     </View>
                 </SafeAreaView>
             </ImageBackground>
