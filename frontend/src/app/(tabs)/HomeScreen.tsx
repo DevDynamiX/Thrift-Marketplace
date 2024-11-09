@@ -117,12 +117,8 @@ const HomeScreen = () => {
                 const likedItem = prevLikedItems.some(item => item.id === id);
 
                 if (!likedItem) {
-                    const formData = new FormData();
 
                     // TODO: get userID from session
-
-                    formData.append('itemID', id);
-                    formData.append('userID', '1');
 
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
                         method: 'POST',
@@ -313,7 +309,7 @@ const HomeScreen = () => {
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-                        <Text>.</Text>
+                        <Text>..</Text>
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
