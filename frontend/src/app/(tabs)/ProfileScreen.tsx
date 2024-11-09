@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     StyleSheet,
     SafeAreaView,
@@ -10,10 +10,43 @@ import {
     StatusBar,
     Pressable, Button
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {handleLogout} from '../index';
+import Constants from "expo-constants";
 
 
 export default function Menu() {
+
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [isItemModalVisible, setIsItemModalVisible] = useState(false);
+
+    const toggleItemModal = () => {
+        setIsItemModalVisible(!isItemModalVisible);
+    };
+
+    //const handlePress
+
+    // const [users, setUser ] = useState([]);
+    // const [isLoading, setIsLoading] = useState(true);
+    //
+    // useEffect(() => {
+    //     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/user`)
+    //         .then(response => response.json())
+    //         .then( data => {
+    //             setUser(data);
+    //             setIsLoading(false);
+    //         })
+    //         .catch(error => {
+    //             console.error("Error fetching inventory: ", error);
+    //             setIsLoading(false);
+    //         });
+    // }, []);
+    //
+    // if(isLoading) {
+    //     return <Text>Loading...</Text>;
+    // }
+
+
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
@@ -34,7 +67,7 @@ export default function Menu() {
                             <View style={styles.greetingContainer}>
                                 <Text style={styles.greeting}>Hello,</Text>
                                 {/*TODO: display user name here*/}
-                                <Text style={styles.username}>User</Text>
+                                <Text style={styles.username}> User </Text>
                             </View>
                         </View>
 
@@ -48,6 +81,15 @@ export default function Menu() {
                             <Text style={styles.menuText}>Your Details</Text>
                         </TouchableOpacity>
 
+                        {/*TODO: Add redirections to recycle now page*/}
+                        <TouchableOpacity style={styles.menuButton} onPress={toggleItemModal}>
+                            <Image
+                                source={require('@assets/images/received.png')}
+                                style={styles.icon}
+                            />
+                            <Text style={styles.menuText}>Recycle Now</Text>
+                        </TouchableOpacity>
+
                         {/*TODO: Create a 'favourites' list*/}
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
@@ -57,14 +99,6 @@ export default function Menu() {
                             <Text style={styles.menuText}>Your Favorites</Text>
                         </TouchableOpacity>
 
-                        {/*TODO: Add redirections to recycle now page*/}
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/received.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Recycle Now</Text>
-                        </TouchableOpacity>
 
                         <TouchableOpacity style={styles.menuButton}>
                             <Image

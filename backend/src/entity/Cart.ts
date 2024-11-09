@@ -1,11 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import {CartItem} from './CartItem'
+import { Entity, ManyToOne, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Inventory} from "./adminInventory";
+
 @Entity()
 
 export class Cart {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToMany(() => CartItem, (item) => item.cart,{cascade:true})
-    items!: CartItem[];
+    @Column()
+    userID!: string;
+
+    @Column()
+    itemID!: string;
+
+    @ManyToOne(() => Inventory, (inventory) => inventory.cartItems)
+    inventoryItem!: Inventory;
 }

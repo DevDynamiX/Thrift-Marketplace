@@ -22,7 +22,6 @@ const logoutButton = ()=>{
 };
 
 const App = () => {
-
     useEffect(() => {
         const checkSession = async ()=>{
             const {isLoggedIn} = await checkUserSession();
@@ -101,8 +100,6 @@ const App = () => {
                     <Text style={styles.buttonText}>Admin</Text>
                 </Pressable>
                 {/* All the new stuff i added  */}
-
-
 
             </View>
         </Animated.View>

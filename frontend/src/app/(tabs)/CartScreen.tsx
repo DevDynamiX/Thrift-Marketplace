@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     View,
     Text,
@@ -17,7 +17,6 @@ import Constants from "expo-constants";
 import LottieView from "lottie-react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
-
 interface Product {
     id: number;
     itemName: string;
@@ -26,7 +25,7 @@ interface Product {
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-const Home: React.FC = () => {
+const CartPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<Product[]>([]);
     const [total, setTotal] = useState(0);
@@ -57,23 +56,21 @@ const Home: React.FC = () => {
        setTotal(newTotal);
     },[cart]);
 
-    //TODO:fetch from users 'tempCart' table
-    const fetchProducts = async () => {
-        try {
-            const response = await  fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
-
-            if (!response.ok) throw new Error('Something went wrong!');
-            const data = await response.json();
-            setProducts(data);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-        }
-    };
-
-     const addToCart = (product: Product) => {
-         setCart((prevCart)=>[...prevCart,product]);
-         Alert.alert('Added to Cart', `${product.itemName} has been added to your cart.`);
-     };
+    //fetch from users 'cart' table
+    useEffect(() => {
+        //TODO: change with user ID
+        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/1`)
+            .then(response => response.json())
+            .then(data => {
+                if(data && data.items) {
+                    console.log('Data: ', data);
+                    setCart(data.items);
+                }
+            })
+            .catch( error => {
+                console.error("Error fetching items from cart. ");
+            })
+    }, [1]);
 
     const removeFromCart =(product:Product)=>{
         setCart((prevCart)=>prevCart.filter((item)=>item.id !== product.id));
@@ -92,12 +89,9 @@ const Home: React.FC = () => {
         { uri: products.image2 },
         { uri: products.image3 }] : [];
 
-    useEffect(() => {
-        fetchProducts();
-    }, []);
 
     //TODO: render what the user added to 'cart' table
-    const renderItem = ({ item }: { item: Product }) => (
+    const renderItem = ({ item }) => (
         <View style={styles.productCard}>
             <View style = {styles.itemHeaderLine}>
                 <Text style={styles.name}>{item.itemName}</Text>
@@ -476,4 +470,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default Home;
+export default CartPage;

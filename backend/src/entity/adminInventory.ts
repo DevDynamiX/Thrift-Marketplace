@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
-
+import { Entity,OneToMany,  PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import  {Cart} from "./Cart";
 @Entity()
 export class Inventory {
     @PrimaryGeneratedColumn()
@@ -59,4 +59,7 @@ export class Inventory {
     //TODO: SEE IF CAN ADD
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date;
+
+    @OneToMany(() => Cart, (cart) => cart.inventoryItem)
+    cartItems?: Cart[] ;
 }
