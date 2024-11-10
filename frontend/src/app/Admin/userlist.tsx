@@ -11,7 +11,7 @@ const UsersList = () => {
     // Fetch users from the backend
     useEffect(() => {
         axios
-            .get("http://192.168.1.116:3000/users") // from local env and change homie
+            .get("http://192.168.1.126:3000/users") // from local env and change homie
             .then((response) => {
                 setUsers(response.data);
                 setLoading(false);
@@ -36,7 +36,7 @@ const UsersList = () => {
                     text: "Delete",
                     onPress: () => {
                         axios
-                            .delete(`http://192.168.1.116:3000/users/${userId}`)
+                            .delete(`http://192.168.1.126:3000/users/${userId}`)
                             .then(() => {
                                 setUsers(users.filter(user => user.id !== userId));
                                 Alert.alert("Success", "User deleted successfully");
@@ -194,13 +194,9 @@ const styles = StyleSheet.create({
     },
     button: {
         paddingVertical: 12,
-        paddingHorizontal: 18,
+        paddingHorizontal: 20,
         borderRadius: 8,
-        flex: 1,
-        marginHorizontal: 5,
-        justifyContent: "center",
-        alignItems: "center",
-        elevation: 3,
+        marginTop: 10,
     },
     deleteButton: {
         backgroundColor: "#F96635",
@@ -209,10 +205,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#6b87cc",
     },
     emailAllButton: {
-        minWidth: 200,
         alignSelf: "center",
         marginBottom: 20,
-        minHeight: 60
     },
     buttonText: {
         color: "white",
@@ -224,6 +218,10 @@ const styles = StyleSheet.create({
         color: "red",
         textAlign: "center",
         marginTop: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
 });
 
