@@ -20,11 +20,12 @@ const UsersList = () => {
     const [editedFirstName, setEditedFirstName] = useState<string>('');
     const [editedLastName, setEditedLastName] = useState<string>('');
     const [editedEmail, setEditedEmail] = useState<string>('');
+    const [editedPassword, setEditedPassword] = useState<string>(''); // Password input left empty
 
     // Fetch users from the backend
     useEffect(() => {
         axios
-            .get("http://192.168.1.126:3000/users") // Replace with your own from local env.....
+            .get("http://192.168.1.126:3000/users") // Replace with your server's URL
             .then((response) => {
                 setUsers(response.data);
                 setLoading(false);
@@ -41,10 +42,7 @@ const UsersList = () => {
             "Delete User",
             "Are you sure you want to terminate this user's account?",
             [
-                {
-                    text: "Cancel",
-                    style: "cancel"
-                },
+                { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
                     onPress: () => {
@@ -69,13 +67,12 @@ const UsersList = () => {
         Linking.openURL(`mailto:${email}`).catch(err => console.error("Failed to open email client", err));
     };
 
-    // Function to email all users
+    // Email all users
     const emailAllUsers = () => {
         if (users.length === 0) {
             Alert.alert("No users", "There are no users to email.");
             return;
         }
-
         const emails = users.map(user => user.email).join(", ");
         Linking.openURL(`mailto:${emails}`).catch(err => console.error("Failed to open email client", err));
     };
@@ -86,6 +83,7 @@ const UsersList = () => {
         setEditedFirstName(user.firstName);
         setEditedLastName(user.lastName);
         setEditedEmail(user.email);
+        setEditedPassword(''); // Keep password field empty initially
         setIsEditing(true);
     };
 
@@ -97,15 +95,15 @@ const UsersList = () => {
             firstName: editedFirstName,
             lastName: editedLastName,
             email: editedEmail,
+            password: editedPassword, // Include updated password if provided
         };
 
         axios
-            .put(`http://192.168.1.126:3000/users/${selectedUser.id}`, updatedUser) // Update user
+            .put(`http://192.168.1.126:3000/users/${selectedUser.id}`, updatedUser)
             .then(() => {
-                // Re-fetch the updated user list from the backend
-                axios.get("http://192.168.1.126:3000/users") // Re-fetch users
+                axios.get("http://192.168.1.126:3000/users")
                     .then((response) => {
-                        setUsers(response.data); // Update users state with the new data
+                        setUsers(response.data);
                         setIsEditing(false);
                         Alert.alert("Success", "User details updated");
                     })
@@ -178,7 +176,7 @@ const UsersList = () => {
                 <FlatList
                     data={users}
                     renderItem={renderItem}
-                    keyExtractor={(item) => item.id != null ? item.id.toString() : Math.random().toString()} // Safe keyExtractor
+                    keyExtractor={(item) => item.id.toString()}
                 />
             </View>
 
@@ -192,24 +190,44 @@ const UsersList = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Edit User</Text>
+
+                        {/* First Name Field */}
+                        <Text style={styles.modalLabel}>Change First Name</Text>
                         <TextInput
                             style={styles.modalInput}
                             placeholder="First Name"
                             value={editedFirstName}
                             onChangeText={setEditedFirstName}
                         />
+
+                        {/* Last Name Field */}
+                        <Text style={styles.modalLabel}>Change Last Name</Text>
                         <TextInput
                             style={styles.modalInput}
                             placeholder="Last Name"
                             value={editedLastName}
                             onChangeText={setEditedLastName}
                         />
+
+                        {/* Email Field */}
+                        <Text style={styles.modalLabel}>Change Email</Text>
                         <TextInput
                             style={styles.modalInput}
                             placeholder="Email"
                             value={editedEmail}
                             onChangeText={setEditedEmail}
                         />
+
+                        {/* Password Field */}
+                        <Text style={styles.modalLabel}>Change Password (Leave blank to keep the same🚫)</Text>
+                        <TextInput
+                            style={styles.modalInput}
+                            placeholder="New Password"
+                            value={editedPassword}
+                            onChangeText={setEditedPassword}
+                            secureTextEntry // Make password input secure
+                        />
+
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
                                 style={[styles.button, styles.saveButton]}
@@ -244,7 +262,7 @@ const styles = StyleSheet.create({
     },
     productTitle: {
         fontFamily: 'shrikhand',
-        fontSize: 25,
+        fontSize: 40,
         fontWeight: 'bold',
         color: '#219281FF',
         marginBottom: 20,
@@ -262,15 +280,18 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     userId: {
-        fontSize: 14,
+        fontSize: 18,
         color: "#555",
         marginBottom: 5,
+        fontWeight: 'bold',
+        fontFamily: 'shrikhand',
     },
     userName: {
         fontSize: 18,
         fontWeight: 'bold',
         color: "#333",
         marginBottom: 5,
+        fontFamily: 'shrikhand',
     },
     userEmail: {
         fontFamily: 'shrikhand',
@@ -293,10 +314,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#ff4747', // Red for delete
     },
     contactButton: {
-        backgroundColor: '#ffc107', // Bootstrap Yellow for contact
+        backgroundColor: '#ffc107',
     },
     editButton: {
-        backgroundColor: '#28a745', // Green for edit
+        backgroundColor: '#28a745',
     },
     buttonText: {
         color: '#fff',
@@ -315,35 +336,37 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
     modalContent: {
-        backgroundColor: '#fff',
-        padding: 30,
+        width: "80%",
+        padding: 20,
+        backgroundColor: "white",
         borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
     },
     modalTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 15,
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 20,
+    },
+    modalLabel: {
+        fontSize: 14,
+        fontWeight: "bold",
+        marginVertical: 5,
     },
     modalInput: {
         height: 40,
-        width: '100%',
-        borderColor: '#ccc',
+        borderColor: "#ccc",
         borderWidth: 1,
-        marginBottom: 10,
-        paddingHorizontal: 10,
         borderRadius: 5,
+        paddingHorizontal: 10,
+        marginBottom: 10,
     },
     modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
+        flexDirection: "row",
+        justifyContent: "space-between",
     },
     saveButton: {
         backgroundColor: '#28a745',
