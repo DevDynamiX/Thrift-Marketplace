@@ -24,7 +24,7 @@ const UsersList = () => {
     // Fetch users from the backend
     useEffect(() => {
         axios
-            .get("http://192.168.1.126:3000/users") // Replace with your own from local env
+            .get("http://192.168.1.126:3000/users") // Replace with your own from local env.....
             .then((response) => {
                 setUsers(response.data);
                 setLoading(false);
