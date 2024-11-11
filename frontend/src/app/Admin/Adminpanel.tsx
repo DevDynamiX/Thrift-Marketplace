@@ -1,7 +1,9 @@
 import React, { useRef } from 'react';
-import { View, Text, Image, Animated, Pressable, ScrollView, StyleSheet } from 'react-native';
+import {View, Text, Image, Animated, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import { router } from "expo-router";
 import {useFonts} from "expo-font";
+import {handleLogout} from '../index';
+
 
 
 const AdminDashboard = () => {
@@ -67,14 +69,12 @@ const AdminDashboard = () => {
                 <CustomButton text="Insert Products" path="/Admin/AdminInventoryUpload" navigateTo={navigateTo} />
                 <CustomButton text="View Products" path="/Admin/ViewProduct" navigateTo={navigateTo} />
                 <CustomButton text="View Recycling" path="/Admin/Recycling" navigateTo={navigateTo} />
-                {/*<CustomButton text="Insert Categories" path="/Admin/Category" navigateTo={navigateTo} />*/}
-                {/*<CustomButton text="View Categories" path="/Admin/ViewCategory" navigateTo={navigateTo} />*/}
-                {/*<CustomButton text="Insert Brands" path="/auth/InsertBrands" navigateTo={navigateTo} />*/}
-                {/*<CustomButton text="View Brands" path="/auth/ViewBrands" navigateTo={navigateTo} />*/}
                 <CustomButton text="All Orders" path="/auth/AllOrders" navigateTo={navigateTo} />
                 <CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />
                 <CustomButton text="List Users" path="/auth/ListUsers" navigateTo={navigateTo} />
-                <CustomButton text="Logout" path="/auth/Logout" navigateTo={navigateTo} />
+                <TouchableOpacity onPress={handleLogout} style={styles.button}>
+                    <Text style={styles.buttonText}> Logout </Text>
+                </TouchableOpacity>
             </ScrollView>
 
             {/* Bottom White Bar */}

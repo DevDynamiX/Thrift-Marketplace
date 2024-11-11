@@ -1,8 +1,7 @@
 import React, {
     useState,
     useEffect,
-    useRef,
-     useContext } from 'react';
+    useRef,} from 'react';
 import {
     View,
     ImageBackground,
@@ -40,7 +39,7 @@ const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
 
-const HomeScreen = () => {
+const HomeScreen = React.memo(() => {
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -59,7 +58,7 @@ const HomeScreen = () => {
     const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
 
     const [inventoryItems, setInventoryItems ] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const [likedItems, setLikedItems] = useState([]);
 
@@ -258,17 +257,22 @@ const HomeScreen = () => {
 
     //render error could be here
     //fetch inventory from Table
+    const fetchInventory = async () => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
+            const data = await response.json();
+            console.log("Fetched data:", data);
+            setInventoryItems(data);
+        } catch (error) {
+            console.error("Error fetching inventory: ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`)
-            .then(response => response.json())
-            .then( data => {
-                setInventoryItems(data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Error fetching inventory: ", error);
-                setIsLoading(false);
-            });
+        setIsLoading(true);
+        fetchInventory().finally(() => setIsLoading(false));
     }, []);
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
@@ -309,7 +313,7 @@ const HomeScreen = () => {
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-                        <Text>..</Text>
+                        <Text>.</Text>
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
@@ -750,7 +754,7 @@ const HomeScreen = () => {
                 </ScrollView>
             </SafeAreaView>
     );
-}
+})
 
 const styles = StyleSheet.create({
     container: {

@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+
+import React, {useEffect, useRef, useState} from 'react';
 import {
     StyleSheet,
     SafeAreaView,
@@ -8,15 +9,17 @@ import {
     ImageBackground,
     Image,
     StatusBar,
-    Pressable, Button
+    Pressable, Button, Animated
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import {handleLogout} from '../index';
 import Constants from "expo-constants";
+import { router, useRouter} from "expo-router";
+
 
 
 export default function Menu() {
 
+    const router = useRouter();
     const [selectedItem, setSelectedItem] = useState(null);
     const [isItemModalVisible, setIsItemModalVisible] = useState(false);
 
@@ -45,6 +48,25 @@ export default function Menu() {
     // if(isLoading) {
     //     return <Text>Loading...</Text>;
     // }
+    const buttonScale = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(buttonScale, {
+            toValue: 0.95,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(buttonScale, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const navigateTo = (path: string) => {
+        router.push(path);
+    };
 
 
     return (
@@ -81,22 +103,23 @@ export default function Menu() {
                             <Text style={styles.menuText}>Your Details</Text>
                         </TouchableOpacity>
 
-                        {/*TODO: Add redirections to recycle now page*/}
                         <TouchableOpacity style={styles.menuButton} onPress={toggleItemModal}>
                             <Image
                                 source={require('@assets/images/received.png')}
                                 style={styles.icon}
                             />
-                            <Text style={styles.menuText}>Recycle Now</Text>
+                            <CustomButton text="Recycle Now" path="/pages/Recycling" navigateTo={navigateTo} />
+
                         </TouchableOpacity>
 
                         {/*TODO: Create a 'favourites' list*/}
+
                         <TouchableOpacity style={styles.menuButton}>
                             <Image
                                 source={require('@assets/images/heart.png')}
                                 style={styles.icon}
                             />
-                            <Text style={styles.menuText}>Your Favorites</Text>
+                            <CustomButton text="Your Favourites" path="/pages/YourFavourites" navigateTo={navigateTo} />
                         </TouchableOpacity>
 
 
@@ -119,8 +142,50 @@ export default function Menu() {
                 </SafeAreaView>
             </ImageBackground>
         </>
+
+
     );
 }
+interface CustomButtonProps {
+    text: string;
+    path: string;
+    navigateTo: (path: string) => void;
+}
+
+const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 0.95,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    return (
+        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
+            <Pressable
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={() => {
+                    console.log(`Navigating to: ${path}`);
+                    navigateTo(path);
+                }}
+                style={styles.button}
+            >
+                <Text style={styles.buttonText}>{text}</Text>
+            </Pressable>
+        </Animated.View>
+    );
+}
+
 
 const styles = StyleSheet.create({
     backgroundImage: {
@@ -149,11 +214,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     greeting: {
+        fontFamily: 'sulphurPoint',
         fontSize: 24,
         color: '#000',
         marginRight: 5,
     },
     username: {
+        fontFamily: 'shrikhand',
         fontSize: 24,
         color: 'rgb(92,183,165)',
         fontWeight: 'bold',
@@ -184,6 +251,14 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     menuText: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#fff',
+        marginLeft: 10,
+    },
+    buttonText: {
+        fontFamily: 'sulphurPoint',
         fontSize: 18,
         fontWeight: '600',
         color: '#fff',
@@ -205,3 +280,4 @@ const styles = StyleSheet.create({
     },
 
 });
+

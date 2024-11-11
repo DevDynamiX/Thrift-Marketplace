@@ -16,8 +16,8 @@ export class RecyclingController {
             });
             return response.json(recycling);
         } catch (error) {
-            console.error("Error Fetching Recycling Inventory: ", error);
-            return response.status(500).json({ message: "Error Fetching Recycling Inventory" });
+            console.error("Error Fetching Recycling.tsx Inventory: ", error);
+            return response.status(500).json({ message: "Error Fetching Recycling.tsx Inventory" });
         }
     }
 

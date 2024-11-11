@@ -17,6 +17,7 @@ const TabsLayout = () => {
 
                 },
                 headerShown: false,
+                unmountOnBlur: false
             }}
         >
             <Tabs.Screen

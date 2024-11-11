@@ -138,6 +138,28 @@ const RootLayout = () => {
             }}
         />
 
+        <Stack.Screen
+            name="pages/YourFavourites"
+            options={{
+                headerShown: false,
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/Recycling"
+            options={{
+                headerShown: false,
+            }}
+        />
+
+        {/*<Stack.Screen*/}
+        {/*    name="(tabs)/HomeScreen"*/}
+        {/*    options={{*/}
+        {/*        headerShown: false,*/}
+        {/*    }}*/}
+        {/*/>*/}
+
+
     </Stack>;
     {/* All the new stuff i added  */}
 };
