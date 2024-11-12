@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source";
-import { NextFunction, Request, Response } from "express";
+import {NextFunction, Request, response, Response} from "express";
 import { User } from "../entity/User";
 import bcrypt from "bcrypt";
 
@@ -10,13 +10,12 @@ export class UserController {
     // Get all users
     async all(request: Request, response: Response, next: NextFunction) {
         const users = await this.userRepository.find();
-        return this.userRepository.find()
+        return response.json(users);
     }
 
     // Get a user by ID
     async one(request: Request, response: Response, next: NextFunction) {
         const id = parseInt(request.params.id)
-
         const user = await this.userRepository.findOne({
             where: { id }
         })
@@ -30,9 +29,11 @@ export class UserController {
     // Save a new user
     async save(request: Request, response: Response, next: NextFunction) {
         const { email, password } = request.body;
+        const username = email;
 
         const user = Object.assign(new User(), {
             email,
+            username,
             password
         })
 
@@ -57,9 +58,8 @@ export class UserController {
 
     // Register a new user
     async register(req: Request, res: Response) {
-        const { email, password, firstName, lastName, gender, firebaseUid } = req.body;
+        const { email, password, firstName, lastName, gender } = req.body;
 
-        // Simple validation (you can add more checks here)
         if (!email || !password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
@@ -68,23 +68,58 @@ export class UserController {
             // Create a new user instance
             const newUser = new User();
             newUser.email = email;
-            newUser.password = password; // For testing, handling raw password (DO NOT do this in production)
+            newUser.username = email;
+            newUser.password = await bcrypt.hash(password, 10);
             newUser.firstName = firstName || '';
             newUser.lastName = lastName || '';
             newUser.gender = gender || '';
-            newUser.firebaseUid = firebaseUid || '';
+            newUser.UserRole = { id: 2, name: 'User' };
 
-            // Save the user to the database
             await this.userRepository.save(newUser);
 
-            // Respond with a plain object containing user details (without circular references)
             const { password: _, ...userWithoutPassword } = newUser;
             res.status(201).json({ message: "User registered successfully", user: userWithoutPassword });
         } catch (error) {
             console.error('Registration Error:', error); // Log the actual error
 
-            // Send a generic error message
             res.status(500).json({ message: "An internal server error occurred while registering the user." });
+        }
+    }
+
+    // Login a user
+    async login(req: Request, res: Response) {
+        const { username, password } = req.body;
+
+        try {
+            const user = await this.userRepository.findOne({
+                where : { username },
+                relations: ['UserRole']
+            })
+
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            console.log("backend: 3");
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: "Invalid password" });
+            }
+
+            const { password: _, UserRole, ...userWithoutPassword } = user;
+            const responseData = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                user_role: UserRole.name,
+                gender: user.gender
+            }
+
+            return res.json(responseData);
+        } catch (error) {
+            console.error("Error during login:", error);
+            return res.status(500).json({ message: "Internal server error" });
         }
     }
 }

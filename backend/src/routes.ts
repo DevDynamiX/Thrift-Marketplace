@@ -38,6 +38,12 @@ export const Routes = [
         controller: UserController,
         action: "register",
     },
+    {
+        method: "post",
+        route: "/login",
+        controller: UserController,
+        action: "login",
+    },
 
     //routes for admin table
     {
@@ -140,8 +146,4 @@ export const Routes = [
         controller: UserLikesController,
         action: "remove",
     },
-
-
-
-
 ];

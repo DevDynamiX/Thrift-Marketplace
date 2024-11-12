@@ -4,6 +4,7 @@ import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
 import { upload, errorHandler } from './middleware/inventoryUpload';
+import { seedRoles } from "./scripts/seeders/seedRoles";
 
 // Circular reference handler
 const getCircularReplacer = () => {
@@ -38,7 +39,7 @@ const createServer = () => {
 
     // Configure middleware
     app.use(cors({
-        origin: '*',
+        origin: process.env.DB_HOST,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
@@ -46,6 +47,14 @@ const createServer = () => {
 
     app.use(requestLogger);
     app.use(bodyParser.json());
+
+    app.use(bodyParser.text({ type: '*/*' }));
+    app.use((req: Request, res: Response, next: NextFunction) => {
+        if (!req.body || typeof req.body !== 'string') {
+            console.log("Raw Request Data:", req.body);
+        }
+        next();
+    });
 
     // Register routes
     registerRoutes(app);
@@ -67,6 +76,10 @@ const createServer = () => {
 
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log("Request Headers:", JSON.stringify(req.headers, null, 2));
+    if (req.query && Object.keys(req.query).length > 0) {
+        console.log("Query Params:", JSON.stringify(req.query, null, 2));
+    }
     if (req.body && Object.keys(req.body).length > 0) {
         console.log("Request Body:", JSON.stringify(req.body, null, 2));
     }
@@ -106,6 +119,7 @@ const startServer = async () => {
 
     try {
         await AppDataSource.initialize();
+        await seedRoles(AppDataSource);
         app.listen(port, () => {
             console.log(`[${new Date().toISOString()}] Server started on ${process.env.BACKEND_HOST}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -126,4 +140,8 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
-startServer();
+startServer().then(
+    response => console.log("Server started successfully.")
+).catch(
+    error => console.error("Failed to start server:", error)
+);

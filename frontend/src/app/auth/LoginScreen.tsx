@@ -2,24 +2,27 @@ import React, { useState } from 'react';
 import { router } from "expo-router";
 import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable, Alert } from 'react-native';
 import { Firebase_Auth } from "@/firebaseConfig";
-import { signInWithEmailAndPassword } from "@firebase/auth";
+// import { signInWithEmailAndPassword } from "@firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
 const Login = () => {
 
     const [email, setEmail] = useState('');
+    const username = email;
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const auth = Firebase_Auth;
 
-    const storeUserSession = async(userToken:string):Promise<void> =>{
+    const storeUserSession = async(userData: object): Promise<void> =>{
         try{
-            await AsyncStorage.setItem('userToken', userToken);
-            await AsyncStorage.setItem('userEmail', email);
-            await AsyncStorage.setItem('lastLoginTime',new Date().toISOString() );
+            await AsyncStorage.multiSet([
+                ['userData', JSON.stringify(userData)],
+                ['lastLoginTime', new Date().toISOString()]
+            ]);
         }
         catch(error){
-            console.log(error);
+            console.log("Error storing user session:", error);
         }
     }
 
@@ -30,14 +33,33 @@ const Login = () => {
         }
         setLoading(true);
         try {
-            const response = await signInWithEmailAndPassword(auth, email, password);
-            // console.log(response);
-            // Alert.alert("Success", "Logged in successfully");
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify({ username, password })
+            });
 
-            const token = await response.user.getIdToken();
-            await storeUserSession(token);
+            if (!response.ok) {
+                const errorData = await response.json();
+                Alert.alert("Error", errorData.message || "Failed to log in");
+                return;
+            }
 
-            router.replace("(tabs)/HomeScreen");
+            const data = await response.json();
+            await storeUserSession(data);
+
+            console.log("user_role",data.user_role);
+            switch (data.user_role) {
+                case 'Admin':
+                    router.replace("Admin/Adminpanel");
+                    break;
+                case 'User':
+                    router.replace("(tabs)/HomeScreen");
+                    break;
+                default:
+                    Alert.alert("Error", "Invalid user role");
+                    break;
+            }
         } catch (error: any) {
             console.log(error);
             Alert.alert("Error", error.message);
