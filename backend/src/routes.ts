@@ -1,9 +1,13 @@
 import { UserController } from "./controller/UserController";
 import {AdminInventoryController} from "./controller/adminInventoryController";
 import {CartController} from "./controller/CartController";
-import {OrderController} from "./controller/OrdersController";
+import {OrderController} from "./controller/OrderController";
+import {RecyclingController} from "./controller/RecyclingController";
+import {UserLikesController} from "./controller/userLikesController";
 
 export const Routes = [
+
+    //routes for user table
     {
         method: "get",
         route: "/users",
@@ -34,6 +38,8 @@ export const Routes = [
         controller: UserController,
         action: "register",
     },
+
+    //routes for admin table
     {
         method: "get",
         route: "/inventory",
@@ -64,53 +70,78 @@ export const Routes = [
         controller: AdminInventoryController,
         action: "update",
     },
+
+    //routes for carts table
     {
         method: "get",
-        route: "/carts",
+        route: "/cart/:userID",
         controller: CartController,
         action: "all",
     },
     {
-        method: "get",
-        route: "/carts/:id",
-        controller: CartController,
-        action: "one",
-    },
-    {
         method: "post",
-        route: "/carts",
+        route: "/cart",
         controller: CartController,
         action: "save",
     },
-    {
-        method: "post",
-        route: "/carts/:id/items",
-        controller: CartController,
-        action: "addItem",
-    },
+
     {
         method: "delete",
-        route: "/carts/:id/items/:itemId",
-        controller: CartController,
-        action: "removeItem",
-    },
-    {
-        method: "delete",
-        route: "/carts/:id",
+        route: "/cart/:itemID/:userID",
         controller: CartController,
         action: "remove",
     },
+
+
+    //routes for orders table
     {
      method: "post",
         route: "/orders",
         controller: OrderController,
         action: "createOrder",
     },
-// Update user details(Ika added this code)
+
+    //routes for recycling table
     {
-        method: "put", // Update route
-        route: "/users/:id", // URL to identify the user by ID
-        controller: UserController,
-        action: "update", // Call the 'update' method in UserController
+        method: "get",
+        route: "/recycling",
+        controller: RecyclingController,
+        action: "all",
     },
+    {
+        method: "post",
+        route: "/recycling",
+        controller: RecyclingController,
+        action: "save",
+    },
+    {
+        method: "delete",
+        route: "/recycling/:id",
+        controller: RecyclingController,
+        action: "remove",
+    },
+
+    //routes for user likes table
+    {
+        method: "get",
+        route: "/likes",
+        controller: UserLikesController,
+        action: "all",
+    },
+    {
+        method: "post",
+        route: "/likes",
+        controller: UserLikesController,
+        action: "save",
+    },
+    {
+        method: "delete",
+        route: "/likes/:itemID/:userID",
+        controller: UserLikesController,
+        action: "remove",
+    },
+
+
+
+
 ];

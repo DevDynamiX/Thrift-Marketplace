@@ -1,23 +1,22 @@
-import {AppDataSource} from "../data-source";
-import {NextFunction,Request,Response} from "express";
-import {Orders} from "../entity/Orders";
-import {request} from "node:http";
+import { AppDataSource } from "../data-source";
+import { NextFunction, Request, Response } from "express";
+import { Orders } from "../entity/Orders";
 
 export class OrderController {
-    async createOrder(req: Request, res: Response) {
+    async createOrder(request: Request, response: Response, next: NextFunction) {
         const orderRepo = AppDataSource.getRepository(Orders);
 
         try {
-            console.log('recvied order body', req.body);
+            console.log('Received order data:', request.body);
 
-            const {orderNumber, email, total} = req.body;
+            const { orderNumber, email, total } = request.body;
 
             if (!orderNumber || !email || total === undefined) {
-                console.log('Validation failed:', {orderNumber, email, total});
-                return res.status(400).json({error: "Missing required fields"});
+                console.log('Validation failed:', { orderNumber, email, total });
+                return response.status(400).json({ error: "Missing required fields" });
             }
 
-            const order = new Orders(); // adds to table
+            const order = new Orders();
             order.orderNumber = orderNumber;
             order.email = email;
             order.total = total;
@@ -27,22 +26,11 @@ export class OrderController {
             const result = await orderRepo.save(order);
             console.log('Save result:', result);
 
-            return res.status(201).json(result);
+            // Send success response back to client
+            return response.status(201).json(result);
         } catch (error) {
             console.error('Detailed error in createOrder:', error);
-
-            if (error instanceof Error) { // check for databse specific errors
-                if (error.message.includes('duplicate')) {
-                    return res.status(409).json({
-                        error: "Order number already exists"
-                    });
-                }
-            }
-
-            return res.status(500).json({ // return json response error
-                error: "Failed to create order",
-                details: error instanceof Error ? error.message : 'Unknown error'
-            });
+            return response.status(500).json({ error: `Failed to create order.` });
         }
     }
 }

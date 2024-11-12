@@ -9,8 +9,5 @@ export default {
         extra: {
             BACKEND_HOST,
         },
-        android: {
-            package: "com.anonymous.thriftmarket",
-        },
     },
 };

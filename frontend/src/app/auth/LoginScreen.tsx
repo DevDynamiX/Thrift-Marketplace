@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable, Alert } from 'react-native';
 import { router } from "expo-router";
-import Constants from 'expo-constants';
+import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable, Alert } from 'react-native';
+import { Firebase_Auth } from "@/firebaseConfig";
+import { signInWithEmailAndPassword } from "@firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = () => {
 
     const [email, setEmail] = useState('');
-    const username = email;
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const auth = Firebase_Auth;
 
     const storeUserSession = async(userToken:string):Promise<void> =>{
         try{
@@ -27,47 +28,19 @@ const Login = () => {
             Alert.alert("Error", "Please enter both email and password");
             return;
         }
-
         setLoading(true);
-
         try {
-            // Fetch user role from the backend
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    username,
-                    password,
-                })
-            });
+            const response = await signInWithEmailAndPassword(auth, email, password);
+            // console.log(response);
+            // Alert.alert("Success", "Logged in successfully");
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                Alert.alert("Error", errorData.message || "Failed to log in");
-                return;
-            }
-
-            const data = await response.json(); // Get user details and role
-            console.log("User data:", data); // Check if you receive the correct data
-
-            // Navigate based on user role
-            switch (data.role) {
-                case 'Admin':
-                    router.replace("Admin/Adminpanel"); // Replace with your admin panel route
-                    break;
-                default:
-                    router.replace("(tabs)/HomeScreen"); // Replace with your user home screen route
-                    break;
-            }
-        } catch (error) {
-            console.error("Login error:", error);
-            Alert.alert("Error", "An error occurred while logging in");
-            // const token = await Response.user.getIdToken();
-            // await storeUserSession(token);
+            const token = await response.user.getIdToken();
+            await storeUserSession(token);
 
             router.replace("(tabs)/HomeScreen");
+        } catch (error: any) {
+            console.log(error);
+            Alert.alert("Error", error.message);
         } finally {
             setLoading(false);
         }

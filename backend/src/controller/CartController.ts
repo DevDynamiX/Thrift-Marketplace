@@ -1,113 +1,102 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
-import { Cart } from "../entity/Cart";
-import { CartItem } from "../entity/CartItem";
+import {Cart} from "../entity/Cart";
+import { getRepository } from "typeorm";
+import {Inventory} from "../entity/adminInventory";
 
 export class CartController {
-    private cartRepository = AppDataSource.getRepository(Cart);
-    private cartItemRepository = AppDataSource.getRepository(CartItem);
 
-    //fetch all cart stuff
-    async all(request: Request, response: Response, next: NextFunction) {
-        const carts = await this.cartRepository.find({ relations: ["cartItems"] });
-        return response.json(carts);
+    private cartRepository = AppDataSource.getRepository(Cart)
+    private inventoryRepository = AppDataSource.getRepository(Inventory)
+
+    async all(req:Request,res:Response){
+       const { userID } = req.params;
+
+       console.log("Fetching Cart for user: ", userID);
+
+        try {
+           const cartItems =  await this.cartRepository
+               .createQueryBuilder("cart")
+               .innerJoinAndSelect('cart.inventoryItem', 'inventory')
+               .where('cart.userID  = :userID', {userID})
+               .getMany()
+
+           if (cartItems.length === 0) {
+               return res.status(404).json({ message: "No items found in cart for this user" });
+           }
+
+           res.json({items: cartItems});
+
+       } catch(error){
+           console.error("Error fetching items in cart: ", error);
+           return res.status(500).json({message: "Error fetching cart: ", error});
+
+       }
     }
 
-   // fetch cart by id
-    async one(request: Request, response: Response, next: NextFunction) {
-        const id = parseInt(request.params.id);
-        const cart = await this.cartRepository.findOne({
-            where: { id },
-            relations: ["cartItems"],
-        });
+    async save(req: Request, res: Response) {
+        //TODO: add userID here
+        const {itemID, userID} = req.body;
 
-        if (!cart) {
-            return response.status(404).json({ message: "cant find cart" });
+        console.log("Request Body:", req.body);
+
+        try {
+
+            if (!itemID) {
+                return res.status(400).json({ message: "itemID is required." });
+            }
+
+            const itemExists =  await this.cartRepository.findOne({
+                where: {itemID, userID}
+            });
+
+            if(itemExists){
+                return res.status(400).json({ success: false, message: "You've already added this item to cart." });
+            }
+
+            const cart =  this.cartRepository.create({itemID, userID});
+            const savedCart = await this.cartRepository.save(cart);
+
+            return res.status(201).json({message:"Item added successfully."});
+
+        } catch (error) {
+            console.error("Error saving to Cart: ", error);
+            return res.status(500).json({success: false, message: "Error saving to 'Cart'."});
         }
-        return response.json(cart);
     }
 
-   // saving new cart
-    async save(request: Request, response: Response, next: NextFunction) {
-        const { userId } = request.body;
+    async remove(req: Request, res: Response) {
+        console.log("Received DELETE request to remove item");
 
-        const cart = Object.assign(new Cart(), {
-            userId,
-        });
+        const {itemID, userID} = req.params;
 
-        const savedCart = await this.cartRepository.save(cart);
-        return response.status(201).json(savedCart);
+        try {
+            const itemToRemove = await this.cartRepository.findOne({where: {itemID: itemID, userID: userID}})
+
+            console.log("Item found:", itemToRemove);
+
+            if (!itemToRemove) {
+                console.log("Item not found for itemID:", itemID, "userID:", userID);
+                return res.status(404).json({message: "You have not added this item to cart!"});
+            }
+
+            await this.cartRepository.remove(itemToRemove)
+            console.log("Item removed successfully from 'Cart'.");
+
+            return res.status(200).json({message: " Item removed from 'Cart'."});
+
+        } catch(error){
+            console.error("Error removing from Cart: ", error);
+            return res.status(500).json({success: false, message: "Error removing from Cart."});
+        }
     }
 
-    // buying stuff
-    async addItem(request: Request, response: Response, next: NextFunction) {
-        const cartId = parseInt(request.params.id);
-        const { itemName, itemPrice } = request.body;
-
-        const cart = await this.cartRepository.findOne({
-            where: { id: cartId },
-            relations: ["cartItems"],
-        });
-
-        if (!cart) {
-            return response.status(404).json({ message: "cant find cart" });
-        }
-
-        cart.cartItems = cart.cartItems??[];
-
-        const cartItem = Object.assign(new CartItem(), {
-            itemName,
-            itemPrice,
-            cart,
-        });
-
-        const savedCartItem = await this.cartItemRepository.save(cartItem);
-        cart.cartItems.push(savedCartItem);
-        await this.cartRepository.save(cart);
-
-        return response.status(201).json(savedCartItem);
-    }
-
-    // removing
-    async removeItem(request: Request, response: Response, next: NextFunction) {
-        const cartId = parseInt(request.params.id);
-        const itemId = parseInt(request.params.itemId);
-
-        const cart = await this.cartRepository.findOne({
-            where: { id: cartId },
-            relations: ["cartItems"],
-        });
-
-        if (!cart) {
-            return response.status(404).json({ message: "Cant find cart" });
-        }
-
-        cart.cartItems = cart.cartItems??[];
-
-        const cartItem = cart.cartItems.find((item) => item.id === itemId);
-        if (!cartItem) {
-            return response.status(404).json({ message: "item not found" });
-        }
-
-        await this.cartItemRepository.remove(cartItem);
-        cart.cartItems = cart.cartItems.filter((item) => item.id !== itemId);
-        await this.cartRepository.save(cart);
-
-        return response.status(200).json({ message: "item removed" });
-    }
-
-    // delete a cart
-    async remove(request: Request, response: Response, next: NextFunction) {
-        const id = parseInt(request.params.id);
-
-        let cartToRemove = await this.cartRepository.findOneBy({ id });
-
-        if (!cartToRemove) {
-            return response.status(404).json({ message: "cart ? not exists" });
-        }
-
-        await this.cartRepository.remove(cartToRemove);
-
-        return response.status(200).json({ message: "removed cart" });
+    async clearCart(req:Request,res:Response){
+        const itemRepo = AppDataSource.getRepository(Cart);
+        await itemRepo.clear();
+        return res.json({message:"Item cleared"});
     }
 }
+
+
+

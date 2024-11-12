@@ -95,7 +95,7 @@ const ViewProducts = () => {
         }
     }, [selectedItem]);
 
-    //TODO: handle update
+
     const handleUpdatedItem = async (values) => {
         try {
             console.log('Values being sent: ', values);

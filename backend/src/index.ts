@@ -3,7 +3,6 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
-import { seedRoles } from "./scripts/seeders/seedRoles";
 import { upload, errorHandler } from './middleware/inventoryUpload';
 
 // Circular reference handler
@@ -39,7 +38,7 @@ const createServer = () => {
 
     // Configure middleware
     app.use(cors({
-        origin: process.env.DB_HOST,
+        origin: '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
@@ -74,7 +73,6 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
     next();
 };
 
-// Register express routes from defined application routes
 const registerRoutes = (app: express.Application) => {
     Routes.forEach(route => {
         const controllerInstance = new (route.controller as any)();
@@ -107,19 +105,7 @@ const startServer = async () => {
     const port = Number(process.env.SERVER_PORT) || 3000;
 
     try {
-        // Initialize the data source (database connection)
         await AppDataSource.initialize();
-
-        //Seed roles into the database
-        try {
-            await seedRoles(AppDataSource); // Call the seedRoles function
-            console.log("User roles seeded successfully.");
-        } catch (error) {
-            console.error("Failed to seed user roles:", error);
-        }
-
-        // Start the server
-        const port = Number(process.env.SERVER_PORT) || 3000;
         app.listen(port, () => {
             console.log(`[${new Date().toISOString()}] Server started on ${process.env.BACKEND_HOST}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -140,8 +126,4 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
-startServer().then(
-    response => console.log("Server started successfully.")
-).catch(
-    error => console.error("Failed to start server:", error)
-);
+startServer();

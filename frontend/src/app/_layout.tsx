@@ -138,80 +138,29 @@ const RootLayout = () => {
             }}
         />
 
-
-
-
-
-
-
-    <Stack.Screen
-        name="Admin/userlist"
-        options={{
-            title: "Registred Users",
-            headerStyle: {
-                backgroundColor: "#5CB7A5",
-            },
-            headerTintColor: "white",
-        }}
-    />
-
         <Stack.Screen
-            name="Admin/Recycling"
+            name="pages/YourFavourites"
             options={{
-                title: "Recyling",
-                headerStyle: {
-                    backgroundColor: "#5CB7A5",
-                },
-                headerTintColor: "white",
+                headerShown: false,
             }}
         />
 
-
         <Stack.Screen
-            name="Admin/AdminInventoryUpload"
+            name="pages/Recycling"
             options={{
-                title: "Inventory Upload",
-                headerStyle: {
-                    backgroundColor: "#5CB7A5",
-                },
-                headerTintColor: "white",
+                headerShown: false,
             }}
         />
 
-
-        <Stack.Screen
-            name="webview/TermsOfService"
-            options={{
-                title: "Terms Of Service",
-                headerStyle: {
-                    backgroundColor: "#5CB7A5",
-                },
-                headerTintColor: "white",
-            }}
-        />
+        {/*<Stack.Screen*/}
+        {/*    name="(tabs)/HomeScreen"*/}
+        {/*    options={{*/}
+        {/*        headerShown: false,*/}
+        {/*    }}*/}
+        {/*/>*/}
 
 
-        <Stack.Screen
-            name="webview/ContactUs"
-            options={{
-                title: "Support",
-                headerStyle: {
-                    backgroundColor: "#5CB7A5",
-                },
-                headerTintColor: "white",
-            }}
-        />
-
-</Stack>;
-
-
-
-
-
-
-
-
-
+    </Stack>;
     {/* All the new stuff i added  */}
 };
 

@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+    useState,
+    useEffect,
+    useRef,} from 'react';
 import {
     View,
     ImageBackground,
@@ -13,14 +16,15 @@ import {
     ImageStyle,
     TouchableOpacity,
     Modal,
-    FlatList
+    FlatList,
+    Alert
 } from 'react-native';
 import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 
-import {boolean, number} from "yup";
+import {boolean} from "yup";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import items from "ajv/lib/vocabularies/applicator/items";
 
@@ -29,22 +33,13 @@ interface Product {
     itemName: string;
     itemPrice: number;
     salePrice: number;
-    onSale: boolean;
-    quantity: number;
-    mainImage: string;
-    image2: string;
-    image3: string;
-    SKU: string;
-    colour: string;
-    size: string
-    damage: string;
-    description: string;
 }
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-const HomeScreen = () => {
+
+const HomeScreen = React.memo(() => {
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -56,15 +51,16 @@ const HomeScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    const [isFavourited, setIsFavourited] = useState<{ [key: number]: boolean }>({});
-    const [playHeartAnimation, setPlayHeartAnimation] = useState<{ [key: number]: boolean }>({});
-    const [isAddedToCart, setAddedToCart] = useState<{ [key: number]: boolean }>({});
-    const [playCartAnimation, setPlayCartAnimation] = useState<{ [key: number]: boolean }>({});
-    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState<{ [key: number]: boolean }>({});
+    const [isFavourited, setIsFavourited] = useState({});
+    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
+    const [isAddedToCart, setAddedToCart] = useState({});
+    const [playCartAnimation, setPlayCartAnimation] = useState({});
+    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
 
-    const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [cartItems, setCartItems] = useState<Product[]>([]);
+    const [inventoryItems, setInventoryItems ] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [likedItems, setLikedItems] = useState([]);
 
     const recommendedScrollRef = useRef(null);
     const [recommendedScrollX, setRecommendedScrollX] = useState(0);
@@ -75,33 +71,8 @@ const HomeScreen = () => {
 
     const [isItemModalVisible, setIsItemModalVisible] = useState(false); // Main item modal
     const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
-    const [selectedItem, setSelectedItem] = useState<Product | null>(null);
+    const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-
-    useEffect(() => {
-        setIsLoading(true);
-        fetch(`http://localhost:3000/inventory`)
-            .then(response => response.json())
-            .then( data => {
-                setInventoryItems(data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Error fetching inventory: ", error);
-                setIsLoading(false);
-            });
-    }, []);
-
-    // const toggleFavourite = () => {
-    //     setIsFavourited(!isFavourited);
-    //     setPlayAnimation(true);
-    // };
-    //
-    // const toggleCart = () => {
-    //     setIsAddedToCart(!isAddedToCart);
-    //     setPlayCartAnimation(true);
-    // };
 
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
@@ -112,31 +83,99 @@ const HomeScreen = () => {
         );
     }
 
-    const toggleFavourite = (id: number) => {
+    //saving liked items to table
+    const toggleFavourite = (id) => {
         console.log(`Toggling favourite for ${id}`);
+
+        if (!id) {
+            console.error("Item ID is missing");
+            return;
+        }
+
+        if (typeof id === 'undefined') {
+            console.error('ID is undefined');
+            return;
+        }
 
         const newIsFavourited = !isFavourited[id];
 
         setIsFavourited((prev) => ({
             ...prev,
-            [id]:  newIsFavourited,
+            [id]: newIsFavourited,
         }));
 
-        if(newIsFavourited) {
+        if (newIsFavourited) {
             setPlayHeartAnimation((prev) => ({
                 ...prev,
                 [id]: true,
             }));
-        }else{
+
+            console.log("Attempting to add like:", {itemID: id, userID: 1 });
+
+            setLikedItems((prevLikedItems = []) => {
+                const likedItem = prevLikedItems.some(item => item.id === id);
+
+                if (!likedItem) {
+
+                    // TODO: get userID from session
+
+                    fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': "application/json",
+                        },
+                        body: JSON.stringify({ itemID: id, userID: 1 }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Item added to likes:', data);
+                            if(data && data.likes) {
+                                console.log("Likes found: ", data.likes);
+                                setLikedItems((prevLikedItem) => [...prevLikedItems, {id}]);
+                            } else {
+                                console.error('Unexpected response data: ', data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error adding to 'Likes': ", error);
+                        });
+                }
+            });
+        } else {
             setPlayHeartAnimation((prev) => ({
                 ...prev,
                 [id]: false,
             }));
-        }
-    };
 
-    const toggleCart = (id: number) => {
+            //TODO: change to userID
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/1`, {
+                method: 'DELETE',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Item removed from likes:', data);
+                    setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id != id));
+                })
+                .catch(error => {
+                    console.error("Error removing from 'Likes': ", error);
+                });
+        }
+    }
+
+
+    //saving cart items to table
+    const toggleCart = (id) => {
         console.log(`Toggling cart for ${id}`);
+
+        if (!id) {
+            console.error("Item ID is missing");
+            return;
+        }
+
+        if (typeof id === 'undefined') {
+            console.error('ID is undefined');
+            return;
+        }
 
         const newAddedToCart = !isAddedToCart[id];
 
@@ -145,26 +184,67 @@ const HomeScreen = () => {
             [id]: newAddedToCart,
         }));
 
-        if(newAddedToCart) {
-            if(!isCartAnimationCompleted[id]) {
-                setPlayCartAnimation((prev) => ({
-                    ...prev,
-                    [id]: true,
-                }));
-            }
-        } else {
+        if (newAddedToCart) {
+            console.log("Attempting to add to cart:", { itemID: id, userID: 1 });
+
             setPlayCartAnimation((prev) => ({
                 ...prev,
-                [id]: false,
-            }));
-            setIsCartAnimationCompleted((prev) => ({
+                [id]: true,
+            }))
+
+            setCartItems((prevCartItems = []) => {
+                const existingItem = prevCartItems.some(item => item.id === id);
+                if (!existingItem) {
+                        console.log("Attempting to add to cart:", {itemID: id, userID: 1});
+
+                        // TODO: get userID from session
+                        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': "application/json",
+                            },
+                            body: JSON.stringify({itemID: id, userID: 1}),
+                        })
+                            .then(response => response.json())
+                            .then((data) => {
+                                console.log('Item added to cart:', data);
+                                if (data && data.item) {
+                                    setCartItems((prevCartItem) => [...prevCartItems, {id}]);
+                                    setAddedToCart(prev =>({...prev, [id]:true}))
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error adding to 'Cart': ", error);
+                            });
+                }
+            });
+        } else {
+
+            console.log(`Removing item ${id} from cart`);
+
+            setPlayCartAnimation((prev) => ({
                 ...prev,
                 [id]: false
-            }));
-        }
-    };
+            }))
 
-    const handleAnimationFinish = (id: number) => {
+            //TODO: change to userID
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/1`, {
+                method: 'DELETE',
+            })
+                .then((response) => response.json())
+                .then(() => {
+                    setCartItems((prevCartItems = [])  => prevCartItems.filter(item => item.id != id));
+                    setAddedToCart((prev) => ({
+                        ...prev,
+                        [id]: false,
+                    }));
+                }).catch(error => {
+                    console.error("Error removing from 'Cart': ", error);
+                });
+        }
+    }
+
+    const handleAnimationFinish = (id) => {
        setIsCartAnimationCompleted((prev) => ({
            ...prev,
            [id]: true,
@@ -175,43 +255,36 @@ const HomeScreen = () => {
        }));
     }
 
+    //render error could be here
     //fetch inventory from Table
+    const fetchInventory = async () => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
+            const data = await response.json();
+            console.log("Fetched data:", data);
+            setInventoryItems(data);
+        } catch (error) {
+            console.error("Error fetching inventory: ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`)
-            .then(response => response.json())
-            .then( data => {
-                setInventoryItems(data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Error fetching inventory: ", error);
-                setIsLoading(false);
-            });
+        setIsLoading(true);
+        fetchInventory().finally(() => setIsLoading(false));
     }, []);
-
-
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
 
     const handleScrollRight = (scrollRef:any, currentScrollX:any, setScrollX:any) => {
         if (scrollRef.current) {
-            const newScrollPosition = currentScrollX + 100; // scroll by 100 pixels
+            const newScrollPosition = currentScrollX + 100;
             scrollRef.current.scrollTo({ x: newScrollPosition, animated: true });
-            setScrollX(newScrollPosition); // update the current scroll position
+            setScrollX(newScrollPosition);
         }
     };
 
-    const addToCart = () => {
-        const existingItemIndex = cartItems.findIndex(item => item.id === selectedItem?.id);
-
-        if(existingItemIndex !== -1) {
-            const updatedCartItems = [...cartItems];
-            updatedCartItems[existingItemIndex].quantity +=1;
-        }
-        else {
-            setCartItems(cartItems);
-        }
-    }
     const toggleItemModal = (item:any) => {
         setSelectedItem(item);
         setIsItemModalVisible(!isItemModalVisible);
@@ -229,10 +302,9 @@ const HomeScreen = () => {
     const images = selectedItem ? [
         { uri: selectedItem.mainImage },
         { uri: selectedItem.image2 },
-        { uri: selectedItem.image3 }
-    ] : [];
+        { uri: selectedItem.image3 }] : [];
 
-        return (
+    return (
             <SafeAreaView style={styles.container}>
                 <ScrollView>
                     <StatusBar barStyle="light-content" backgroundColor="black"/>
@@ -241,8 +313,8 @@ const HomeScreen = () => {
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-
-                        <View style={styles.MainContainer}>
+                        <Text>.</Text>
+                            <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
                             {/*TODO: Filter by gender*/}
@@ -499,7 +571,6 @@ const HomeScreen = () => {
                                                                 )}
                                                             </TouchableOpacity>
                                                         </View>
-
                                                     </View>
                                                 </TouchableOpacity>
                                             ))}
@@ -638,18 +709,11 @@ const HomeScreen = () => {
                                                             {isAddedToCart[selectedItem.id] ? 'Added to cart' : 'Add to cart'}
                                                         </Text>
                                                     </TouchableOpacity>
-
-                                                    <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(item)}>
-                                                        <Icon name="cart-outline" style={styles.cartButton} size={30} />
-                                                        <Text style={styles.addToCartText}> Add To Cart</Text>
-                                                    </TouchableOpacity>
-
                                                 </View>
                                             </View>
                                         </View>
                                     </Modal>
                                 )}
-
                                 {/* Image modal - Separate from the main item modal */}
                                 <Modal
                                     visible={isImageModalVisible}
@@ -684,14 +748,13 @@ const HomeScreen = () => {
                                     </View>
                                 </Modal>
                             </View>
-                            <Text> i</Text>
-
+                            <Text>.</Text>
                         </View>
                     </ImageBackground>
                 </ScrollView>
             </SafeAreaView>
-        );
-}
+    );
+})
 
 const styles = StyleSheet.create({
     container: {
@@ -751,7 +814,7 @@ const styles = StyleSheet.create({
     RowImages: {
         flex: 1,
         flexDirection: 'row',
-        height: 170,
+        height: 180,
         display: 'flex',
         justifyContent: 'flex-start',
         alignItems: "center",
@@ -770,10 +833,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 4,
         elevation: 5,
-        margin: 5,
     },
-
-
     imageContainer: {
         height: 170,
         width: itemSize,
@@ -1079,7 +1139,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         zIndex: 2,
         justifyContent: 'space-between',
-        left:'52%',
+        left:'50%',
         top:'80%'
     },
     staticHeart: {
@@ -1134,5 +1194,6 @@ const styles = StyleSheet.create({
     },
 
 });
+
 
 export default HomeScreen;
