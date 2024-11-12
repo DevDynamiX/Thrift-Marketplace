@@ -138,6 +138,70 @@ const RootLayout = () => {
             }}
         />
 
+
+
+
+
+
+
+    <Stack.Screen
+        name="Admin/userlist"
+        options={{
+            title: "Registred Users",
+            headerStyle: {
+                backgroundColor: "#5CB7A5",
+            },
+            headerTintColor: "white",
+        }}
+    />
+
+        <Stack.Screen
+            name="Admin/Recycling"
+            options={{
+                title: "Recyling",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+        <Stack.Screen
+            name="Admin/AdminInventoryUpload"
+            options={{
+                title: "Inventory Upload",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+        <Stack.Screen
+            name="webview/TermsOfService"
+            options={{
+                title: "Terms Of Service",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+
+        <Stack.Screen
+            name="webview/ContactUs"
+            options={{
+                title: "Support",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
         <Stack.Screen
             name="pages/YourFavourites"
             options={{
