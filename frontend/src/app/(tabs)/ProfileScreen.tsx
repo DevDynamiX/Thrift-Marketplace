@@ -47,13 +47,13 @@ export default function Menu() {
 
     return (
         <>
-            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
+            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true} />
             <ImageBackground
                 source={require('@assets/images/TMBackground.png')}
                 style={styles.backgroundImage}
             >
                 <SafeAreaView style={styles.safeArea}>
-                    <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
+                    <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo} />
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
                             <Image
@@ -99,7 +99,6 @@ export default function Menu() {
                             iconSource={require('@assets/images/videogame.png')}
                             onPress={() => {
                                 console.log("Logging out");
-
                                 handleLogout();
                             }}
                         />
@@ -111,14 +110,12 @@ export default function Menu() {
                             navigateTo={navigateTo}
                         />
 
-
                         <MenuButton
-                            text="Contact Us"
-                            iconSource={require('@assets/images/adaptive-icon.png')}
+                            text="Support"
+                            iconSource={require('@assets/images/IMG_3695.jpg')}
                             path="../webview/ContactUs"
                             navigateTo={navigateTo}
                         />
-
                     </View>
                 </SafeAreaView>
             </ImageBackground>
@@ -130,6 +127,11 @@ const styles = StyleSheet.create({
     backgroundImage: {
         width: '100%',
         height: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: -1,
+        resizeMode: 'cover',  // Ensure the background image fills the space
     },
     safeArea: {
         flex: 1,
@@ -140,70 +142,86 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
-        marginTop: 10,
+        marginBottom: 20,
     },
     logo: {
         width: 50,
         height: 50,
         marginRight: 10,
+        borderRadius: 25,
     },
     greetingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     greeting: {
-        fontSize: 24,
-        color: '#000',
+        fontSize: 26,
+        color: '#fff',
         marginRight: 5,
+        fontFamily: 'Poppins', // Modern font
+        fontWeight: '600',
     },
     username: {
-        fontSize: 24,
+        fontSize: 26,
         color: 'rgb(92,183,165)',
+        fontFamily: 'Poppins',
         fontWeight: 'bold',
     },
     greenLine: {
-        height: 2,
+        height: 3,
         width: '100%',
         backgroundColor: 'rgb(92,183,165)',
         marginBottom: 20,
+        borderRadius: 2,
     },
     transparentContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        borderRadius: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderRadius: 15,
         padding: 20,
         width: '90%',
         alignItems: 'center',
         position: "relative",
-        bottom: '25%',
+        bottom: '21%',  // Move the container slightly up
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        borderColor: 'rgb(92,183,165)',
+
     },
     menuButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgb(92,183,165)',
         paddingVertical: 15,
-        borderRadius: 5,
+        borderRadius: 30,
         marginBottom: 15,
         justifyContent: 'center',
         width: '100%',
+        elevation: 5, // Shadow for Android
+        shadowColor: '#000', // Shadow for iOS
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     menuText: {
         fontSize: 18,
         fontWeight: '600',
         color: '#fff',
-        marginLeft: 10,
+        marginLeft: 12,
+        fontFamily: 'Poppins',
     },
     icon: {
         width: 24,
         height: 24,
-        position: 'absolute',
-        left: 15,
+        marginLeft: 15,
     },
     tmlogo: {
         resizeMode: 'contain',
         width: '65%',
         position: 'relative',
-        bottom: '6%',
+        bottom: '2%',
         right: '12%',
+
     },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ImageBackground, TextInput, Modal } from "react-native";
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ImageBackground, TextInput, Modal, KeyboardAvoidingView, Platform } from "react-native";
 import axios from "axios";
 import { Linking } from 'react-native';
 
@@ -25,7 +25,7 @@ const UsersList = () => {
     // Fetch users from the backend
     useEffect(() => {
         axios
-            .get("http://192.168.1.126:3000/users") // Replace with your server's URL
+            .get("http://192.168.1.90:3000/users") // Replace with your server's URL
             .then((response) => {
                 setUsers(response.data);
                 setLoading(false);
@@ -47,7 +47,7 @@ const UsersList = () => {
                     text: "Delete",
                     onPress: () => {
                         axios
-                            .delete(`http://192.168.1.126:3000/users/${userId}`)
+                            .delete(`http://192.168.1.90:3000/users/${userId}`)
                             .then(() => {
                                 setUsers(users.filter(user => user.id !== userId));
                                 Alert.alert("Success", "User deleted successfully");
@@ -99,9 +99,9 @@ const UsersList = () => {
         };
 
         axios
-            .put(`http://192.168.1.126:3000/users/${selectedUser.id}`, updatedUser)
+            .put(`http://192.168.1.90:3000/users/${selectedUser.id}`, updatedUser)
             .then(() => {
-                axios.get("http://192.168.1.126:3000/users")
+                axios.get("http://192.168.1.90:3000/users")
                     .then((response) => {
                         setUsers(response.data);
                         setIsEditing(false);
@@ -187,7 +187,10 @@ const UsersList = () => {
                 transparent={true}
                 onRequestClose={() => setIsEditing(false)}
             >
-                <View style={styles.modalOverlay}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.modalOverlay}
+                >
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Edit User</Text>
 
@@ -223,6 +226,7 @@ const UsersList = () => {
                         <TextInput
                             style={styles.modalInput}
                             placeholder="New Password"
+                            placeholderTextColor="#219281"
                             value={editedPassword}
                             onChangeText={setEditedPassword}
                             secureTextEntry // Make password input secure
@@ -243,12 +247,11 @@ const UsersList = () => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
         </ImageBackground>
     );
 };
-
 const styles = StyleSheet.create({
     background: {
         flex: 1,
