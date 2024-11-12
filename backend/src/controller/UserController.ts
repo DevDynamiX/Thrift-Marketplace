@@ -1,23 +1,25 @@
 import { AppDataSource } from "../data-source";
-import { Request, Response } from "express";
-import { BaseUserController } from '../core/base/controllers/BaseUserController';
+import { NextFunction, Request, Response } from "express";
 import { User } from "../entity/User";
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 
-export class UserController implements BaseUserController {
+export class UserController {
 
     private userRepository = AppDataSource.getRepository(User)
 
     // Get all users
-    async all(request: Request, response: Response): Promise<any> {
+    async all(request: Request, response: Response, next: NextFunction) {
         const users = await this.userRepository.find();
-        return response.json(users);
+        return this.userRepository.find()
     }
 
     // Get a user by ID
-    async one(request: Request, response: Response): Promise<any> {
-        const id = parseInt(request.params.id);
-        const user = await this.userRepository.findOne({ where: { id } });
+    async one(request: Request, response: Response, next: NextFunction) {
+        const id = parseInt(request.params.id)
+
+        const user = await this.userRepository.findOne({
+            where: { id }
+        })
 
         if (!user) {
             return response.status(404).json({ message: "User not found" });
@@ -26,110 +28,63 @@ export class UserController implements BaseUserController {
     }
 
     // Save a new user
-    async save(request: Request, response: Response): Promise<any> {
+    async save(request: Request, response: Response, next: NextFunction) {
         const { email, password } = request.body;
-        const user = Object.assign(new User(), { email, password });
+
+        const user = Object.assign(new User(), {
+            email,
+            password
+        })
+
         const savedUser = await this.userRepository.save(user);
         return response.status(201).json(savedUser);
     }
 
     // Remove a user
-    async remove(request: Request, response: Response): Promise<any> {
-        const id = parseInt(request.params.id);
-        let userToRemove = await this.userRepository.findOneBy({ id });
+    async remove(request: Request, response: Response, next: NextFunction) {
+        const id = parseInt(request.params.id)
+
+        let userToRemove = await this.userRepository.findOneBy({ id })
 
         if (!userToRemove) {
             return response.status(404).json({ message: "User does not exist" });
         }
 
-        await this.userRepository.remove(userToRemove);
+        await this.userRepository.remove(userToRemove)
+
         return response.status(200).json({ message: "User has been removed" });
     }
 
     // Register a new user
-    async register(req: Request, res: Response): Promise<any> {
+    async register(req: Request, res: Response) {
         const { email, password, firstName, lastName, gender, firebaseUid } = req.body;
 
+        // Simple validation (you can add more checks here)
         if (!email || !password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
 
         try {
+            // Create a new user instance
             const newUser = new User();
             newUser.email = email;
-            newUser.username = email;
-            newUser.password = await bcrypt.hash(password, 10); // Hash the password
+            newUser.password = password; // For testing, handling raw password (DO NOT do this in production)
             newUser.firstName = firstName || '';
             newUser.lastName = lastName || '';
-            newUser.role = { id: 2, name: 'User' };
+            newUser.gender = gender || '';
+            newUser.firebaseUid = firebaseUid || '';
 
+            // Save the user to the database
             await this.userRepository.save(newUser);
 
+            // Respond with a plain object containing user details (without circular references)
             const { password: _, ...userWithoutPassword } = newUser;
             res.status(201).json({ message: "User registered successfully", user: userWithoutPassword });
         } catch (error) {
-            console.error('Registration Error:', error);
+            console.error('Registration Error:', error); // Log the actual error
+
+            // Send a generic error message
             res.status(500).json({ message: "An internal server error occurred while registering the user." });
         }
-    }
-
-    // Login a user
-    async login(req: Request, res: Response): Promise<any> {
-        const { username, password } = req.body;
-
-        try {
-            const user = await this.userRepository.findOne({
-                where: { username },
-                relations: ["role"],
-            });
-
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            //Password validation using bcrypt
-            const isPasswordValid = await bcrypt.compare(password, user.password);
-            if (!isPasswordValid) {
-                return res.status(401).json({ message: "Invalid password" });
-            }
-
-            const { password: _, role, ...userWithoutPassword } = user;
-            const responseData = {
-                ...userWithoutPassword,
-                role: role ? role.name : null,
-            };
-
-            return res.json(responseData);
-        } catch (error) {
-            console.error("Error during login:", error);
-            return res.status(500).json({ message: "An error occurred during login" });
-        }
-    }
-
-    // Update user details(Ika added this code for editing)
-    async update(request: Request, response: Response): Promise<any> {
-        const id = parseInt(request.params.id); // Get user ID from URL
-        const { email, password, firstName, lastName } = request.body; // Get updated details from request body
-
-        // Check if user exists
-        let userToUpdate = await this.userRepository.findOne({ where: { id } });
-
-        if (!userToUpdate) {
-            return response.status(404).json({ message: "User not found" });
-        }
-
-        // Update user fields if provided
-        if (email) userToUpdate.email = email;
-        if (password) userToUpdate.password = await bcrypt.hash(password, 10); // Hash password if updated
-        if (firstName) userToUpdate.firstName = firstName;
-        if (lastName) userToUpdate.lastName = lastName;
-
-        // Save the updated user back to the database
-        await this.userRepository.save(userToUpdate);
-
-        // Remove password from response to avoid sending it back to the client
-        const { password: _, ...userWithoutPassword } = userToUpdate;
-
-        return response.json(userWithoutPassword); // Return updated user details
     }
 }
