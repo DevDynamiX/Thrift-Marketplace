@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { WebView } from 'react-native-webview';
-import Constants from 'expo-constants';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 
 export default function App() {
@@ -8,13 +7,11 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-
             {loading && (
                 <View style={styles.loader}>
                     <ActivityIndicator size="large" color="#219281FF" />
                 </View>
             )}
-
 
             <WebView
                 style={styles.webview}
@@ -31,7 +28,7 @@ export default function App() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: Constants.statusBarHeight,
+        marginTop: 0,
     },
     webview: {
         flex: 1,
@@ -44,3 +41,4 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
 });
+

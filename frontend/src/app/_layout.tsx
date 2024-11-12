@@ -194,7 +194,7 @@ const RootLayout = () => {
         <Stack.Screen
             name="webview/ContactUs"
             options={{
-                title: "Contact Us",
+                title: "Support",
                 headerStyle: {
                     backgroundColor: "#5CB7A5",
                 },

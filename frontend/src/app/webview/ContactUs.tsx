@@ -8,7 +8,6 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-
             {loading && (
                 <View style={styles.loader}>
                     <ActivityIndicator size="large" color="#219281FF" />
@@ -31,16 +30,16 @@ export default function App() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: Constants.statusBarHeight,
+        marginTop: 0,
     },
     webview: {
         flex: 1,
     },
     loader: {
-        position: 'absolute',  // Position the spinner above the WebView
+        position: 'absolute',
         top: '50%',
         left: '50%',
         transform: [{ translateX: -25 }, { translateY: -25 }],
-        zIndex: 1,  // Ensure the loader appears above the WebView
+        zIndex: 1,
     },
 });

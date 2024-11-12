@@ -106,4 +106,11 @@ export const Routes = [
         controller: OrderController,
         action: "createOrder",
     },
+// Update user details(Ika added this code)
+    {
+        method: "put", // Update route
+        route: "/users/:id", // URL to identify the user by ID
+        controller: UserController,
+        action: "update", // Call the 'update' method in UserController
+    },
 ];
