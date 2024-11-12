@@ -1,5 +1,4 @@
-
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {
     StyleSheet,
     SafeAreaView,
@@ -15,7 +14,32 @@ import {handleLogout} from '../index';
 import Constants from "expo-constants";
 import { router, useRouter} from "expo-router";
 
+// Define the types for props in MenuButton
+type MenuButtonProps = {
+    text: string;
+    iconSource: any;
+    path?: string;
+    navigateTo?: (path: string) => void;
+    onPress?: () => void; // Mark as optional because not all buttons need it
+}
 
+const MenuButton = ({ text, iconSource, path, navigateTo, onPress }: MenuButtonProps) => {
+    return (
+        <TouchableOpacity
+            onPress={() => {
+                if (onPress) {
+                    onPress(); // Call the onPress if provided (for logout)
+                } else if (path && navigateTo) {
+                    navigateTo(path); // Call navigateTo if path is provided
+                }
+            }}
+            style={styles.menuButton}
+        >
+            <Image source={iconSource} style={styles.icon} />
+            <Text style={styles.menuText}>{text}</Text>
+        </TouchableOpacity>
+    );
+}
 
 export default function Menu() {
 
@@ -68,7 +92,6 @@ export default function Menu() {
         router.push(path);
     };
 
-
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
@@ -78,8 +101,7 @@ export default function Menu() {
             >
 
                 <SafeAreaView style={styles.safeArea}>
-                    <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
-
+                    <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
                             <Image
@@ -95,102 +117,71 @@ export default function Menu() {
 
                         <View style={styles.greenLine}></View>
 
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/gamer.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Your Details</Text>
-                        </TouchableOpacity>
+                        {/* Menu Buttons */}
+                        <MenuButton
+                            text="Your Details"
+                            iconSource={require('@assets/images/gamer.png')}
+                            path="/YourDetails"
+                            navigateTo={navigateTo}
+                        />
+                        <MenuButton
+                            text="Your Favorites"
+                            iconSource={require('@assets/images/heart.png')}
+                            path="/pages/YourFavourites"
+                            navigateTo={navigateTo}
+                        />
+                        <MenuButton
+                            text="Recycle Now"
+                            iconSource={require('@assets/images/received.png')}
+                            path="/pages/Recycling"
+                            navigateTo={navigateTo}
+                        />
+                        <MenuButton
+                            text="Order History"
+                            iconSource={require('@assets/images/retro-game.png')}
+                            path="/OrderHistory"
+                            navigateTo={navigateTo}
+                        />
+                        {/* Logout button */}
+                        <MenuButton
+                            text="Logout"
+                            iconSource={require('@assets/images/videogame.png')}
+                            onPress={() => {
+                                console.log("Logging out");
 
-                        <TouchableOpacity style={styles.menuButton} onPress={toggleItemModal}>
-                            <Image
-                                source={require('@assets/images/received.png')}
-                                style={styles.icon}
-                            />
-                            <CustomButton text="Recycle Now" path="/pages/Recycling" navigateTo={navigateTo} />
+                                handleLogout();
+                            }}
+                        />
 
-                        </TouchableOpacity>
+                        <MenuButton
+                            text="Terms and Conditions"
+                            iconSource={require('@assets/images/logo.png')}
+                            path="../webview/TermsOfService"
+                            navigateTo={navigateTo}
+                        />
 
-                        {/*TODO: Create a 'favourites' list*/}
-
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/heart.png')}
-                                style={styles.icon}
-                            />
-                            <CustomButton text="Your Favourites" path="/pages/YourFavourites" navigateTo={navigateTo} />
-                        </TouchableOpacity>
-
-
-                        <TouchableOpacity style={styles.menuButton}>
-                            <Image
-                                source={require('@assets/images/retro-game.png')}
-                                style={styles.icon}
-                            />
-                            <Text style={styles.menuText}>Order History</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
-                            <Image
-                                source={require('@assets/images/videogame.png')}
-                                style={styles.icon}
-                            />
-                            <Text style = {styles.menuText}>Logout</Text>
-                        </TouchableOpacity>
+                        <MenuButton
+                            text="Support"
+                            iconSource={require('@assets/images/IMG_3695.jpg')}
+                            path="../webview/ContactUs"
+                            navigateTo={navigateTo}
+                        />
                     </View>
                 </SafeAreaView>
             </ImageBackground>
         </>
-
-
     );
 }
-interface CustomButtonProps {
-    text: string;
-    path: string;
-    navigateTo: (path: string) => void;
-}
-
-const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-        Animated.spring(scaleAnim, {
-            toValue: 0.95,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const handlePressOut = () => {
-        Animated.spring(scaleAnim, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    return (
-        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
-            <Pressable
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={() => {
-                    console.log(`Navigating to: ${path}`);
-                    navigateTo(path);
-                }}
-                style={styles.button}
-            >
-                <Text style={styles.buttonText}>{text}</Text>
-            </Pressable>
-        </Animated.View>
-    );
-}
-
 
 const styles = StyleSheet.create({
     backgroundImage: {
         width: '100%',
         height: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: -1,
+        resizeMode: 'cover',  // Ensure the background image fills the space
     },
     safeArea: {
         flex: 1,
@@ -201,13 +192,13 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
-        marginTop: 10,
+        marginBottom: 20,
     },
     logo: {
         width: 50,
         height: 50,
         marginRight: 10,
+        borderRadius: 25,
     },
     greetingContainer: {
         flexDirection: 'row',
@@ -226,29 +217,41 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     greenLine: {
-        height: 2,
+        height: 3,
         width: '100%',
         backgroundColor: 'rgb(92,183,165)',
         marginBottom: 20,
+        borderRadius: 2,
     },
     transparentContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        borderRadius: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderRadius: 15,
         padding: 20,
         width: '90%',
         alignItems: 'center',
         position: "relative",
-        bottom: '25%'
+        bottom: '21%',  // Move the container slightly up
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        borderColor: 'rgb(92,183,165)',
+
     },
     menuButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgb(92,183,165)',
         paddingVertical: 15,
-        borderRadius: 5,
+        borderRadius: 30,
         marginBottom: 15,
         justifyContent: 'center',
         width: '100%',
+        elevation: 5, // Shadow for Android
+        shadowColor: '#000', // Shadow for iOS
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     menuText: {
         fontFamily: 'sulphurPoint',
@@ -267,17 +270,14 @@ const styles = StyleSheet.create({
     icon: {
         width: 24,
         height: 24,
-        position: 'absolute',
-        left: 15,
+        marginLeft: 15,
     },
-
     tmlogo: {
         resizeMode: 'contain',
         width: '65%',
         position: 'relative',
-        bottom: '6%',
-        right: '12%'
+        bottom: '2%',
+        right: '12%',
+
     },
-
 });
-
