@@ -212,7 +212,7 @@ const RootLayout = () => {
 
 
 
-    {/* All the new stuff i added  */}
+    {/* All the new stuff i added.....  */}
 };
 
 export default RootLayout;

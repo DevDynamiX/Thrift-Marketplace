@@ -7,7 +7,7 @@ export interface BaseUserController {
     one(req: Request, res: Response): Promise<any>;
     save(req: Request, res: Response): Promise<any>;
     remove(req: Request, res: Response): Promise<any>;
-    // Update user details(Ika added this code)
+    // Update user details(Ika added this code editing )
     update(req: Request, res: Response): Promise<any>; // Added update method
 
 

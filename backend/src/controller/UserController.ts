@@ -106,7 +106,7 @@ export class UserController implements BaseUserController {
         }
     }
 
-    // Update user details(Ika added this code)
+    // Update user details(Ika added this code for editing)
     async update(request: Request, response: Response): Promise<any> {
         const id = parseInt(request.params.id); // Get user ID from URL
         const { email, password, firstName, lastName } = request.body; // Get updated details from request body
