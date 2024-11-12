@@ -20,37 +20,43 @@
         "type": "ios.simulator",
         "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/",
         "build": "xcodebuild -workspace ios/thrift-market.xcworkspace -scheme thrift-market -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
-        "device": { "type": "iPhone 11" }
+        "device": {
+          "type": "iPhone 11"
+        }
       },
       "android.emu.debug": {
         "type": "android.emulator",
         "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
         "build": "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug",
-        "device": { "avdName": "Pixel_2_API_29" }
+        "device": {
+          "avdName": "Pixel_2_API_29"
+        }
       }
     }
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
-    "@react-native-async-storage/async-storage": "^1.24.0",
-    "@react-native-picker/picker": "^2.8.1",
+    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-picker/picker": "^2.7.5",
     "@react-navigation/bottom-tabs": "^6.6.1",
-    "@react-navigation/native": "^6.0.2",
+    "@react-navigation/native": "^6.1.18",
     "axios": "^1.7.7",
-    "expo": "~51.0.38",
+    "expo": "~51.0.39",
     "expo-constants": "~16.0.2",
+    "expo-device": "~6.0.2",
     "expo-font": "~12.0.9",
     "expo-image-picker": "~15.0.7",
     "expo-linking": "~6.3.1",
-    "expo-router": "^3.1.0",
-    "expo-splash-screen": "^0.27.6",
+    "expo-notifications": "~0.28.19",
+    "expo-router": "~3.5.24",
+    "expo-splash-screen": "^0.27.7",
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
     "express": "^4.21.1",
     "firebase": "^10.14.1",
     "formik": "^2.4.6",
-    "lottie-react-native": "^7.0.0",
+    "lottie-react-native": "^6.7.0",
     "metro": "^0.80.12",
     "metro-config": "^0.80.12",
     "native-notify": "^4.0.4",
@@ -72,11 +78,10 @@
     "react-native-table-component": "^1.2.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
+    "react-native-webview": "^13.8.6",
     "tailwindcss": "^3.4.13",
     "xlsx": "^0.18.5",
-    "yup": "^1.4.0",
-    "expo-device": "~6.0.2",
-    "expo-notifications": "~0.28.19"
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.8",
