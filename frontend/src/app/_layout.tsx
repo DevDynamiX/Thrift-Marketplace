@@ -152,14 +152,6 @@ const RootLayout = () => {
             }}
         />
 
-        {/*<Stack.Screen*/}
-        {/*    name="(tabs)/HomeScreen"*/}
-        {/*    options={{*/}
-        {/*        headerShown: false,*/}
-        {/*    }}*/}
-        {/*/>*/}
-
-
     </Stack>;
     {/* All the new stuff i added  */}
 };

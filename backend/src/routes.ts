@@ -74,7 +74,7 @@ export const Routes = [
     //routes for carts table
     {
         method: "get",
-        route: "/cart/:userID",
+        route: "/cart",
         controller: CartController,
         action: "all",
     },

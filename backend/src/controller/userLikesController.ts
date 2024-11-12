@@ -1,15 +1,32 @@
 import { AppDataSource } from "../data-source";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Likes } from "../entity/userLikes";
+import { Inventory} from "../entity/adminInventory";
 
 export class UserLikesController {
 
     private likesRepository = AppDataSource.getRepository(Likes)
+    private inventoryRepository = AppDataSource.getRepository(Inventory)
 
     // Get all Likes
     async all(req: Request, res: Response) {
-        const likes = await this.likesRepository.find();
-        return res.status(200).json(likes);
+        const {userID} = req.query;
+
+        if (!userID) {
+            return res.status(400).json({error: "User not found"});
+        }
+
+        try {
+            const userLikes = await this.likesRepository.find({
+                where: { userID: '1'},
+                relations: ['unit'],
+            });
+
+            return res.status(200).json(userLikes);
+        } catch (error) {
+            console.error("Error fetching user 'Likes'. ", error);
+            return res.status(500).json({success: false, message: "Error fetching user 'Likes'"});
+        }
     }
 
     // Save a new like
@@ -22,20 +39,27 @@ export class UserLikesController {
         try {
 
             if (!itemID) {
-                return res.status(400).json({ message: "itemID is required." });
+                return res.status(400).json({ message: "item ID is required." });
             }
 
             const likeExists =  await this.likesRepository.findOne({
-                where: {itemID, userID}
+                where: {userID, unit: {id: itemID}},
+                relations: ['unit'],
             });
 
             if(likeExists){
                 return res.status(400).json({ success: false, message: "You've already liked this item." });
             }
 
+            const item = await this.inventoryRepository.findOne({ where: { id: itemID } });
+
+            if(!item){
+                return res.status(404).json({ success: false, message: "Item not found in inventory. " });
+            }
+
             const like = this.likesRepository.create({
-                itemID,
-                userID
+                userID,
+                unit: item
             });
 
             const savedLike = await this.likesRepository.save(like);
@@ -54,18 +78,19 @@ export class UserLikesController {
         console.log("Received DELETE request to remove like");
 
         const {itemID, userID} = req.params;
+        const itemIDNumber = Number(itemID);
+
 
         try {
-            const likeToRemove = await this.likesRepository.findOne(
-                {
-                    where:
-                        {itemID: itemID, userID: userID}
-                })
+            const likeToRemove =  await this.likesRepository.findOne({
+                where: {unit: {id: itemIDNumber }, userID},
+                relations: ['unit'],
+            });
 
             console.log("Like found:", likeToRemove);
 
             if (!likeToRemove) {
-                console.log("Like not found for itemID:", itemID, "userID:", userID);
+                console.log("Like not found for item ID:", itemID, "userID:", userID);
                 return res.status(404).json({message: "You have not liked this item!"});
             }
 

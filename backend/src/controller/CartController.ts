@@ -10,24 +10,20 @@ export class CartController {
     private inventoryRepository = AppDataSource.getRepository(Inventory)
 
     async all(req:Request,res:Response){
-       const { userID } = req.params;
+       const { userID } = req.query;
 
        console.log("Fetching Cart for user: ", userID);
 
         try {
-           const cartItems =  await this.cartRepository
-               .createQueryBuilder("cart")
-               .innerJoinAndSelect('cart.inventoryItem', 'inventory')
-               .where('cart.userID  = :userID', {userID})
-               .getMany()
+            const userCart =  await this.cartRepository.find({
+                where: { userID: '1' },
+                relations: ["inventoryItem"],
+            });
 
-           if (cartItems.length === 0) {
-               return res.status(404).json({ message: "No items found in cart for this user" });
-           }
+            console.log('User cart: ', userCart);
 
-           res.json({items: cartItems});
-
-       } catch(error){
+            return res.status(200).json(userCart);
+        } catch(error){
            console.error("Error fetching items in cart: ", error);
            return res.status(500).json({message: "Error fetching cart: ", error});
 
@@ -47,14 +43,25 @@ export class CartController {
             }
 
             const itemExists =  await this.cartRepository.findOne({
-                where: {itemID, userID}
+                where: {userID, inventoryItem: {id:itemID}},
+                relations: ['inventoryItem'],
             });
 
             if(itemExists){
                 return res.status(400).json({ success: false, message: "You've already added this item to cart." });
             }
 
-            const cart =  this.cartRepository.create({itemID, userID});
+            const inventoryItem =  await this.inventoryRepository.findOne({
+                where: {id:itemID}
+            });
+
+            if(!inventoryItem){
+                return res.status(404).json({ message: "Item not found in inventory. " });
+            }
+
+            const cart =  this.cartRepository.create({
+                userID,
+                inventoryItem: inventoryItem});
             const savedCart = await this.cartRepository.save(cart);
 
             return res.status(201).json({message:"Item added successfully."});
@@ -69,9 +76,18 @@ export class CartController {
         console.log("Received DELETE request to remove item");
 
         const {itemID, userID} = req.params;
+        const itemIDNumber = Number(itemID);
+
+        console.log(`itemID: ${itemIDNumber}, userID: ${userID}`);
 
         try {
-            const itemToRemove = await this.cartRepository.findOne({where: {itemID: itemID, userID: userID}})
+            const itemToRemove = await this.cartRepository.findOne(
+                {
+                    where:
+                        {inventoryItem: {id:itemIDNumber}, userID},
+                    relations: ['inventoryItem'],
+
+                })
 
             console.log("Item found:", itemToRemove);
 

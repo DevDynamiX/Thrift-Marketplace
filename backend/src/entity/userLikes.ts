@@ -1,19 +1,18 @@
-import {Entity, PrimaryGeneratedColumn, Column, Unique} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne} from "typeorm";
+import {Inventory} from "./adminInventory";
 
 let primaryGeneratedColumn = PrimaryGeneratedColumn();
 @Entity()
-@Unique(['id', 'itemID'])
+@Unique(['id', 'unit'])
 export class Likes {
     //like id
     @primaryGeneratedColumn
     id!: number;
 
     //user ID
-     @Column()
-     userID!: string;
-
-    //itemID
     @Column()
-    itemID!: string;
+    userID!: string;
 
+    @ManyToOne(() => Inventory)
+    unit!: Inventory;
 }

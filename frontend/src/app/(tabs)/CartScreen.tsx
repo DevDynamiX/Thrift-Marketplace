@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, {useEffect, useState, useContext, useRef} from 'react';
 import {
     View,
     Text,
@@ -8,14 +8,21 @@ import {
     Alert,
     ImageBackground,
     SafeAreaView,
-    ActivityIndicator, ScrollView, StatusBar, Image, ImageStyle, TouchableOpacity, Dimensions
+    ActivityIndicator,
+    ScrollView,
+    StatusBar,
+    Image,
+    ImageStyle,
+    TouchableOpacity,
+    Dimensions,
+    RefreshControl, Animated, Pressable
 } from 'react-native';
 import {router, useRouter} from "expo-router";
 import {sum} from "@firebase/firestore";
 import {useFonts} from "expo-font";
 import Constants from "expo-constants";
-import LottieView from "lottie-react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import {async} from "@firebase/util";
 
 interface Product {
     id: number;
@@ -25,11 +32,14 @@ interface Product {
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
+
 const CartPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [cart, setCart] = useState<Product[]>([]);
+    const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
+
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -48,33 +58,86 @@ const CartPage: React.FC = () => {
         );
     }
 
-    useEffect(() => {
-       const newTotal = cart.reduce((sum,item)=>{
-           const price = Number(item.itemPrice)||0;
-           return sum + price;
-       },0);
-       setTotal(newTotal);
-    },[cart]);
+    // useEffect(() => {
+    //     const newTotal = cartItems.reduce((sum,item)=>{
+    //         const price = Number(item.inventoryItem.itemPrice)||0;
+    //         return sum + price;
+    //     },0);
+    //     setTotal(newTotal);
+    //  },[]);
 
-    //fetch from users 'cart' table
-    useEffect(() => {
-        //TODO: change with user ID
-        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/1`)
-            .then(response => response.json())
-            .then(data => {
-                if(data && data.items) {
-                    console.log('Data: ', data);
-                    setCart(data.items);
-                }
-            })
-            .catch( error => {
-                console.error("Error fetching items from cart. ");
-            })
-    }, [1]);
 
-    const removeFromCart =(product:Product)=>{
-        setCart((prevCart)=>prevCart.filter((item)=>item.id !== product.id));
-        Alert.alert('Removed to Cart', `"${product.itemName}" has been removed from your cart.`);
+    const fetchCart= async () => {
+        setIsLoading(true);
+        //TODO: GET USER ID
+        const userID = '1';
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart?userID=${userID}`);
+            const data = await response.json();
+
+            console.log("Fetched Cart:", data);
+
+            if(Array.isArray(data)) {
+                setCartItems(data);
+            }else if (data){
+                setCartItems([data]);
+            }else{
+                setCartItems([])
+            }
+        } catch (error) {
+            console.error("Error fetching 'Cart': ", error);
+            setCartItems([]);
+        } finally {
+            setIsLoading(false);
+        }
+
+    };
+
+    useEffect(() => {
+        fetchCart();
+    }, []);
+
+    const addToCart = (newItem) => {
+        setCartItems(prevCartItems => [...prevCartItems, newItem]);
+    };
+
+    const removeFromCart = async (product)=>{
+
+        Alert.alert('Remove Item', `Are you sure you want to remove "${product.inventoryItem.itemName}" from your Cart?`,
+            [
+                {
+                    text: "Cancel",
+                    onPress: () => console.log("Action cancelled"),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Remove',
+                    onPress: async () => {
+                        const userID = '1';
+
+                        try{
+                            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${product.inventoryItem.id}/${userID}`, {
+                                method: 'DELETE',
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log('Item removed from Cart:', data);
+                                    setCartItems(prevCartItems  => prevCartItems.filter(item => item.id !== product.id));
+                                    Alert.alert('Removed from Cart', `"${product.inventoryItem.itemName}" has been removed from your cart.`);
+                                    fetchCart();
+                                })
+                                .catch(error => {
+                                    console.error("Error removing from 'Cart': ", error);
+                                });
+                        }catch (error){
+                            console.error("Error removing item from cart:", error);
+                            Alert.alert('Error', 'Something went wrong while removing the item from your cart.');
+                        }
+                    },
+                },
+            ],
+            {cancelable: true}
+        );
     }
 
     const goToCart = () =>{
@@ -84,17 +147,41 @@ const CartPage: React.FC = () => {
         });
     };
 
+    const handleRefresh = () => {
+        fetchCart();
+    };
+
+    const buttonScale = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(buttonScale, {
+            toValue: 0.95,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(buttonScale, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const navigateTo = (path: string) => {
+        router.push(path);
+    };
+
+
     const images = products ? [
         { uri: products.mainImage },
         { uri: products.image2 },
         { uri: products.image3 }] : [];
 
 
-    //TODO: render what the user added to 'cart' table
     const renderItem = ({ item }) => (
         <View style={styles.productCard}>
             <View style = {styles.itemHeaderLine}>
-                <Text style={styles.name}>{item.itemName}</Text>
+                <Text style={styles.name}>{item.inventoryItem.itemName}</Text>
                 <TouchableOpacity style = {styles.removeItemButton} onPress={() => removeFromCart(item)}>
                     <Icon
                         name={'trash-outline'}
@@ -107,43 +194,59 @@ const CartPage: React.FC = () => {
             </View>
             <View style={styles.separator} />
 
-            <View style = {styles.cartItemBodyContainer}>
-                <View key={item.id} style={styles.imageContainer}>
-                    <Image style={styles.clothesImage}
-                           source={{uri: item.mainImage}}/>
+                <View style = {styles.cartItemBodyContainer}>
+                    <View key={item.inventoryItem.id} style={styles.imageContainer}>
+                        <Image style={styles.clothesImage}
+                               source={{uri: item.inventoryItem.mainImage}}/>
 
-                    {item.onSale && (
-                        <View style={styles.discountBanner}>
-                            <Text style={styles.discountText}>
-                                {`Now R${item.salePrice}`}
+                        {item.inventoryItem.onSale && (
+                            <View style={styles.discountBanner}>
+                                <Text style={styles.discountText}>
+                                    {`Now R${item.inventoryItem.salePrice}`}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View style = {styles.itemDetails} >
+                        <View style = {styles.itemNamePrice}>
+                            <Text style={styles.itemName}>{item.inventoryItem.itemName}</Text>
+                            <Text
+                                style={[
+                                    styles.price,
+                                    item.inventoryItem.onSale && styles.salePriceText
+                                ]}
+                            >
+                                {`R${item.inventoryItem.itemPrice}`}
                             </Text>
                         </View>
+
+                        <View style = {styles.clothesDetails}>
+                            <Text style={styles.text}>Colour: {item.inventoryItem.colour}</Text>
+                            <Text style={styles.text}>Size: {item.inventoryItem.size}</Text>
+                            <Text style={styles.text}>Damage: {item.inventoryItem.damage}</Text>
+                        </View>
+                    </View><View style={styles.container}>
+                    {cartItems.length === 0 ? (
+                        // Display this view when the cart is empty
+                        <View style={styles.emptyCartContainer}>
+                            <Text style={styles.emptyCartText}>Your cart is empty</Text>
+                        </View>
+                    ) : (
+                        // Display the list of items when the cart is not empty
+                        <FlatList
+                            data={cartItems}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item.id.toString()}
+                            contentContainerStyle={styles.cartList}
+                        />
                     )}
                 </View>
-
-                <View style = {styles.itemDetails} >
-                    <View style = {styles.itemNamePrice}>
-                        <Text style={styles.itemName}>{item.itemName}</Text>
-                        <Text
-                            style={[
-                                styles.price,
-                                item.onSale && styles.salePriceText
-                            ]}
-                        >
-                            {`R${item.itemPrice}`}
-                        </Text>
-                    </View>
-
-                    <View style = {styles.clothesDetails}>
-                        <Text style={styles.text}>Colour: {item.colour}</Text>
-                        <Text style={styles.text}>Size: {item.size}</Text>
-                        <Text style={styles.text}>Damage: {item.damage}</Text>
-                    </View>
                 </View>
-            </View>
-
         </View>
     );
+
+    console.log("These are Cart Items: ", cartItems)
 
     return (
         <ImageBackground
@@ -153,26 +256,40 @@ const CartPage: React.FC = () => {
             <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                 <View style={styles.container}>
-
-                    <ScrollView showsVerticalScrollIndicator={false}>
                         <View style = {styles.content}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
-                            <View style  = {styles.pageContent}>
-                                <FlatList
-                                    data={products}
-                                    keyExtractor={(item) => item.id.toString()}
-                                    renderItem={renderItem}
-                                    contentContainerStyle={styles.listContainer}
-                                />
+                            <View style={styles.pageContent}>
+                                {cartItems.length === 0 ? (
+                                    // Display this view when the cart is empty
+                                    <View style={styles.emptyCartContainer}>
+                                        <View style = {styles.cartEmptyContainer}>
+                                            <Text style={styles.emptyCartText}>Your cart is empty!</Text>
+                                            <Icon name="sad-outline" size={30} color="#219281FF" />
+                                        </View>
+                                        <View>
+                                            <TouchableOpacity style={styles.buyNowButton}>
+                                                <CustomButton text="Buy?" path="/(tabs)/HomeScreen" navigateTo={navigateTo} />
+                                                <Icon style = {styles.happyIcon } name="happy-outline" size={30} color="#93D3AE" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <ScrollView showsVerticalScrollIndicator={false}>
+                                        <FlatList
+                                            data={cartItems}
+                                            keyExtractor={(item) => item.inventoryItem.id.toString()}
+                                            renderItem={renderItem}
+                                        />
+                                    </ScrollView>
+                                )}
                             </View>
+
                         </View>
-                    </ScrollView>
                     <View style={styles.cartContainer}>
                         <Text style={styles.cartTitle}>Checkout: </Text>
-                        {cart.map((item, index) => (
-                            <Text key={index} style={styles.cartItem}>{item.itemName} - R{item.itemPrice}</Text>
-                        ))}
+
+
                         <View style={styles.separator} />
 
                         <View style={styles.paymentDetails}>
@@ -180,13 +297,11 @@ const CartPage: React.FC = () => {
                                 <Text style = {styles.text}>Your Cart Subtotal: </Text>
                                 <Text style  = {styles.text}> R{Number(total).toFixed(2)} </Text>
                             </View>
-                            <View style = {styles.paymentDetailsContainer}>
-                                <Text style = {styles.text}>Discount Applied: </Text>
-                                <Text style  = {styles.text}> -R[discountAmount] </Text>
-                            </View>
+
+                            {/*TODO: if total is over 500 its free*/}
                             <View style = {styles.paymentDetailsContainer}>
                                 <Text style = {styles.text}>Shipping Fees: </Text>
-                                <Text style  = {styles.text}> R[shipping fees] </Text>
+                                <Text style  = {styles.text}> R85 </Text>
                             </View>
 
                         </View>
@@ -194,7 +309,7 @@ const CartPage: React.FC = () => {
                         <View style={styles.separator} />
 
                         <View style = {styles.totalContainer}>
-                            {/*TODO: get total after discounts deducted and shipping is added*/}
+                            {/*TODO: get total after shipping is added -- also add field for delivery address?*/}
                             <Text style={styles.totalText}>R{Number(total).toFixed(2)}</Text>
                             <TouchableOpacity style = {styles.paymentButton} onPress={() => goToCart()}>
                                 <Icon
@@ -213,10 +328,53 @@ const CartPage: React.FC = () => {
     );
 };
 
+interface CustomButtonProps {
+    text: string;
+    path: string;
+    navigateTo: (path: string) => void;
+}
+
+const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 0.95,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    return (
+        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
+            <Pressable
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={() => {
+                    console.log(`Navigating to: ${path}`);
+                    navigateTo(path);
+                }}
+                style={styles.button}
+            >
+                <Text style={styles.buttonText}>{text}</Text>
+            </Pressable>
+        </Animated.View>
+    );
+}
+
+
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         width: "100%",
-        marginBottom: '19%'
+        position: 'relative',
+        bottom: '18%'
     },
     image: {
         flex: 1,
@@ -226,26 +384,23 @@ const styles = StyleSheet.create({
     },
     content: {
         width:'90%',
-        height: 'auto',
+        height: '100%',
         position: "relative",
-        bottom: '10%',
-        left: '5%'
+        bottom: '18%',
+        left: '5%',
     },
     pageContent: {
         display:'flex',
         flexDirection: 'column',
-        height: '100%',
-        position: 'relative',
+        height: '54%',
         width: '100%',
+        marginBottom: 50
     },
-    listContainer: {
-        width: '100%',
-        position: "relative",
-    },
+
     productCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        padding: 16,
-        marginBottom: 12,
+        padding: 10,
+        marginBottom: 10,
         borderRadius: 8,
         shadowColor: '#000',
         shadowOpacity: 0.1,
@@ -259,7 +414,6 @@ const styles = StyleSheet.create({
     cartContainer: {
         backgroundColor: 'rgb(180,238,206)',
         margin: 10,
-        marginBottom: 80,
         padding: 16,
         borderRadius: 10,
         shadowColor: '#000',
@@ -270,6 +424,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 4,
         elevation: 5,
+        position: 'relative',
+        bottom: 70
     },
     cartTitle: {
         fontFamily: 'sulphurPoint_Bold',
@@ -277,8 +433,10 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     cartItem: {
-        color:'#333333',
-        fontSize: 16,
+        fontFamily: 'sulphurPoint',
+        textAlign: 'right',
+        color:'green',
+        fontSize: 12,
     },
     totalText: {
         color:'#333333',
@@ -302,7 +460,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 4,
         backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        padding: 8,
+        padding: 5,
         borderRadius: 4,
         shadowColor: '#000',
         shadowOpacity: 0.1,
@@ -321,6 +479,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'green',
     },
+    noCartItem:{
+        fontFamily: 'sulphurPoint',
+        fontSize: 16,
+        color: '#FF0000',
+        textAlign: 'center',
+
+    },
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: '70%',
@@ -338,7 +503,6 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: "space-between",
-
     },
     paymentButton: {
         display: 'flex',
@@ -463,6 +627,50 @@ const styles = StyleSheet.create({
         textDecorationLine: 'line-through',
         color: 'gray',
     },
+    cartEmptyContainer:{
+        flexDirection: 'row',
+        alignItems:'center',
+        margin:10
+    },
+    emptyCartContainer: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginVertical: 4,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        padding: 10,
+        borderRadius: 4,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+
+    },
+    emptyCartText: {
+        fontFamily: 'sulphurPoint',
+        color: '#219281FF',
+        fontSize: 26,
+        margin: 10,
+    },
+    buyNowButton: {
+        flexDirection: 'row',
+        backgroundColor: '#219281FF',
+        paddingVertical: 15,
+        padding: 10,
+        borderRadius: 5,
+        justifyContent: 'center',
+    },
+    buttonText: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 26,
+        fontWeight: '600',
+        color: '#93D3AE',
+        marginLeft: 10,
+    },
+    happyIcon:{
+        paddingLeft: 10
+    }
+
 
 
 

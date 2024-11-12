@@ -17,7 +17,8 @@ import {
     TouchableOpacity,
     Modal,
     FlatList,
-    Alert
+    Alert,
+    RefreshControl
 } from 'react-native';
 import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -162,7 +163,6 @@ const HomeScreen = React.memo(() => {
         }
     }
 
-
     //saving cart items to table
     const toggleCart = (id) => {
         console.log(`Toggling cart for ${id}`);
@@ -244,6 +244,30 @@ const HomeScreen = React.memo(() => {
         }
     }
 
+    // const fetchCartItems = async () => {
+    //     const userID = '1'; // Replace with actual user ID logic
+    //     try {
+    //         const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${userID}`);
+    //         const data = await response.json();
+    //         console.log("Fetched Cart Items:", data);
+    //         setCartItems(data.items); // Set cart items from the response
+    //
+    //         // Set the cart state to reflect if the item is in the cart
+    //         const updatedIsAddedToCart = {};
+    //         data.items.forEach(item => {
+    //             updatedIsAddedToCart[item.id] = true; // Mark the item as in the cart
+    //         });
+    //         setAddedToCart(updatedIsAddedToCart); // Update the cart state
+    //     } catch (error) {
+    //         console.error("Error fetching cart items:", error);
+    //     }
+    // };
+
+// Fetch cart items when the component mounts
+//     useEffect(() => {
+//         fetchCartItems();
+//     }, []);
+
     const handleAnimationFinish = (id) => {
        setIsCartAnimationCompleted((prev) => ({
            ...prev,
@@ -273,6 +297,35 @@ const HomeScreen = React.memo(() => {
     useEffect(() => {
         setIsLoading(true);
         fetchInventory().finally(() => setIsLoading(false));
+    }, []);
+
+    // fetch likes from Table
+    const fetchLikes = async () => {
+        //TODO: GET USER ID
+        const userID = '1';
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${userID}`);
+            const data = await response.json();
+            console.log("Fetched Likes:", data);
+            setLikedItems(data);
+
+            const updatedIsFavourited = {};
+
+            data.forEach(item => {
+                updatedIsFavourited[item.unit.id] = true;
+            });
+            setIsFavourited(updatedIsFavourited);
+
+        } catch (error) {
+            console.error("Error fetching 'Likes': ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetchLikes();
     }, []);
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
@@ -306,7 +359,14 @@ const HomeScreen = React.memo(() => {
 
     return (
             <SafeAreaView style={styles.container}>
-                <ScrollView>
+                <ScrollView
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isLoading}
+                            onRefresh={fetchInventory}
+                        />
+                    }
+                >
                     <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                     <ImageBackground

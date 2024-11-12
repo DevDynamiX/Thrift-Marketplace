@@ -1,8 +1,10 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {Entity, ManyToOne, PrimaryGeneratedColumn, Column, Unique} from 'typeorm';
 import { Inventory} from "./adminInventory";
 
-@Entity()
+let primaryGeneratedColumn = PrimaryGeneratedColumn();
 
+@Entity()
+@Unique(['id', 'inventoryItem'])
 export class Cart {
     @PrimaryGeneratedColumn()
     id!: number;
@@ -10,9 +12,6 @@ export class Cart {
     @Column()
     userID!: string;
 
-    @Column()
-    itemID!: string;
-
-    @ManyToOne(() => Inventory, (inventory) => inventory.cartItems)
+    @ManyToOne(() => Inventory)
     inventoryItem!: Inventory;
 }

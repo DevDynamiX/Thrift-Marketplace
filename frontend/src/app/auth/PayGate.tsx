@@ -16,6 +16,8 @@ import { useLocalSearchParams } from "expo-router";
 import {useFonts} from "expo-font";
 import Icon from "react-native-vector-icons/Ionicons";
 
+//TODO: add field to apply discount from recycling
+
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
     const { total } = useLocalSearchParams();
@@ -23,6 +25,7 @@ const PaymentScreen = () => {
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCVV] = useState('');
     const [email, setEmail] = useState('');
+    const [discount, setDiscount] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 

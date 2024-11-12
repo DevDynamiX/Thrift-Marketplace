@@ -56,7 +56,6 @@ export class Inventory {
     @Column({ type: 'text', nullable: true })
     image3?: string;
 
-    //TODO: SEE IF CAN ADD
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date;
 

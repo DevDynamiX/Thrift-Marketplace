@@ -46,6 +46,10 @@ const RecycleNow = () => {
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+    const [isAddedToRecycling, setAddedToRecycling] = useState({});
+    const [isRecyclingAnimationCompleted, setIsRecyclingAnimationCompleted] = useState({});
+    const [playRecyclingAnimation, setPlayRecyclingAnimation] = useState({});
+
 
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
@@ -56,27 +60,28 @@ const RecycleNow = () => {
         );
     }
 
+
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView>
                 <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                 <ImageBackground
                     source = {require('@assets/images/TMBackground.png')}
                     resizeMode="stretch"
                     style = {styles.image}>
-                    <Text>.</Text>
                     <View style={styles.recContainer}>
                         <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
-
-                        {/*TODO: Filter by gender*/}
                         <View style={styles.formContainer}>
-                            <View style = {styles.exitRow}>
-                                <TouchableOpacity onPress={() => navigation.goBack()}>
-                                    <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
-                                </TouchableOpacity>
-                                <Text style={styles.titleText}>Recycle Now</Text>
+                            <View style = {styles.top}>
+                                <View style = {styles.exitRow}>
+                                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                                        <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
+                                    </TouchableOpacity>
+                                    <Text style={styles.titleText}>Recycle Now</Text>
+                                </View>
+                                <View style={styles.separator} />
                             </View>
+
                             <Formik
                                 initialValues={{
                                     email: '',
@@ -89,8 +94,8 @@ const RecycleNow = () => {
                                 //onSubmit={}
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
-                                    <View style={styles.formContainer}>
-                                        <Text style = { styles.formHeader }> Send Your Recycling: </Text>
+                                    <View style={styles.form}>
+                                        <Text style = { styles.formHeaders }> Send Your Recycling: </Text>
                                         <Text style = { styles.infoText}> * indicates a required field </Text>
 
 
@@ -151,11 +156,14 @@ const RecycleNow = () => {
                                             <Picker.Item label="V&A Waterfront" value="VA_waterfront" />
                                         </Picker>
 
-
-
                                         <View style = { styles.submitBtnContainer}>
                                             <TouchableOpacity style = {styles.submitButton} onPress={handleSubmit}>
-                                                <Icon name = 'download-outline' size={24} color="#93D3AE" />
+                                                <LottieView
+                                                    source={require('@assets/animations/recycleAnimation.json')}
+                                                    autoPlay
+                                                    loop={true}
+                                                    style = { styles.recAnimationModal }
+                                                />
                                                 <Text style={ styles.buttonText}>Recycle Now!</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -165,7 +173,6 @@ const RecycleNow = () => {
                         </View>
                     </View>
                 </ImageBackground>
-            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -184,44 +191,43 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-    favsContainer: {
+    recContainer: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        //position: 'relative',
+        position: 'relative',
+        bottom: '16%'
     },
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: 260,
         position:'relative',
-        bottom: '10%'
+        top: '15%'
     },
     exitRow: {
         flexDirection: 'row'
     },
     titleText: {
         fontFamily: 'shrikhand',
-        fontSize: 25,
+        fontSize: 30,
         color: '#219281FF',
-        marginLeft: 10,
-        paddingBottom:'2%',
+        marginLeft: 15,
+        marginBottom: '2%'
     },
     backIcon: {
         transform: [{ rotate: '180deg' }],
         color: '#93D3AE',
     },
     formContainer: {
-        height: '100%',
-        width: '90%',
+        height: '70%',
+        width: '100%',
         display: 'flex',
         justifyContent: 'center',
         padding: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.75)',
         borderRadius: 10,
         position: 'relative',
-        left: '5%',
-        top: '0.5%',
-        marginBottom: '1%',
+        paddingTop: 55,
 
     },
     formHeader: {
@@ -246,10 +252,6 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         fontFamily: 'sulphurPoint',
         color: '#219281FF',
-    },
-    Formik: {
-        position: "relative",
-        bottom: '3%'
     },
     submitBtnContainer: {
         margin: '10%',
@@ -277,10 +279,39 @@ const styles = StyleSheet.create({
     buttonText: {
         fontFamily: 'sulphurPoint',
         color: '#93D3AE',
-        fontSize: 18,
+        fontSize: 20,
         marginRight: 15,
     },
-
+    form:{
+        marginTop: 10,
+    },
+    formHeaders: {
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 28,
+        color: '#219281FF',
+        paddingBottom: 15
+    },
+    infoText: {
+        fontFamily: 'sulphurPoint',
+        color: '#FF0000',
+        textAlign: 'right',
+        marginTop: 5,
+        marginBottom:5 ,
+    },
+    top: {
+        flexDirection: 'column',
+    },
+    separator: {
+        height: 1,
+        backgroundColor: 'rgba(55,55,55,0.18)',
+        marginVertical: 3,
+        width: '100%',
+    },
+    recAnimationModal: {
+        width: '20%',
+        height: undefined,
+        aspectRatio: 1
+    }
 });
 
 
