@@ -67,6 +67,7 @@ const SignUp = () => {
             }
 
             Alert.alert("Success", "Registered successfully");
+            router.push("auth/LoginScreen");
         } catch (error:any) {
             console.error("Sign-up error:", error.message);
             Alert.alert("Error", error.message || "An error occurred while signing up");
