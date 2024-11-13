@@ -101,7 +101,7 @@ export const Routes = [
 
     //routes for orders table
     {
-     method: "post",
+        method: "post",
         route: "/orders",
         controller: OrderController,
         action: "createOrder",
@@ -125,6 +125,12 @@ export const Routes = [
         route: "/recycling/:id",
         controller: RecyclingController,
         action: "remove",
+    },
+    {
+        method: "get",
+        route: "/orders",
+        controller: OrderController,
+        action: "getOrders",
     },
 
     //routes for user likes table

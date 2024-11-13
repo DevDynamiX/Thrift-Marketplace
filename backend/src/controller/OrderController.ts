@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Orders } from "../entity/Orders";
+import {request} from "node:http";
 
 export class OrderController {
     async createOrder(request: Request, response: Response, next: NextFunction) {
@@ -31,6 +32,21 @@ export class OrderController {
         } catch (error) {
             console.error('Detailed error in createOrder:', error);
             return response.status(500).json({ error: `Failed to create order.` });
+        }
+    }
+
+    async getOrders(req: Request, res: Response) {
+        try {
+            console.log('LOG: 1');
+            const orderRepo = AppDataSource.getRepository(Orders);
+            console.log('LOG: 2');
+            const orders = await orderRepo.find();
+            console.log('LOG: 3');
+            return res.status(200).json(orders);
+        }
+        catch (error) {
+            console.log('LOG: 5 - Error');
+            console.error('Detailed error in getOrders:', error);
         }
     }
 }

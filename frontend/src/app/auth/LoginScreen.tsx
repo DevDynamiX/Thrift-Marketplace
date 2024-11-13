@@ -157,14 +157,25 @@ const Login = () => {
 
 export const checkUserSession = async () => {
     try {
-        const userToken = await AsyncStorage.getItem('userToken');
-        const userEmail = await AsyncStorage.getItem('userEmail');
+        const userDataString = await AsyncStorage.getItem('userData');
 
-        return {
-            isLoggedIn: !!userToken,
-            userToken,
-            userEmail
-        };
+        if (userDataString) {
+            const userData = JSON.parse(userDataString);
+            const userToken = userData.token;
+            const userEmail = userData.email;
+
+            console.log({
+                "User Token": userToken,
+                "User Email": userEmail
+            });
+
+            return {
+                isLoggedIn: !!userToken,
+                userToken,
+                userEmail
+            };
+        }
+
     }catch(error) {
         console.log(error);
         return {

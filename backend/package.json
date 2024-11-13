@@ -7,6 +7,7 @@
       "@types/bcrypt": "^5.0.2",
       "@types/cors": "^2.8.17",
       "@types/express": "^5.0.0",
+      "@types/jsonwebtoken": "^9.0.7",
       "@types/multer": "^1.4.12",
       "@types/node": "^16.18.112",
       "ts-node": "^10.9.1",
@@ -28,7 +29,8 @@
       "mysql": "^2.14.1",
       "mysql2": "^3.11.3",
       "reflect-metadata": "^0.1.14",
-      "typeorm": "^0.3.20"
+      "typeorm": "^0.3.20",
+      "uuid": "^11.0.3"
    },
    "scripts": {
       "start": "ts-node src/index.ts",
