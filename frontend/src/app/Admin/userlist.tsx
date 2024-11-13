@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ImageBackground, TextInput, Modal, KeyboardAvoidingView, Platform } from "react-native";
 import axios from "axios";
 import { Linking } from 'react-native';
-
+import Constants from "expo-constants";
+// push
 // Define the User type
 interface User {
     id: number;
@@ -25,7 +26,7 @@ const UsersList = () => {
     // Fetch users from the backend
     useEffect(() => {
         axios
-            .get("http://192.168.1.90:3000/users") // Replace with your server's URL
+            .get(`${Constants.expoConfig?.extra?.BACKEND_HOST}/users`) // Replace with your server's URL
             .then((response) => {
                 setUsers(response.data);
                 setLoading(false);
@@ -47,7 +48,7 @@ const UsersList = () => {
                     text: "Delete",
                     onPress: () => {
                         axios
-                            .delete(`http://192.168.1.90:3000/users/${userId}`)
+                            .delete(`${Constants.expoConfig?.extra?.BACKEND_HOST}/users/${userId}`)
                             .then(() => {
                                 setUsers(users.filter(user => user.id !== userId));
                                 Alert.alert("Success", "User deleted successfully");
@@ -99,9 +100,9 @@ const UsersList = () => {
         };
 
         axios
-            .put(`http://192.168.1.90:3000/users/${selectedUser.id}`, updatedUser)
+            .put(`${Constants.expoConfig?.extra?.BACKEND_HOST}/users/${selectedUser.id}`, updatedUser)
             .then(() => {
-                axios.get("http://192.168.1.90:3000/users")
+                axios.get(`${Constants.expoConfig?.extra?.BACKEND_HOST}/users`)
                     .then((response) => {
                         setUsers(response.data);
                         setIsEditing(false);
