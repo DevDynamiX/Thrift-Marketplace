@@ -244,30 +244,6 @@ const HomeScreen = React.memo(() => {
         }
     }
 
-    // const fetchCartItems = async () => {
-    //     const userID = '1'; // Replace with actual user ID logic
-    //     try {
-    //         const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${userID}`);
-    //         const data = await response.json();
-    //         console.log("Fetched Cart Items:", data);
-    //         setCartItems(data.items); // Set cart items from the response
-    //
-    //         // Set the cart state to reflect if the item is in the cart
-    //         const updatedIsAddedToCart = {};
-    //         data.items.forEach(item => {
-    //             updatedIsAddedToCart[item.id] = true; // Mark the item as in the cart
-    //         });
-    //         setAddedToCart(updatedIsAddedToCart); // Update the cart state
-    //     } catch (error) {
-    //         console.error("Error fetching cart items:", error);
-    //     }
-    // };
-
-// Fetch cart items when the component mounts
-//     useEffect(() => {
-//         fetchCartItems();
-//     }, []);
-
     const handleAnimationFinish = (id) => {
        setIsCartAnimationCompleted((prev) => ({
            ...prev,
@@ -928,19 +904,15 @@ const styles = StyleSheet.create({
     },
     headerText: {
         fontFamily: 'sulphurPoint_Bold',  // Keep the bold font for emphasis
-        fontSize: 28,  // Slightly increase font size for readability
+        fontSize: 24,  // Slightly increase font size for readability
         color: '#3b3b3b',  // Dark gray for contrast
         backgroundColor: 'rgba(33, 146, 129, 0.5)',  // Transparent light green background
-        padding: '2px 4px',  // Tight padding to fit background to text
         borderRadius: 4,  // Rounded corners for a soft look
         textTransform: 'capitalize',  // Soft capitalized style
         textShadow: '1px 1px 2px rgba(0, 0, 0, 0.2)',  // Subtle shadow for depth
-        borderBottomWidth: 1,  // Thin underline for emphasis
-        borderBottomColor: '#5a5a5a',  // Darker accent for underline
+        paddingLeft: 10,
+        marginLeft: 6
     },
-
-
-
 
     discountBanner: {
         position: 'absolute',

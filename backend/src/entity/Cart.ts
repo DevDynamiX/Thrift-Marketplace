@@ -1,5 +1,6 @@
-import {Entity, ManyToOne, PrimaryGeneratedColumn, Column, Unique} from 'typeorm';
-import { Inventory} from "./adminInventory";
+import {Entity, ManyToOne, PrimaryGeneratedColumn, Column, Unique, JoinColumn} from 'typeorm';
+import { Inventory } from "./adminInventory";
+import {User} from "./User";
 
 let primaryGeneratedColumn = PrimaryGeneratedColumn();
 
@@ -9,9 +10,11 @@ export class Cart {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
-    userID!: string;
+    @ManyToOne(() => User, (user) => user.Cart)
+    @JoinColumn({name: 'userID'})
+    user!: User;
 
-    @ManyToOne(() => Inventory)
+    @ManyToOne(() => Inventory, (inventory) => inventory.likes, { onDelete: 'CASCADE' })
+    @JoinColumn({name: 'inventoryItemId'})
     inventoryItem!: Inventory;
 }

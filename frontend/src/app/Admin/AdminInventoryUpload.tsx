@@ -10,7 +10,7 @@ import {
     TextInput,
     ScrollView,
     TouchableOpacity,
-    Alert
+    Alert, RefreshControl
 } from 'react-native';
 import { Formik } from 'formik';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,7 +19,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { Picker } from '@react-native-picker/picker';
 
-//TODO: RESET FORM AFTER SUCCESSFUL UPLOAD
 const InsertProdScreen = () => {
 
     const [fontsLoaded] = useFonts({
@@ -105,7 +104,7 @@ const InsertProdScreen = () => {
     const [ onSale, setOnSale ] = useState(false);
 
     //saving the form data
-    const handleInventoryUpload = async (values: InventoryFormValues) => {
+    const handleInventoryUpload = async (values: InventoryFormValues, {resetForm}) => {
         setLoading(true);
 
         try {
@@ -170,6 +169,7 @@ const InsertProdScreen = () => {
 
 
             Alert.alert("Success", "Item successfully added to inventory!");
+            resetForm();
         } catch (error) {
             console.error('Error:', error);
             Alert.alert("Error", "An unexpected error occurred. Please try again.");
@@ -190,7 +190,7 @@ const InsertProdScreen = () => {
 
                 <View style = { styles.mainContainer }>
                     <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
-                    <ScrollView style = {styles.Formik} >
+                    <ScrollView style = {styles.Formik}>
                         {/*form to handle inventory uploads*/}
                         <Formik
                             initialValues={{

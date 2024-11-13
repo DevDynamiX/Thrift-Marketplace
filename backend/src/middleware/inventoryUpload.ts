@@ -5,7 +5,6 @@ import path from "path";
 // this file is meant to handle the images
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        //TODO: See if can be stored on cloud -- look into 'Cloudinary'
         cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {

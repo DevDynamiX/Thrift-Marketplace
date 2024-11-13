@@ -28,12 +28,13 @@ import Constants from "expo-constants";
 import {useNavigation} from '@react-navigation/native';
 import { Formik } from 'formik';
 import {Picker} from "@react-native-picker/picker";
+import {hidden} from "colorette";
 
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-
+//TODO: GET USER ID FOR FIELDS
 const RecycleNow = () => {
     const navigation = useNavigation();
 
@@ -46,9 +47,9 @@ const RecycleNow = () => {
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
-    const [isAddedToRecycling, setAddedToRecycling] = useState({});
     const [isRecyclingAnimationCompleted, setIsRecyclingAnimationCompleted] = useState({});
     const [playRecyclingAnimation, setPlayRecyclingAnimation] = useState({});
+    const [loading, setLoading] = useState(false);
 
 
     // If fonts are not loaded, show a loading indicator within the component itself
@@ -59,6 +60,48 @@ const RecycleNow = () => {
             </SafeAreaView>
         );
     }
+
+    //saving to the recycling table
+    const handleRecyclingUpload = async ( values, {resetForm}) => {
+        setLoading(true);
+
+        try {
+            const formData = {
+                userID: 1,
+                email: values.email,
+                firstName: values.firstName,
+                lastName: values.lastName,
+                description: values.description,
+                dropoffLocation: values.dropoffLocation,
+            };
+
+            console.log("Form data:", formData);
+
+            const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/recycling`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+            const responseText = await dbResponse.text();
+            const responseData = JSON.parse(responseText);
+            console.log("Raw response:", responseData);
+
+            if (!responseData.success) {
+                alert(`Error: ${responseData.message}`);
+                return;
+            }
+
+            Alert.alert("Success", "Recycling successfully logged!");
+            resetForm();
+        } catch (error) {
+            console.error('Error:', error);
+            Alert.alert("Error", "An unexpected error occurred. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     return (
@@ -84,6 +127,7 @@ const RecycleNow = () => {
 
                             <Formik
                                 initialValues={{
+                                    userID: 1,
                                     email: '',
                                     firstName: '',
                                     lastName: '',
@@ -91,81 +135,90 @@ const RecycleNow = () => {
                                     dropoffLocation: '',
                                 }}
 
-                                //onSubmit={}
+                                onSubmit={handleRecyclingUpload}
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
                                     <View style={styles.form}>
                                         <Text style = { styles.formHeaders }> Send Your Recycling: </Text>
                                         <Text style = { styles.infoText}> * indicates a required field </Text>
 
-
-                                        <Text style={styles.label}> Email*:</Text>
+                                        {/*TODO: submit userID from session*/}
                                         <TextInput
-                                            style={styles.input}
-                                            onChangeText={handleChange('email')}
-                                            onBlur={handleBlur('email')}
-                                            value={values.email}
-                                            placeholderTextColor="#6b7280"
-                                            placeholder="Enter Email You Signed Up With"
+                                            // onChangeText={handleChange('userID')}
+                                            // onBlur={handleBlur('userID')}
+                                            value={values.userID}
+                                            editable={false}
                                         />
 
+                                        <View style={styles.formFilled}>
+                                            <Text style={styles.label}> Email*:</Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                onChangeText={handleChange('email')}
+                                                onBlur={handleBlur('email')}
+                                                value={values.email}
+                                                placeholderTextColor="#6b7280"
+                                                placeholder="Enter Email You Signed Up With"
+                                            />
 
-                                        <Text style={styles.label}>First Name*: </Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            onChangeText={handleChange('firstName')}
-                                            onBlur={handleBlur('firstName')}
-                                            placeholderTextColor="#6b7280"
-                                            value={values.firstName}
-                                            placeholder="Enter First Name"
-                                        />
 
-                                        <Text style={styles.label}>Last Name*: </Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            onChangeText={handleChange('lastName')}
-                                            onBlur={handleBlur('lastName')}
-                                            value={values.lastName}
-                                            placeholderTextColor="#6b7280"
-                                            placeholder="Enter Last Name"
-                                        />
+                                            <Text style={styles.label}>First Name*: </Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                onChangeText={handleChange('firstName')}
+                                                onBlur={handleBlur('firstName')}
+                                                placeholderTextColor="#6b7280"
+                                                value={values.firstName}
+                                                placeholder="Enter First Name"
+                                            />
 
-                                        <Text style={styles.label}>Description*: </Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            onChangeText={handleChange('description')}
-                                            onBlur={handleBlur('description')}
-                                            placeholderTextColor="#6b7280"
-                                            value={values.description}
-                                            placeholder="Enter item description"
-                                        />
+                                            <Text style={styles.label}>Last Name*: </Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                onChangeText={handleChange('lastName')}
+                                                onBlur={handleBlur('lastName')}
+                                                value={values.lastName}
+                                                placeholderTextColor="#6b7280"
+                                                placeholder="Enter Last Name"
+                                            />
 
-                                        <Text style={styles.label}>Drop-off Location*: </Text>
-                                        <Picker
-                                            selectedValue={values.category}
-                                            style={styles.pickerStyle}
-                                            onValueChange={(itemValue) => setFieldValue('dropoffLocation', itemValue)}
-                                            onBlur={handleBlur('dropoffLocation')}
-                                        >
-                                            <Picker.Item label="Select a Location" value="" />
-                                            <Picker.Item label="Cresta Mall" value="cresta_mall" />
-                                            <Picker.Item label="Menlyn Mall" value="menlyn_mall" />
-                                            <Picker.Item label="Clearwater Mall" value="clearwater_mall" />
-                                            <Picker.Item label="Mall of Africa" value="mall_of_africa" />
-                                            <Picker.Item label="Sandton City" value="sandton_city" />
-                                            <Picker.Item label="V&A Waterfront" value="VA_waterfront" />
-                                        </Picker>
+                                            <Text style={styles.label}>Description*: </Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                onChangeText={handleChange('description')}
+                                                onBlur={handleBlur('description')}
+                                                placeholderTextColor="#6b7280"
+                                                value={values.description}
+                                                placeholder="Enter item description"
+                                            />
 
-                                        <View style = { styles.submitBtnContainer}>
-                                            <TouchableOpacity style = {styles.submitButton} onPress={handleSubmit}>
-                                                <LottieView
-                                                    source={require('@assets/animations/recycleAnimation.json')}
-                                                    autoPlay
-                                                    loop={true}
-                                                    style = { styles.recAnimationModal }
-                                                />
-                                                <Text style={ styles.buttonText}>Recycle Now!</Text>
-                                            </TouchableOpacity>
+                                            <Text style={styles.label}>Drop-off Location*: </Text>
+                                            <Picker
+                                                selectedValue={values.dropoffLocation}
+                                                style={styles.pickerStyleRec}
+                                                onValueChange={(itemValue) => setFieldValue('dropoffLocation', itemValue)}
+                                                onBlur={handleBlur('dropoffLocation')}
+                                            >
+                                                <Picker.Item label="Select a Location" value="" />
+                                                <Picker.Item label="Cresta Mall" value="Cresta Mall" />
+                                                <Picker.Item label="Menlyn Mall" value="Menlyn Mall" />
+                                                <Picker.Item label="Clearwater Mall" value="Clearwater Mall" />
+                                                <Picker.Item label="Mall of Africa" value="Mall of Africa" />
+                                                <Picker.Item label="Sandton City" value="Sandton City" />
+                                                <Picker.Item label="V&A Waterfront" value="V&A Waterfront" />
+                                            </Picker>
+
+                                            <View style = { styles.submitBtnContainer}>
+                                                <TouchableOpacity style = {styles.submitButton} onPress={handleSubmit}>
+                                                    <LottieView
+                                                        source={require('@assets/animations/recycleAnimation.json')}
+                                                        autoPlay
+                                                        loop={true}
+                                                        style = { styles.recAnimationModal }
+                                                    />
+                                                    <Text style={ styles.buttonText}>Recycle Now!</Text>
+                                                </TouchableOpacity>
+                                            </View>
                                         </View>
                                     </View>
                                 )}
@@ -182,8 +235,6 @@ const RecycleNow = () => {
 const styles = StyleSheet.create({
     container: {
         flex:1,
-        // /backgroundColor:'#93D3AE',
-
     },
     image: {
         justifyContent: 'center',
@@ -196,6 +247,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         position: 'relative',
+        width: '90%',
         bottom: '16%'
     },
     logo: {
@@ -311,7 +363,19 @@ const styles = StyleSheet.create({
         width: '20%',
         height: undefined,
         aspectRatio: 1
+    },
+    formFilled:{
+        position: 'relative',
+        bottom: '2%'
+    },
+    pickerStyleRec: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 14,
+        color: '#219281FF',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
     }
+
+
 });
 
 
