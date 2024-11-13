@@ -13,6 +13,7 @@ import {
 import {handleLogout} from '../index';
 import Constants from "expo-constants";
 import { router, useRouter} from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define the types for props in MenuButton
 type MenuButtonProps = {
@@ -41,7 +42,26 @@ const MenuButton = ({ text, iconSource, path, navigateTo, onPress }: MenuButtonP
     );
 }
 
-export default function Menu() {
+const Profile: React.FC = () => {
+
+    const [username, setUsername] = useState('');
+    useEffect(() => {
+        const fetchUserName = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('Stored email:', userDataString);
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    setUsername(userData.firstName);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUserName();
+    }, []);
 
     const router = useRouter();
     const [selectedItem, setSelectedItem] = useState(null);
@@ -51,38 +71,6 @@ export default function Menu() {
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-
-    // const [users, setUser ] = useState([]);
-    // const [isLoading, setIsLoading] = useState(true);
-
-    // const getUsername = async () => {
-    //     //TODO: get user name by ID
-    //     try{
-    //         const response = fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/user/1`,
-    //             {method: 'GET'}
-    //         );
-    //         const data  =  await response.json();
-    //
-    //         if (data && data.firstName) {
-    //             setUser(data.firstName);
-    //         } else {
-    //             Alert.alert('Error', 'User not found');
-    //             console.error('User not found');
-    //         }
-    //     }catch (error){
-    //         console.error('Error getting user: ', error);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     getUsername();
-    // }, []);
-
-    // if(isLoading) {
-    //     return <Text>Loading...</Text>;
-    // }
     const buttonScale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -122,7 +110,7 @@ export default function Menu() {
                                 />
                                 <View style={styles.greetingContainer}>
                                     <Text style={styles.greeting}>Hello,</Text>
-                                    {/*<Text style={styles.username}> { user || 'User'} </Text>*/}
+                                    <Text style={styles.username}>{username || 'user'}</Text>
                                 </View>
                             </View>
 
@@ -150,7 +138,7 @@ export default function Menu() {
                             <MenuButton
                                 text="Order History"
                                 iconSource={require('@assets/images/retro-game.png')}
-                                path="/OrderHistory"
+                                path="/pages/OrderHistory"
                                 navigateTo={navigateTo}
                             />
                             {/* Logout button */}
@@ -185,7 +173,9 @@ export default function Menu() {
             </ImageBackground>
         </>
     );
-}
+};
+
+export default Profile;
 
 const styles = StyleSheet.create({
     backgroundImage: {

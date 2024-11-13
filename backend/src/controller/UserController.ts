@@ -2,6 +2,8 @@ import { AppDataSource } from "../data-source";
 import {NextFunction, Request, response, Response} from "express";
 import { User } from "../entity/User";
 import bcrypt from "bcrypt";
+import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
 export class UserController {
 
@@ -88,6 +90,7 @@ export class UserController {
 
     // Login a user
     async login(req: Request, res: Response) {
+        const JWT_SECRET = process.env.JWT_SECRET as string;
         const { username, password } = req.body;
 
         try {
@@ -99,11 +102,21 @@ export class UserController {
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
-            console.log("backend: 3");
+
             const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) {
                 return res.status(401).json({ message: "Invalid password" });
             }
+
+            // Generate a unique token
+            const uniqueTokenPayload = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                uuid: uuidv4(), // Unique identifier
+            };
+
+            const token = jwt.sign(uniqueTokenPayload, JWT_SECRET, { expiresIn: '1h' });
 
             const { password: _, UserRole, ...userWithoutPassword } = user;
             const responseData = {
@@ -113,8 +126,9 @@ export class UserController {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 user_role: UserRole.name,
-                gender: user.gender
-            }
+                gender: user.gender,
+                token: token
+            };
 
             return res.json(responseData);
         } catch (error) {
