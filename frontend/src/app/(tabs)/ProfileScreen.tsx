@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     SafeAreaView,
@@ -8,22 +8,44 @@ import {
     ImageBackground,
     Image,
     StatusBar,
-    Pressable, Button
+    Button
 } from 'react-native';
-import {handleLogout} from '../index';
+import { handleLogout } from '../index';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {router} from "expo-router";
 
+const Profile: React.FC = () => {
+    const [username, setUsername] = useState('');
 
-export default function Menu() {
+    useEffect(() => {
+        const fetchUserName = async () => {
+            try {
+                const storedUserName = await AsyncStorage.getItem('userEmail');
+                console.log('Stored email:', storedUserName);
+                if (storedUserName) {
+                    const name = storedUserName.split('@')[0];
+                    setUsername(name);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUserName();
+    }, []);
+
+    const navigateToHistory = () => {
+        router.push("(ProfileScreenPanel)/OrderHistory");
+    }
+
     return (
         <>
-            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
+            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true} />
             <ImageBackground
                 source={require('@assets/images/TMBackground.png')} // Replace with your background image
                 style={styles.backgroundImage}
             >
-
                 <SafeAreaView style={styles.safeArea}>
-                    <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
+                    <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo} />
 
                     <View style={styles.transparentContainer}>
                         <View style={styles.header}>
@@ -33,7 +55,7 @@ export default function Menu() {
                             />
                             <View style={styles.greetingContainer}>
                                 <Text style={styles.greeting}>Hello,</Text>
-                                <Text style={styles.username}>User</Text>
+                                <Text style={styles.username}>{username || 'user'}</Text>
                             </View>
                         </View>
 
@@ -63,7 +85,7 @@ export default function Menu() {
                             <Text style={styles.menuText}>Recycle Now</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.menuButton}>
+                        <TouchableOpacity style={styles.menuButton} onPress={() => navigateToHistory()}>
                             <Image
                                 source={require('@assets/images/retro-game.png')} // Replace with your icon
                                 style={styles.icon}
@@ -76,14 +98,16 @@ export default function Menu() {
                                 source={require('@assets/images/videogame.png')} // Replace with your icon
                                 style={styles.icon}
                             />
-                            <Button title="Logout" onPress={handleLogout}/>
+                            <Button title="Logout" onPress={handleLogout} />
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
             </ImageBackground>
         </>
     );
-}
+};
+
+export default Profile;
 
 const styles = StyleSheet.create({
     backgroundImage: {
@@ -94,7 +118,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 60, // Increased padding at the top and bottom
+        paddingVertical: 60,
     },
     header: {
         flexDirection: 'row',
@@ -103,9 +127,9 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     logo: {
-        width: 50, // Adjust size as necessary
+        width: 50,
         height: 50,
-        marginRight: 10, // Space between logo and text
+        marginRight: 10,
     },
     greetingContainer: {
         flexDirection: 'row',
@@ -113,52 +137,51 @@ const styles = StyleSheet.create({
     },
     greeting: {
         fontSize: 24,
-        color: '#000', // Darker text for the greeting
+        color: '#000',
         marginRight: 5,
     },
     username: {
         fontSize: 24,
-        color: 'rgb(92,183,165)', // Green text for the username
+        color: 'rgb(92,183,165)',
         fontWeight: 'bold',
     },
     greenLine: {
         height: 2,
         width: '100%',
-        backgroundColor: 'rgb(92,183,165)', // Green line below header
+        backgroundColor: 'rgb(92,183,165)',
         marginBottom: 20,
     },
     transparentContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.5)', // More transparent container
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
         borderRadius: 10,
         padding: 20,
         width: '90%',
-        alignItems: 'center', // Center everything inside the container
-        position: "relative",
+        alignItems: 'center',
+        position: 'relative',
         bottom: '25%'
     },
     menuButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgb(92,183,165)', // Button color
+        backgroundColor: 'rgb(92,183,165)',
         paddingVertical: 15,
-        borderRadius: 5, // Make buttons rectangular
+        borderRadius: 5,
         marginBottom: 15,
-        justifyContent: 'center', // Center the text
+        justifyContent: 'center',
         width: '100%',
     },
     menuText: {
         fontSize: 18,
         fontWeight: '600',
         color: '#fff',
-        marginLeft: 10, // Space between icon and text
+        marginLeft: 10,
     },
     icon: {
         width: 24,
         height: 24,
         position: 'absolute',
-        left: 15, // Position the icon on the left side
+        left: 15,
     },
-
     tmlogo: {
         resizeMode: 'contain',
         width: '65%',

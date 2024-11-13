@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
@@ -11,11 +12,28 @@ const PaymentScreen = () => {
     const [email, setEmail] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [username, setUsername] = useState('');
+
+    useEffect(() => {
+        const fetchUserName = async () => {
+            try {
+                const storedUserName = await AsyncStorage.getItem('userEmail');
+                console.log('Stored email:', storedUserName);
+                if (storedUserName) {
+                    const name = storedUserName;
+                    setUsername(name);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUserName();
+    }, []);
 
     const handlePayment = async () => {
         // basic validation , adjust if required
         // validation of user entry to simulate use of payment system
-        if (!cardNumber || !expiryDate || !cvv || !email) {
+        if (!cardNumber || !expiryDate || !cvv || !username) {
             Alert.alert("Error", "Please complete all fields");
             return;
         }
@@ -36,7 +54,7 @@ const PaymentScreen = () => {
                 },
                 body: JSON.stringify({
                     orderNumber: orderNumber,
-                    email: email,
+                    email: username,
                     total: Number(total)
                 })
             });
@@ -76,9 +94,10 @@ const PaymentScreen = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="Email"
-                    value={email}
+                    value={username}
                     onChangeText={setEmail}
                     keyboardType="email-address"
+                    editable={false}
                 />
             </View>
 

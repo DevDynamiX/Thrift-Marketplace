@@ -169,3 +169,22 @@ const styles = StyleSheet.create({
 });
 
 export default Home;
+
+//const displayLoggedUser = () =>{
+//     const [username, setUsername] = useState('');
+//
+//     useEffect(() => {
+//         const fetchUserName = async ()=>{
+//             try {
+//                 const storedUserName = await AsyncStorage.getItem('username');
+//                 if (storedUserName){
+//                     setUsername(storedUserName);
+//                 }
+//             }
+//             catch(error){
+//                 console.error(error);
+//             }
+//         };
+//         fetchUserName();
+//     }, []);
+// }

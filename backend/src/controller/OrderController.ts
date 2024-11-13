@@ -45,4 +45,15 @@ export class OrderController {
             });
         }
     }
+
+    async getOrders(req: Request, res: Response) {
+        try {
+            const orderRepo = AppDataSource.getRepository(Orders);
+            const orders = await orderRepo.find();
+            return res.status(200).json(orders);
+        }
+        catch (error) {
+            console.error('Detailed error in getOrders:', error);
+        }
+    }
 }

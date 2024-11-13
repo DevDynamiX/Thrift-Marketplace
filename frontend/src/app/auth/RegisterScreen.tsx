@@ -39,11 +39,11 @@ const SignUp = () => {
         setLoading(true);
         try {
             // create the user with Firebase
-            /*const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
+            const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
             console.log("Firebase response:", firebaseResponse);
 
             const { user } = firebaseResponse;
-            const { email: userEmail, uid } = user;*/
+            const { email: userEmail, uid } = user;
 
             // Send the user data to your backend
             const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/register`, { // Update the URL as necessary
