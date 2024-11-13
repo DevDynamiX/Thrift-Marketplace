@@ -1,14 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne, JoinColumn} from "typeorm";
+import {Likes} from "./userLikes";
+import {Discounts} from "./Discounts";
+import {User} from "./User";
 
 @Entity()
 export class Recycling {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column({ nullable: true })
-    userID?: string;
-
-    @Column({ nullable: false, unique: true })
+    @Column({ nullable: false})
     email!: string;
 
     @Column({ nullable: false })
@@ -20,10 +20,19 @@ export class Recycling {
     @Column({ nullable: false })
     description!: string;
 
-    @Column({ length: 3, nullable: false })
+    @Column({ nullable: false })
     dropoffLocation!: string;
 
-    //TODO: SEE IF CAN ADD
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date;
+
+    //creating discount ID
+    @OneToMany(() => Discounts, (discount) => discount.recycle)
+    discounts?: Discounts[];
+
+    //link user ID to user table
+    @ManyToOne(() => User, (user) => user.id)
+    @JoinColumn({name: 'userId'})
+    user!: User;
+
 }

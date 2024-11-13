@@ -2,15 +2,18 @@ import { AppDataSource } from "../data-source";
 import { Request, Response } from "express";
 import { Likes } from "../entity/userLikes";
 import { Inventory} from "../entity/adminInventory";
+import { User } from "../entity/User";
 
 export class UserLikesController {
 
     private likesRepository = AppDataSource.getRepository(Likes)
     private inventoryRepository = AppDataSource.getRepository(Inventory)
+    private userRepository = AppDataSource.getRepository(User)
 
     // Get all Likes
     async all(req: Request, res: Response) {
         const {userID} = req.query;
+        const userIDNumber = Number(userID);
 
         if (!userID) {
             return res.status(400).json({error: "User not found"});
@@ -18,7 +21,7 @@ export class UserLikesController {
 
         try {
             const userLikes = await this.likesRepository.find({
-                where: { userID: '1'},
+                where: { user: {id: userIDNumber}},
                 relations: ['unit'],
             });
 
@@ -33,6 +36,7 @@ export class UserLikesController {
     async save(req: Request, res: Response) {
         //TODO: add userID here
         const {itemID, userID} = req.body;
+        const userIDNumber = Number(userID);
 
         console.log("Request Body:", req.body);
 
@@ -43,7 +47,7 @@ export class UserLikesController {
             }
 
             const likeExists =  await this.likesRepository.findOne({
-                where: {userID, unit: {id: itemID}},
+                where: {user: {id:userIDNumber }, unit: {id: itemID}},
                 relations: ['unit'],
             });
 
@@ -51,14 +55,19 @@ export class UserLikesController {
                 return res.status(400).json({ success: false, message: "You've already liked this item." });
             }
 
+            const user = await this.userRepository.findOne({ where: { id: userIDNumber } });
             const item = await this.inventoryRepository.findOne({ where: { id: itemID } });
 
+
+            if(!user){
+                return res.status(404).json({ success: false, message: "User not found. " });
+            }
             if(!item){
                 return res.status(404).json({ success: false, message: "Item not found in inventory. " });
             }
 
             const like = this.likesRepository.create({
-                userID,
+                user,
                 unit: item
             });
 
@@ -79,11 +88,11 @@ export class UserLikesController {
 
         const {itemID, userID} = req.params;
         const itemIDNumber = Number(itemID);
-
+        const userIDNumber = Number(userID);
 
         try {
             const likeToRemove =  await this.likesRepository.findOne({
-                where: {unit: {id: itemIDNumber }, userID},
+                where: {unit: {id: itemIDNumber }, user: {id: userIDNumber}},
                 relations: ['unit'],
             });
 

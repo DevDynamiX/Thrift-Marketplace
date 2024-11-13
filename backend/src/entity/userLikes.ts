@@ -1,5 +1,6 @@
-import {Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne} from "typeorm";
+import {Entity,JoinColumn, PrimaryGeneratedColumn, Column, Unique, ManyToOne} from "typeorm";
 import {Inventory} from "./adminInventory";
+import {User} from "./User";
 
 let primaryGeneratedColumn = PrimaryGeneratedColumn();
 @Entity()
@@ -10,9 +11,11 @@ export class Likes {
     id!: number;
 
     //user ID
-    @Column()
-    userID!: string;
+    @ManyToOne(() => User, (user) => user.Likes)
+    @JoinColumn({name: 'userId'})
+    user!: User;
 
-    @ManyToOne(() => Inventory)
+    @ManyToOne(() => Inventory, (inventory) => inventory.likes, { onDelete: 'CASCADE' })
+    @JoinColumn({name: 'unitId'})
     unit!: Inventory;
 }

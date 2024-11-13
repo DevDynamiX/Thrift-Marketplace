@@ -8,7 +8,7 @@ import {
     ImageBackground,
     Image,
     StatusBar,
-    Pressable, Button, Animated
+    Pressable, Button, Animated, Alert, ScrollView
 } from 'react-native';
 import {handleLogout} from '../index';
 import Constants from "expo-constants";
@@ -51,24 +51,35 @@ export default function Menu() {
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-    //const handlePress
 
     // const [users, setUser ] = useState([]);
     // const [isLoading, setIsLoading] = useState(true);
+
+    // const getUsername = async () => {
+    //     //TODO: get user name by ID
+    //     try{
+    //         const response = fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/user/1`,
+    //             {method: 'GET'}
+    //         );
+    //         const data  =  await response.json();
     //
+    //         if (data && data.firstName) {
+    //             setUser(data.firstName);
+    //         } else {
+    //             Alert.alert('Error', 'User not found');
+    //             console.error('User not found');
+    //         }
+    //     }catch (error){
+    //         console.error('Error getting user: ', error);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // }
+
     // useEffect(() => {
-    //     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/user`)
-    //         .then(response => response.json())
-    //         .then( data => {
-    //             setUser(data);
-    //             setIsLoading(false);
-    //         })
-    //         .catch(error => {
-    //             console.error("Error fetching inventory: ", error);
-    //             setIsLoading(false);
-    //         });
+    //     getUsername();
     // }, []);
-    //
+
     // if(isLoading) {
     //     return <Text>Loading...</Text>;
     // }
@@ -102,71 +113,74 @@ export default function Menu() {
 
                 <SafeAreaView style={styles.safeArea}>
                     <Image source={require('@assets/images/TMPageLogo.png')} style={styles.tmlogo}/>
-                    <View style={styles.transparentContainer}>
-                        <View style={styles.header}>
-                            <Image
-                                source={require('@assets/images/Ellipse5.png')}
-                                style={styles.logo}
-                            />
-                            <View style={styles.greetingContainer}>
-                                <Text style={styles.greeting}>Hello,</Text>
-                                {/*TODO: display user name here*/}
-                                <Text style={styles.username}> User </Text>
+                    <ScrollView contentContainerStyle={styles.menuItemsScroll}>
+                        <View style={styles.transparentContainer}>
+                            <View style={styles.header}>
+                                <Image
+                                    source={require('@assets/images/Ellipse5.png')}
+                                    style={styles.logo}
+                                />
+                                <View style={styles.greetingContainer}>
+                                    <Text style={styles.greeting}>Hello,</Text>
+                                    {/*<Text style={styles.username}> { user || 'User'} </Text>*/}
+                                </View>
                             </View>
+
+                            <View style={styles.greenLine}></View>
+
+                            {/* Menu Buttons */}
+                            <MenuButton
+                                text="Your Details"
+                                iconSource={require('@assets/images/gamer.png')}
+                                path="/YourDetails"
+                                navigateTo={navigateTo}
+                            />
+                            <MenuButton
+                                text="Your Favorites"
+                                iconSource={require('@assets/images/heart.png')}
+                                path="/pages/YourFavourites"
+                                navigateTo={navigateTo}
+                            />
+                            <MenuButton
+                                text="Recycle Now"
+                                iconSource={require('@assets/images/received.png')}
+                                path="/pages/Recycling"
+                                navigateTo={navigateTo}
+                            />
+                            <MenuButton
+                                text="Order History"
+                                iconSource={require('@assets/images/retro-game.png')}
+                                path="/OrderHistory"
+                                navigateTo={navigateTo}
+                            />
+                            {/* Logout button */}
+                            <MenuButton
+                                text="Logout"
+                                iconSource={require('@assets/images/videogame.png')}
+                                onPress={() => {
+                                    console.log("Logging out");
+
+                                    handleLogout();
+                                }}
+                            />
+
+                            <View style={styles.greenSeparator}></View>
+
+                            <MenuButton
+                                text="Terms and Conditions"
+                                iconSource={require('@assets/images/logo.png')}
+                                path="../webview/TermsOfService"
+                                navigateTo={navigateTo}
+                            />
+
+                            <MenuButton
+                                text="Support"
+                                iconSource={require('@assets/images/IMG_3695.jpg')}
+                                path="../webview/ContactUs"
+                                navigateTo={navigateTo}
+                            />
                         </View>
-
-                        <View style={styles.greenLine}></View>
-
-                        {/* Menu Buttons */}
-                        <MenuButton
-                            text="Your Details"
-                            iconSource={require('@assets/images/gamer.png')}
-                            path="/YourDetails"
-                            navigateTo={navigateTo}
-                        />
-                        <MenuButton
-                            text="Your Favorites"
-                            iconSource={require('@assets/images/heart.png')}
-                            path="/pages/YourFavourites"
-                            navigateTo={navigateTo}
-                        />
-                        <MenuButton
-                            text="Recycle Now"
-                            iconSource={require('@assets/images/received.png')}
-                            path="/pages/Recycling"
-                            navigateTo={navigateTo}
-                        />
-                        <MenuButton
-                            text="Order History"
-                            iconSource={require('@assets/images/retro-game.png')}
-                            path="/OrderHistory"
-                            navigateTo={navigateTo}
-                        />
-                        {/* Logout button */}
-                        <MenuButton
-                            text="Logout"
-                            iconSource={require('@assets/images/videogame.png')}
-                            onPress={() => {
-                                console.log("Logging out");
-
-                                handleLogout();
-                            }}
-                        />
-
-                        <MenuButton
-                            text="Terms and Conditions"
-                            iconSource={require('@assets/images/logo.png')}
-                            path="../webview/TermsOfService"
-                            navigateTo={navigateTo}
-                        />
-
-                        <MenuButton
-                            text="Support"
-                            iconSource={require('@assets/images/IMG_3695.jpg')}
-                            path="../webview/ContactUs"
-                            navigateTo={navigateTo}
-                        />
-                    </View>
+                    </ScrollView>
                 </SafeAreaView>
             </ImageBackground>
         </>
@@ -176,29 +190,34 @@ export default function Menu() {
 const styles = StyleSheet.create({
     backgroundImage: {
         width: '100%',
-        height: '100%',
         position: 'absolute',
         top: 0,
         left: 0,
         zIndex: -1,
-        resizeMode: 'cover',  // Ensure the background image fills the space
+        resizeMode: 'cover',
     },
     safeArea: {
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 60,
+        position: 'relative',
+        bottom: '24%',
+        width: '100%',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
     },
     logo: {
         width: 50,
         height: 50,
         marginRight: 10,
         borderRadius: 25,
+        marginBottom: 8
+    },
+    menuItemsScroll: {
+        width: '95%',
+        flexDirection: 'row',
+        position: "relative",
     },
     greetingContainer: {
         flexDirection: 'row',
@@ -223,30 +242,37 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderRadius: 2,
     },
+    greenSeparator: {
+        height: 2,
+        width: '70%',
+        backgroundColor: 'rgb(92,183,165)',
+        marginTop: 5,
+        marginBottom: 15,
+        borderRadius: 2,
+    },
     transparentContainer: {
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         borderRadius: 15,
-        padding: 20,
-        width: '90%',
+        padding: 15,
+        width: '95%',
+        height: '100%',
         alignItems: 'center',
         position: "relative",
-        bottom: '21%',  // Move the container slightly up
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 10,
         borderColor: 'rgb(92,183,165)',
-
     },
     menuButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgb(92,183,165)',
-        paddingVertical: 15,
+        paddingVertical: 10,
         borderRadius: 30,
         marginBottom: 15,
         justifyContent: 'center',
-        width: '100%',
+        width: '90%',
         elevation: 5, // Shadow for Android
         shadowColor: '#000', // Shadow for iOS
         shadowOffset: { width: 0, height: 4 },
@@ -276,7 +302,7 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
         width: '65%',
         position: 'relative',
-        bottom: '2%',
+        top: '14%',
         right: '12%',
 
     },

@@ -17,6 +17,9 @@ import {useFonts} from "expo-font";
 import Icon from "react-native-vector-icons/Ionicons";
 
 //TODO: add field to apply discount from recycling
+//TODO: change total to reflect Discounts.ts etc
+
+//TODO: field for delivery address???
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {

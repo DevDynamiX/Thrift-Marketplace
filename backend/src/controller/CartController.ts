@@ -1,22 +1,24 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import {Cart} from "../entity/Cart";
-import { getRepository } from "typeorm";
 import {Inventory} from "../entity/adminInventory";
+import { User } from "../entity/User"
 
 export class CartController {
 
     private cartRepository = AppDataSource.getRepository(Cart)
     private inventoryRepository = AppDataSource.getRepository(Inventory)
+    private userRepository  = AppDataSource.getRepository(User)
 
     async all(req:Request,res:Response){
        const { userID } = req.query;
+       const userIDNumber = Number(userID);
 
        console.log("Fetching Cart for user: ", userID);
 
         try {
             const userCart =  await this.cartRepository.find({
-                where: { userID: '1' },
+                where: { user: {id: userIDNumber} },
                 relations: ["inventoryItem"],
             });
 
@@ -37,13 +39,12 @@ export class CartController {
         console.log("Request Body:", req.body);
 
         try {
-
             if (!itemID) {
                 return res.status(400).json({ message: "itemID is required." });
             }
 
             const itemExists =  await this.cartRepository.findOne({
-                where: {userID, inventoryItem: {id:itemID}},
+                where: {user: {id: userID}, inventoryItem: {id:itemID}},
                 relations: ['inventoryItem'],
             });
 
@@ -59,9 +60,16 @@ export class CartController {
                 return res.status(404).json({ message: "Item not found in inventory. " });
             }
 
+            const user = await this.userRepository.findOne({where: {id: userID}, });
+
+            if (!user) {
+                return res.status(404).json({ message: "User not found." });
+            }
+
             const cart =  this.cartRepository.create({
-                userID,
-                inventoryItem: inventoryItem});
+                user,
+                inventoryItem});
+
             const savedCart = await this.cartRepository.save(cart);
 
             return res.status(201).json({message:"Item added successfully."});
@@ -77,6 +85,7 @@ export class CartController {
 
         const {itemID, userID} = req.params;
         const itemIDNumber = Number(itemID);
+        const userIDNumber = Number(userID);
 
         console.log(`itemID: ${itemIDNumber}, userID: ${userID}`);
 
@@ -84,7 +93,8 @@ export class CartController {
             const itemToRemove = await this.cartRepository.findOne(
                 {
                     where:
-                        {inventoryItem: {id:itemIDNumber}, userID},
+                        {inventoryItem: {id:itemIDNumber},
+                            user: {id: userIDNumber}},
                     relations: ['inventoryItem'],
 
                 })

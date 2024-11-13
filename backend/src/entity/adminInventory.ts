@@ -1,5 +1,7 @@
 import { Entity,OneToMany,  PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
 import  {Cart} from "./Cart";
+import {Likes} from "./userLikes";
+
 @Entity()
 export class Inventory {
     @PrimaryGeneratedColumn()
@@ -59,6 +61,9 @@ export class Inventory {
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date;
 
-    @OneToMany(() => Cart, (cart) => cart.inventoryItem)
+    @OneToMany(() => Cart, (cart) => cart.inventoryItem, {cascade: ['remove']})
     cartItems?: Cart[] ;
+
+    @OneToMany(() => Likes, (like) => like.unit, {cascade: ['remove']})
+    likes?: Likes[];
 }

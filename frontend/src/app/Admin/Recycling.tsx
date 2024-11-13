@@ -11,7 +11,7 @@ import {
     Alert,
     TouchableOpacity,
     ImageBackground,
-    ScrollView
+    ScrollView, RefreshControl
 } from 'react-native';
 import {useFonts} from "expo-font";
 import {Picker} from "@react-native-picker/picker";
@@ -19,12 +19,15 @@ import { Formik } from 'formik';
 import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
 
-const ViewProducts = () => {
+//TODO: SAVE GENERATED discount to table
+const ViewRecycling = () => {
 
-    const [inventoryItems, setInventoryItems ] = useState<Product[]>([]);
+    const [recyclingItems, setRecyclingItems ] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
 
     const [selectedItem, setSelectedItem] = useState(null);
+
+    const [ refresh, setRefresh] = useState(false);
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -35,31 +38,44 @@ const ViewProducts = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
+    const handleRefresh = async () => {
+        setRefresh(true);
+        try{
+            await fetchRecycling();
+        } catch (error){
+            console.error("Failed to refresh cart. ", error);
+            Alert.alert('Error', 'Could not refresh cart.');
+        }finally{
+            setRefresh(false);
+        }
+    }
 
     //fetch from recycling db
-    const fetchInventoryData = async () => {
+    const fetchRecycling = async () => {
         try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/recycling`);
             if (!response.ok) {
-                throw new Error('Failed to fetch inventory data');
+                throw new Error('Failed to fetch Recycling data');
             }
             const data = await response.json();
-            setInventoryItems(data);
+            setRecyclingItems(data);
+
         } catch (error) {
-            console.error('Error fetching inventory data: ', error);
+            console.error('Error fetching Recycling data: ', error);
         }
     };
 
 // useEffect to fetch data on mount
     useEffect(() => {
-        fetchInventoryData();
+        fetchRecycling();
     }, []);
 
 
     //delete request
     const handleItemDelete = async (id) => {
         try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory/${id}`, {
+            //use recyclingID here
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/recycling/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,19 +86,18 @@ const ViewProducts = () => {
                 throw new Error('Failed to remove item!');
             }
 
-            fetchInventoryData();
+            fetchRecycling();
 
-            Alert.alert('Success', 'Item Successfully removed from inventory!');
+            Alert.alert('Success', 'Item Successfully removed from Recycling queue!');
         }catch (error){
-            Alert.alert('Error', 'Could not remove item!');
+            Alert.alert('Error', 'Could not remove entry from recycling queue!');
             console.error('Error deleting item:', error)
         }
 
     }
 
-
     //view recycling details
-    const openEditModal = (item:Product) => {
+    const openEditModal = (item:id) => {
         setSelectedItem(item);
         setModalVisible(true);
     };
@@ -112,14 +127,84 @@ const ViewProducts = () => {
         )
     }
 
-    const renderProduct = ({ item }: { item: Product }) => (
+    const Random = (length = 5) => {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * characters.length);
+            result += characters[randomIndex];
+        }
+        return result;
+    };
+
+    //saving to discount table
+    const handleDiscountUpload = async (values) => {
+        const discountPercent = Number(values.discount);
+
+        // Generate random string for the discount code
+        const random = Random(5);  // Assuming you have a function to generate a random string
+
+        if (!discountPercent) {
+            Alert.alert('Please Select a discount percentage!');
+            return;
+        }
+
+        const discountCode = `TM-${random}-${discountPercent}`;
+
+        // Prepare form data
+        const formData = {
+            discountCode,
+            recyclingId:item.id,
+            userID: 1,
+        };
+
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            // Check if response is okay before parsing
+            if (response.ok) {
+                const responseText = await response.text();
+                let responseData = {};
+                try {
+                    responseData = JSON.parse(responseText);
+                    console.log('Parsed Response:', responseData);
+
+                    if (!responseData.success) {
+                        Alert.alert('Error', 'Could not save discount.');
+                        return;
+                    }
+
+                    Alert.alert('Success', `Discount Code generated and saved for: ${selectedItem.firstName}`);
+                    setModalVisible(false);  // Close modal
+                } catch (error) {
+                    console.error('Error parsing response:', error);
+                    Alert.alert('Error', 'Invalid response format.');
+                }
+            } else {
+                console.error('Failed response:', response.status);
+                alert('Failed to save discount.');
+            }
+        } catch (error) {
+            console.error('Error: ', error);
+            Alert.alert('Error', 'Could not save discount. Please try again.');
+        }
+    };
+
+
+    const renderProduct = ({ item }) => (
         <View style={styles.productContainer}>
             {item.onSale && <NewBanner/>}
-            <View style={styles.productDetails}>
-                <Text style={styles.productTitle}>User Email</Text>
-                <Text>User Phone</Text>
-                <Text>Description of donation</Text>
-                <Text>Dropoff location </Text>
+            <View style={styles.recDetails}>
+                <Text style={styles.recTitle}>{item.email}</Text>
+                <Text style = {styles.recBody}>{item.firstName} {item.lastName}</Text>
+                <Text style = {styles.recBody}>{item.description}</Text>
+                <Text style = {styles.recBody}>{item.dropoffLocation}</Text>
 
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity
@@ -128,13 +213,16 @@ const ViewProducts = () => {
                     >
                         <Text style={styles.buttonText}>Accept</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => warnUser(item.id)}
                     >
-                        <Text style={styles.buttonText}>Decline</Text>
+                        <Text style={styles.buttonText}>Delete</Text>
                     </TouchableOpacity>
                 </View>
+
+
             </View>
         </View>
     );
@@ -154,9 +242,16 @@ const ViewProducts = () => {
             <View style={styles.container}>
                 <Text style={styles.header}>Manage Recycling</Text>
                 <FlatList
-                    data={inventoryItems}
+                    data={recyclingItems}
                     renderItem={renderProduct}
                     keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refresh}
+                            onRefresh={handleRefresh}
+                        />
+                    }
                 />
 
                 <Modal
@@ -166,26 +261,22 @@ const ViewProducts = () => {
                     onRequestClose={closeModal}
                 >
 
-                    <ScrollView style={styles.modalContainer}>
-                        <View style = {styles.discountContainer}>
+                        <View style = {styles.modalContainer}>
                             <Formik
-                                //initialValues={selectedItem}
-                                //onSubmit={handleUpdatedItem}
+                                initialValues={{
+                                    discountCode: '',
+                                }}
+                                onSubmit={handleDiscountUpload}
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
                                     <View style={styles.modalView}>
                                         <View style = { styles.headerContainer}>
                                             <Text style={styles.modalTitle}>Send Discount:</Text>
-                                            <TouchableOpacity onPress={() => closeModal()}>
-                                                <View style = {styles.closeModal}>
-                                                    <Icon name = 'close' size = {30} color = {'#212121'}></Icon>
-                                                </View>
-                                            </TouchableOpacity>
                                         </View>
 
                                         <Picker
                                             style={styles.pickerStyle}
-                                            //onValueChange={handleChange('category')}
+                                            onValueChange={handleChange('discount')}
                                         >
                                             <Picker.Item label="Select a Discount Percent" value="" />
                                             <Picker.Item label="5%" value="5" />
@@ -210,24 +301,23 @@ const ViewProducts = () => {
                                             <Picker.Item label="100%" value="100" />
                                         </Picker>
 
-
                                         <View style={styles.modalButtonContainer}>
-                                            <Text>Send -user email- an email:</Text>
-                                            <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-                                                <Text style={styles.buttonText}>Send</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                style={styles.cancelButton}
-                                                onPress={() => setModalVisible(false)}
-                                            >
-                                                <Text style={styles.buttonText}>Cancel</Text>
-                                            </TouchableOpacity>
+                                            <Text>Send --user-- an email:</Text>
+                                            <View style = {styles.modalButtons}>
+                                                <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+                                                    <Text style={styles.buttonText}>Send</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={styles.cancelButton}
+                                                    onPress={() => setModalVisible(false)}
+                                                >
+                                                    <Text style={styles.buttonText}>Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
                                         </View>
                                     </View>)}
                             </Formik>
                         </View>
-
-                    </ScrollView>
                 </Modal>
             </View>
         </ImageBackground>
@@ -246,7 +336,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 20,
         color: '#219281FF',
-        fontWeight: 'bold',
     },
     image: {
         flex: 1,
@@ -267,26 +356,25 @@ const styles = StyleSheet.create({
         elevation: 2,
 
     },
-    productImage: {
-        width: '30%',
-        height: 'auto',
-        marginRight: 15,
-        borderColor: '#2121',
-        borderWidth: 1,
-        borderRadius: 8,
+    recDetails: {
+        width: '100%'
     },
-    productDetails: {
-        flex: 1,
-    },
-    productTitle: {
-        fontFamily: 'shrikhand',
-        fontSize: 18,
-        fontWeight: 'bold',
+    recTitle: {
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 22,
         color: '#219281FF',
+    },
+    recBody: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 18,
+        paddingTop: 1,
+        paddingBottom: 1
     },
     buttonContainer: {
         flexDirection: 'row',
         marginTop: 10,
+        justifyContent: 'flex-end'
+
     },
     editButton: {
         backgroundColor: '#F9A822',
@@ -306,7 +394,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         flex: 1,
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundColor: '#ffffff',
         marginTop: 100,
         marginHorizontal: 20,
         padding: 20,
@@ -316,10 +404,13 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 5,
     },
+    modalContainer: {
+        flexDirection: 'column',
+        height: '45%'
+    },
     modalTitle: {
         fontFamily: 'shrikhand',
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontSize: 25,
         marginBottom: 10,
         textAlign: 'center',
         color: '#4DAE91',
@@ -330,13 +421,16 @@ const styles = StyleSheet.create({
         borderColor: '#cacaca',
         padding: 10,
         borderRadius: 5,
-        marginBottom: 10,
         color: '#219281FF'
     },
     modalButtonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
+        flexDirection: 'column',
+        alignItems: 'center',
         marginTop:10,
+    },
+    modalButtons: {
+        marginTop: 20,
+        flexDirection: 'row',
     },
     saveButton: {
         fontFamily: 'sulphurPoint',
@@ -426,44 +520,8 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginTop: 2
     },
-    imagePicker: {
-        height: 100,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 15,
-    },
-    imagePreview: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 5,
-    },
-    imagePlaceholder: {
-        color: '#6b7280',
-    },
-    removeImageText: {
-        color: '#F96635',
-        textAlign: 'center',
-    },
-    deleteIconContainer: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '5%'
-    },
-    closeModal: {
-        backgroundColor: 'rgba(250,102,53,0.75)',
-        width: 30,
-        height: 30,
-        borderRadius: 100,
-        justifyContent: 'center',
-        position: 'relative',
-        left: '100%',
-        bottom: '210%'
-    },
+
+
     bannerContainer: {
         position: 'absolute',
         top: 10,
@@ -480,4 +538,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default ViewProducts;
+export default ViewRecycling;

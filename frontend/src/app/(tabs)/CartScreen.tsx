@@ -37,9 +37,10 @@ const CartPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
+    const [totalWithShipping, setTotalWithShipping] = useState(0);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
-
+    const [ refresh, setRefresh] = useState(false);
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -58,13 +59,20 @@ const CartPage: React.FC = () => {
         );
     }
 
-    // useEffect(() => {
-    //     const newTotal = cartItems.reduce((sum,item)=>{
-    //         const price = Number(item.inventoryItem.itemPrice)||0;
-    //         return sum + price;
-    //     },0);
-    //     setTotal(newTotal);
-    //  },[]);
+    const shipping = 85;
+    const freeShipping = 500;
+
+    useEffect(() => {
+        const newTotal = cartItems.reduce((sum,item)=>{
+            const price = item.inventoryItem.onSale ? Number(item.inventoryItem.salePrice) || 0 : Number(item.inventoryItem.itemPrice) || 0;
+            return sum + price;
+            },0);
+
+        const totalWithShipping  =  newTotal >= freeShipping ? newTotal : newTotal + shipping;
+
+        setTotal(newTotal);
+        setTotalWithShipping(totalWithShipping);
+        },[cartItems]);
 
 
     const fetchCart= async () => {
@@ -143,33 +151,27 @@ const CartPage: React.FC = () => {
     const goToCart = () =>{
         router.push({
             pathname:'auth/PayGate',
-            params:{total},
+            params:{totalWithShipping},
         });
     };
 
-    const handleRefresh = () => {
-        fetchCart();
+    const goHome = () =>{
+        router.push({
+            pathname:'(tabs)/HomeScreen',
+        });
     };
 
-    const buttonScale = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-        Animated.spring(buttonScale, {
-            toValue: 0.95,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const handlePressOut = () => {
-        Animated.spring(buttonScale, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const navigateTo = (path: string) => {
-        router.push(path);
-    };
+    const handleRefresh = async () => {
+        setRefresh(true);
+        try{
+            await fetchCart();
+        } catch (error){
+            console.error("Failed to refresh cart. ", error);
+            Alert.alert('Error', 'Could not refresh cart.');
+        }finally{
+            setRefresh(false);
+        }
+    }
 
 
     const images = products ? [
@@ -226,22 +228,7 @@ const CartPage: React.FC = () => {
                             <Text style={styles.text}>Size: {item.inventoryItem.size}</Text>
                             <Text style={styles.text}>Damage: {item.inventoryItem.damage}</Text>
                         </View>
-                    </View><View style={styles.container}>
-                    {cartItems.length === 0 ? (
-                        // Display this view when the cart is empty
-                        <View style={styles.emptyCartContainer}>
-                            <Text style={styles.emptyCartText}>Your cart is empty</Text>
-                        </View>
-                    ) : (
-                        // Display the list of items when the cart is not empty
-                        <FlatList
-                            data={cartItems}
-                            renderItem={renderItem}
-                            keyExtractor={(item) => item.id.toString()}
-                            contentContainerStyle={styles.cartList}
-                        />
-                    )}
-                </View>
+                    </View>
                 </View>
         </View>
     );
@@ -255,62 +242,69 @@ const CartPage: React.FC = () => {
             style={styles.image}>
             <StatusBar barStyle="light-content" backgroundColor="black"/>
 
-                <View style={styles.container}>
-                        <View style = {styles.content}>
-                            <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
+            <View style={styles.container}>
+                <View style = {styles.content}>
+                    <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
-                            <View style={styles.pageContent}>
-                                {cartItems.length === 0 ? (
-                                    // Display this view when the cart is empty
-                                    <View style={styles.emptyCartContainer}>
-                                        <View style = {styles.cartEmptyContainer}>
-                                            <Text style={styles.emptyCartText}>Your cart is empty!</Text>
-                                            <Icon name="sad-outline" size={30} color="#219281FF" />
-                                        </View>
-                                        <View>
-                                            <TouchableOpacity style={styles.buyNowButton}>
-                                                <CustomButton text="Buy?" path="/(tabs)/HomeScreen" navigateTo={navigateTo} />
-                                                <Icon style = {styles.happyIcon } name="happy-outline" size={30} color="#93D3AE" />
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                ) : (
-                                    <ScrollView showsVerticalScrollIndicator={false}>
-                                        <FlatList
-                                            data={cartItems}
-                                            keyExtractor={(item) => item.inventoryItem.id.toString()}
-                                            renderItem={renderItem}
-                                        />
-                                    </ScrollView>
-                                )}
-                            </View>
+                    <View style={styles.pageContent}>
+                        {cartItems.length === 0 ? (
+                            <ScrollView
+                                contentContainerStyle={styles.emptyCartContainer}
+                                refreshControl={
+                                    <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
+                                }>
+                                <View style={styles.cartEmptyContainer}>
+                                    <Text style={styles.emptyCartText}>Your cart is empty!</Text>
+                                    <Icon name="sad-outline" size={30} color="#219281FF" />
+                                </View>
+                                <TouchableOpacity style={styles.buyNowButton} onPress={() => goHome()}>
+                                    <Text style={styles.buttonText}> Buy? </Text>
+                                    <Icon style={styles.happyIcon} name="happy-outline" size={30} color="#93D3AE" />
+                                </TouchableOpacity>
+                            </ScrollView>
+                        ) : (
+                            <FlatList
+                                data={cartItems}
+                                renderItem={renderItem}
+                                keyExtractor={(item) => item.inventoryItem.id.toString()}
+                                contentContainerStyle={styles.cartList}
+                                showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={refresh}
+                                        onRefresh={handleRefresh}
+                                    />
+                                }
+                            />
+                        )}
+                    </View>
 
-                        </View>
                     <View style={styles.cartContainer}>
                         <Text style={styles.cartTitle}>Checkout: </Text>
-
 
                         <View style={styles.separator} />
 
                         <View style={styles.paymentDetails}>
                             <View style = {styles.paymentDetailsContainer}>
                                 <Text style = {styles.text}>Your Cart Subtotal: </Text>
-                                <Text style  = {styles.text}> R{Number(total).toFixed(2)} </Text>
+                                <Text style  = {styles.text}>R{Number(total).toFixed(2)}</Text>
                             </View>
 
                             {/*TODO: if total is over 500 its free*/}
                             <View style = {styles.paymentDetailsContainer}>
                                 <Text style = {styles.text}>Shipping Fees: </Text>
-                                <Text style  = {styles.text}> R85 </Text>
+                                <Text style  = {styles.text}>
+                                    R{total >= 500 ? '0.00' : '85.00'}
+                                </Text>
                             </View>
-
                         </View>
 
                         <View style={styles.separator} />
 
                         <View style = {styles.totalContainer}>
-                            {/*TODO: get total after shipping is added -- also add field for delivery address?*/}
-                            <Text style={styles.totalText}>R{Number(total).toFixed(2)}</Text>
+                            <Text style={styles.totalText}>
+                                R{cartItems.length === 0 ? '0.00' : Number(totalWithShipping).toFixed(2)}
+                            </Text>
                             <TouchableOpacity style = {styles.paymentButton} onPress={() => goToCart()}>
                                 <Icon
                                     name={ 'cart-outline'}
@@ -321,53 +315,12 @@ const CartPage: React.FC = () => {
                                 <Text style = {styles.paymentText}> Pay Now</Text>
                             </TouchableOpacity>
                         </View>
-
                     </View>
                 </View>
+            </View>
         </ImageBackground>
     );
 };
-
-interface CustomButtonProps {
-    text: string;
-    path: string;
-    navigateTo: (path: string) => void;
-}
-
-const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-        Animated.spring(scaleAnim, {
-            toValue: 0.95,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const handlePressOut = () => {
-        Animated.spring(scaleAnim, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    return (
-        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
-            <Pressable
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={() => {
-                    console.log(`Navigating to: ${path}`);
-                    navigateTo(path);
-                }}
-                style={styles.button}
-            >
-                <Text style={styles.buttonText}>{text}</Text>
-            </Pressable>
-        </Animated.View>
-    );
-}
-
 
 const styles = StyleSheet.create({
     container: {
@@ -511,7 +464,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#219281FF',
         width: '50%',
         padding: 10,
-        paddingLeft: 25,
+        paddingLeft: 15,
         paddingRight: 25,
         borderRadius: 10,
     },

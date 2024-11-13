@@ -1,12 +1,14 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Inventory } from "../entity/adminInventory";
-import { unlink } from 'fs';
+import { Likes } from "../entity/userLikes";
 import {DeepPartial} from "typeorm";
+
 
 export class AdminInventoryController {
 
     private inventoryRepository = AppDataSource.getRepository(Inventory)
+    private likesRepository = AppDataSource.getRepository(Likes)
 
     // Get all in inventory table
     async all(request: Request, response: Response, next: NextFunction) {
@@ -77,7 +79,6 @@ export class AdminInventoryController {
             if (existingItem) {
                 return res.status(400).json({ success: false,  message: "Item with this SKU already exists" })
             }
-
 
             const savedItem = await this.inventoryRepository.save({
                 SKU,
@@ -199,8 +200,11 @@ export class AdminInventoryController {
 
         console.log('Received ID:', id);
 
+
         try {
            const deleteResult = await this.inventoryRepository.delete(id);
+            console.log("Inventory Item delete result:", deleteResult);
+
 
            if (deleteResult.affected === 0) {
                return res.status(404).json({ success: false, message: 'Item Not Found!' });
