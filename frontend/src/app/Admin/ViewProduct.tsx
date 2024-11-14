@@ -11,7 +11,7 @@ import {
     Alert,
     TouchableOpacity,
     ImageBackground,
-    ScrollView
+    ScrollView, RefreshControl,  KeyboardAvoidingView, Platform, TouchableWithoutFeedback
 } from 'react-native';
 import {useFonts} from "expo-font";
 import {Picker} from "@react-native-picker/picker";
@@ -45,6 +45,7 @@ type Product = {
 
 
 const ViewProducts = () => {
+    const [isLoading, setIsLoading] = useState(false);
 
     const [inventoryItems, setInventoryItems ] = useState<Product[]>([]);
     //const [isLoading, setIsLoading] = useState(true);
@@ -294,6 +295,13 @@ const ViewProducts = () => {
                     data={inventoryItems}
                     renderItem={renderProduct}
                     keyExtractor={(item) => item.id}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isLoading}
+                            onRefresh={fetchInventoryData}
+                        />
+                    }
+                    showsVerticalScrollIndicator={false}
                 />
 
                     <Modal
@@ -303,7 +311,9 @@ const ViewProducts = () => {
                         onRequestClose={closeModal}
                     >
 
-                        <ScrollView style={styles.modalContainer}>
+                        <ScrollView style={styles.modalContainer}
+                            showsVerticalScrollIndicator={false}
+                        >
                             {selectedItem && (
                                 <Formik
                                     initialValues={selectedItem}
@@ -315,7 +325,7 @@ const ViewProducts = () => {
                                                     <Text style={styles.modalTitle}>Edit Product</Text>
                                                     <TouchableOpacity onPress={() => closeModal()}>
                                                         <View style = {styles.closeModal}>
-                                                            <Icon name = 'close' size = {30} color = {'#212121'}></Icon>
+                                                            <Icon name = 'close' size = {40} color = {'#212121'}></Icon>
                                                         </View>
                                                     </TouchableOpacity>
                                                 </View>
@@ -537,12 +547,11 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     header: {
-        fontSize: 24,
+        fontSize: 30,
         fontFamily: 'shrikhand',
-        textAlign: 'center',
+        textAlign: 'left',
         marginBottom: 20,
         color: '#219281FF',
-        fontWeight: 'bold',
     },
     image: {
         flex: 1,
@@ -550,10 +559,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         height: '100%',
+        opacity: 0.95,
+
     },
     productContainer: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         padding: 15,
         marginBottom: 10,
         borderRadius: 8,
@@ -603,7 +614,7 @@ const styles = StyleSheet.create({
     modalView: {
         flex: 1,
         backgroundColor: 'rgb(255, 255, 255)',
-        marginTop: 100,
+        marginTop: 70,
         marginHorizontal: 20,
         padding: 20,
         borderRadius: 10,
@@ -752,13 +763,13 @@ const styles = StyleSheet.create({
     },
     closeModal: {
         backgroundColor: 'rgba(250,102,53,0.75)',
-        width: 30,
-        height: 30,
+        width: 40,
+        height: 40,
         borderRadius: 100,
         justifyContent: 'center',
         position: 'relative',
-        left: '100%',
-        bottom: '210%'
+        left: '95%',
+        bottom: '190%'
     },
     bannerContainer: {
         position: 'absolute',

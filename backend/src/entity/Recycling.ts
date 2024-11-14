@@ -27,7 +27,7 @@ export class Recycling {
     createdAt!: Date;
 
     //creating discount ID
-    @OneToMany(() => Discounts, (discount) => discount.recycle)
+    @OneToMany(() => Discounts, (Discounts) => Discounts.recycle)
     discounts?: Discounts[];
 
     //link user ID to user table

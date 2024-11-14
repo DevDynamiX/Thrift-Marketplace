@@ -1,11 +1,15 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Discounts } from "../entity/Discounts";
+import { User } from "../entity/User";
+import { Recycling} from "../entity/Recycling";
 import {DeepPartial} from "typeorm";
 
 export class DiscountsController {
 
     private discountsRepository = AppDataSource.getRepository(Discounts)
+    private recyclingRepository = AppDataSource.getRepository(Recycling)
+    private userRepository = AppDataSource.getRepository(User)
 
     // Get all in recycling table
     async all(request: Request, response: Response, next: NextFunction) {
@@ -28,16 +32,24 @@ export class DiscountsController {
             recyclingID,
         } = req.body;
 
+
         if (!discountCode || !userID) {
             return res.status(400).json({ success: false, message: "All fields are required." });
         }
 
         try {
 
+            const user =  await this.userRepository.findOne({where:{id:userID}});
+            if (!userID) {
+                return res.status(400).json({ success: false, message: "User ID is required." });
+            }
+
+            const recycling = await this.recyclingRepository.findOne({where:{id:recyclingID}})
+
             const savedDiscount = this.discountsRepository.create({
                 discountCode,
-                userID,
-                recyclingID,
+                user,
+                recycling,
             } as DeepPartial<Discounts>);
 
             await this.discountsRepository.save(savedDiscount);

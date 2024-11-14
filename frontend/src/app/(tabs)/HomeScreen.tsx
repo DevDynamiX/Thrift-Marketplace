@@ -24,10 +24,7 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-
-import {boolean} from "yup";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import items from "ajv/lib/vocabularies/applicator/items";
+import { checkUserSession } from "@/app/auth/LoginScreen";
 
 interface Product {
     id: number;
@@ -42,7 +39,8 @@ const itemSize = width/3;
 
 const HomeScreen = React.memo(() => {
 
-    // Load fonts asynchronously
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, userName: null, userID: null})
+
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
         'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
@@ -75,6 +73,18 @@ const HomeScreen = React.memo(() => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+    //getting user data from session
+    useEffect(() => {
+        const fetchUserSession = async () =>{
+            const sessionData = await checkUserSession();
+            setUser(sessionData);
+
+            console.log("Data in the session: ", sessionData);
+        }
+
+        fetchUserSession();
+    }, []);
+
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
         return (
@@ -86,7 +96,7 @@ const HomeScreen = React.memo(() => {
 
     //saving liked items to table
     const toggleFavourite = (id) => {
-        console.log(`Toggling favourite for ${id}`);
+        console.log(`Toggling favourite for item with ID: ${id}`);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -119,13 +129,14 @@ const HomeScreen = React.memo(() => {
                 if (!likedItem) {
 
                     // TODO: get userID from session
+                    const userID = user.userID;
 
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': "application/json",
                         },
-                        body: JSON.stringify({ itemID: id, userID: 1 }),
+                        body: JSON.stringify({ itemID: id, userID: userID }),
                     })
                         .then(response => response.json())
                         .then(data => {
@@ -149,12 +160,12 @@ const HomeScreen = React.memo(() => {
             }));
 
             //TODO: change to userID
-            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/1`, {
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Item removed from likes:', data);
+                    console.log(`Item removed from ${user.userName}'s likes:`, data);
                     setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id != id));
                 })
                 .catch(error => {
@@ -165,7 +176,7 @@ const HomeScreen = React.memo(() => {
 
     //saving cart items to table
     const toggleCart = (id) => {
-        console.log(`Toggling cart for ${id}`);
+        console.log(`Toggling cart for item with ID: ${id}`);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -184,8 +195,10 @@ const HomeScreen = React.memo(() => {
             [id]: newAddedToCart,
         }));
 
+        const userID = user.userID;
+
         if (newAddedToCart) {
-            console.log("Attempting to add to cart:", { itemID: id, userID: 1 });
+            console.log("Attempting to add to cart:", { itemID: id, userID: userID });
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -220,7 +233,7 @@ const HomeScreen = React.memo(() => {
             });
         } else {
 
-            console.log(`Removing item ${id} from cart`);
+            console.log(`Removing item ${id} from ${user.userName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -228,7 +241,7 @@ const HomeScreen = React.memo(() => {
             }))
 
             //TODO: change to userID
-            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/1`, {
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then((response) => response.json())
@@ -239,7 +252,7 @@ const HomeScreen = React.memo(() => {
                         [id]: false,
                     }));
                 }).catch(error => {
-                    console.error("Error removing from 'Cart': ", error);
+                    console.error(`Error removing from ${user.userName}'s 'Cart': `, error);
                 });
         }
     }
@@ -278,11 +291,11 @@ const HomeScreen = React.memo(() => {
     // fetch likes from Table
     const fetchLikes = async () => {
         //TODO: GET USER ID
-        const userID = '1';
+        const userID = user.userID;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${userID}`);
             const data = await response.json();
-            console.log("Fetched Likes:", data);
+            console.log(`Fetched Likes for ${user.userName}:`, data);
             setLikedItems(data);
 
             const updatedIsFavourited = {};
@@ -293,7 +306,7 @@ const HomeScreen = React.memo(() => {
             setIsFavourited(updatedIsFavourited);
 
         } catch (error) {
-            console.error("Error fetching 'Likes': ", error);
+            console.error(`Error fetching ${user.userName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);
         }
@@ -343,14 +356,14 @@ const HomeScreen = React.memo(() => {
                         />
                     }
                 >
-                    <Text>.</Text>
+                    <Text>..</Text>
                     <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                     <ImageBackground
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-                        <Text>.</Text>
+                        <Text>..</Text>
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
@@ -358,7 +371,7 @@ const HomeScreen = React.memo(() => {
                             <View style={styles.rowsContainer}>
                                 {/*Recommended Row*/}
                                 <View style={styles.clothesRow}>
-                                    <Text style={styles.headerText}>Recommended for you</Text>
+                                    <Text style={styles.headerText}>Recommended for {user.userName ? user.userName : 'user'}</Text>
                                     <ScrollView
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
@@ -445,7 +458,6 @@ const HomeScreen = React.memo(() => {
                                 </View>
 
                                 {/*On Sale Row*/}
-                                {saleItems.length > 0 && (
                                     <View style={styles.clothesRow}>
                                         <Text style={styles.headerText}>On Sale:</Text>
                                         <ScrollView
@@ -456,7 +468,8 @@ const HomeScreen = React.memo(() => {
                                             scrollEventThrottle={16}
                                             style={{flexGrow: 0}}
                                         >
-                                            <View style={styles.RowImages}>
+                                            {saleItems.length > 0 && (
+                                                <View style={styles.RowImages}>
                                                 {saleItems.map((item) => (
                                                     <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
                                                         <View key={item.id} style={styles.imageContainer}>
@@ -523,6 +536,7 @@ const HomeScreen = React.memo(() => {
                                                     </TouchableOpacity>
                                                 ))}
                                             </View>
+                                                )}
                                         </ScrollView>
                                         <TouchableOpacity style={styles.columnScrollMarker}
                                                           onPress={() => handleScrollRight(saleScrollRef, saleScrollX, setSaleScrollX)}>
@@ -532,7 +546,7 @@ const HomeScreen = React.memo(() => {
                                             </View>
                                         </TouchableOpacity>
                                     </View>
-                                )}
+
 
                                 {/* New In Row*/}
                                 <View style={styles.clothesRow}>
@@ -751,6 +765,7 @@ const HomeScreen = React.memo(() => {
                                         </View>
                                     </Modal>
                                 )}
+
                                 {/* Image modal - Separate from the main item modal */}
                                 <Modal
                                     visible={isImageModalVisible}

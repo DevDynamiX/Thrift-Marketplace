@@ -53,17 +53,6 @@ const AdminDashboard = () => {
                 <Text style={styles.headerText}>Manage Details</Text>
             </View>
 
-            {/*/!* Admin Details *!/*/}
-            {/*<View style={styles.adminSection}>*/}
-            {/*    <View style={styles.adminImageContainer}>*/}
-            {/*        <Image*/}
-            {/*            source={require('@assets/images/logo.png')}*/}
-            {/*            style={styles.adminImage}*/}
-            {/*        />*/}
-            {/*        <Text style={styles.adminName}>Admin</Text>*/}
-            {/*    </View>*/}
-            {/*</View>*/}
-
             {/* Button Section */}
             <ScrollView contentContainerStyle={styles.buttonSection}>
                 <CustomButton text="Insert Products" path="/Admin/AdminInventoryUpload" navigateTo={navigateTo} />

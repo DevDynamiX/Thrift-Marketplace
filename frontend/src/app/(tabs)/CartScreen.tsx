@@ -23,6 +23,8 @@ import {useFonts} from "expo-font";
 import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
 import {async} from "@firebase/util";
+import { checkUserSession } from "@/app/auth/LoginScreen";
+
 
 interface Product {
     id: number;
@@ -34,6 +36,9 @@ const itemSize = width/3;
 
 
 const CartPage: React.FC = () => {
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, userName: null, userID: null})
+
+
     const [products, setProducts] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
@@ -50,6 +55,18 @@ const CartPage: React.FC = () => {
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+
+    //getting user data from session
+    useEffect(() => {
+        const fetchUserSession = async () =>{
+            const sessionData = await checkUserSession();
+            setUser(sessionData);
+
+            console.log("Data in the session: ", sessionData);
+        }
+
+        fetchUserSession();
+    }, []);
 
     if (!fontsLoaded) {
         return (
@@ -77,13 +94,12 @@ const CartPage: React.FC = () => {
 
     const fetchCart= async () => {
         setIsLoading(true);
-        //TODO: GET USER ID
-        const userID = '1';
+        const userID = user.userID;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart?userID=${userID}`);
             const data = await response.json();
 
-            console.log("Fetched Cart:", data);
+            console.log(`Fetched ${user.userName}'s Cart:`, data);
 
             if(Array.isArray(data)) {
                 setCartItems(data);
@@ -121,7 +137,7 @@ const CartPage: React.FC = () => {
                 {
                     text: 'Remove',
                     onPress: async () => {
-                        const userID = '1';
+                        const userID = user.userID;
 
                         try{
                             fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${product.inventoryItem.id}/${userID}`, {
@@ -129,7 +145,7 @@ const CartPage: React.FC = () => {
                             })
                                 .then(response => response.json())
                                 .then(data => {
-                                    console.log('Item removed from Cart:', data);
+                                    console.log(`Item removed from ${user.userName}'s Cart:`, data);
                                     setCartItems(prevCartItems  => prevCartItems.filter(item => item.id !== product.id));
                                     Alert.alert('Removed from Cart', `"${product.inventoryItem.itemName}" has been removed from your cart.`);
                                     fetchCart();
@@ -173,12 +189,10 @@ const CartPage: React.FC = () => {
         }
     }
 
-
     const images = products ? [
         { uri: products.mainImage },
         { uri: products.image2 },
         { uri: products.image3 }] : [];
-
 
     const renderItem = ({ item }) => (
         <View style={styles.productCard}>

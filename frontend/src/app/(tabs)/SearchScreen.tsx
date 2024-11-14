@@ -16,11 +16,15 @@ import Icon from "react-native-vector-icons/Ionicons";
 import LottieView from "lottie-react-native";
 import Constants from "expo-constants";
 import {useFonts} from "expo-font";
+import { checkUserSession } from "@/app/auth/LoginScreen";
+
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
 const SearchScreen = () => {
+
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, userName: null, userID: null})
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -54,6 +58,18 @@ const SearchScreen = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+    //getting user data from session
+    useEffect(() => {
+        const fetchUserSession = async () =>{
+            const sessionData = await checkUserSession();
+            setUser(sessionData);
+
+            console.log("Data in the session: ", sessionData);
+        }
+
+        fetchUserSession();
+    }, []);
+
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
         return (
@@ -65,7 +81,7 @@ const SearchScreen = () => {
 
     //saving liked items to table
     const toggleFavourite = (id) => {
-        console.log(`Toggling favourite for ${id}`);
+        console.log(`Toggling favourite for itemwith ID: ${id}`);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -97,14 +113,14 @@ const SearchScreen = () => {
 
                 if (!likedItem) {
 
-                    // TODO: get userID from session
+                    const userID = user.userID;
 
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': "application/json",
                         },
-                        body: JSON.stringify({ itemID: id, userID: 1 }),
+                        body: JSON.stringify({ itemID: id, userID: userID }),
                     })
                         .then(response => response.json())
                         .then(data => {
@@ -128,12 +144,12 @@ const SearchScreen = () => {
             }));
 
             //TODO: change to userID
-            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/1`, {
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Item removed from likes:', data);
+                    console.log(`Item removed ${id} from ${user.userName}'s Likes:`, data);
                     setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id != id));
                 })
                 .catch(error => {
@@ -164,7 +180,7 @@ const SearchScreen = () => {
         }));
 
         if (newAddedToCart) {
-            console.log("Attempting to add to cart:", { itemID: id, userID: 1 });
+            console.log("Attempting to add to cart:", { itemID: id, userID: user.userID });
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -174,7 +190,7 @@ const SearchScreen = () => {
             setCartItems((prevCartItems = []) => {
                 const existingItem = prevCartItems.some(item => item.id === id);
                 if (!existingItem) {
-                    console.log("Attempting to add to cart:", {itemID: id, userID: 1});
+                    console.log("Attempting to add to cart:", {itemID: id, userID: user.userID});
 
                     // TODO: get userID from session
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
@@ -182,11 +198,11 @@ const SearchScreen = () => {
                         headers: {
                             'Content-Type': "application/json",
                         },
-                        body: JSON.stringify({itemID: id, userID: 1}),
+                        body: JSON.stringify({itemID: id, userID: user.userID}),
                     })
                         .then(response => response.json())
                         .then((data) => {
-                            console.log('Item added to cart:', data);
+                            console.log("Item added to cart:", data);
                             if (data && data.item) {
                                 setCartItems((prevCartItem) => [...prevCartItems, {id}]);
                                 setAddedToCart(prev =>({...prev, [id]:true}))
@@ -199,7 +215,7 @@ const SearchScreen = () => {
             });
         } else {
 
-            console.log(`Removing item ${id} from cart`);
+            console.log(`Removing item ${id} from ${user.userName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -207,7 +223,7 @@ const SearchScreen = () => {
             }))
 
             //TODO: change to userID
-            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/1`, {
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then((response) => response.json())
@@ -218,7 +234,7 @@ const SearchScreen = () => {
                         [id]: false,
                     }));
                 }).catch(error => {
-                console.error("Error removing from 'Cart': ", error);
+                console.error(`Error removing from ${user.userName}'s 'Cart': `, error);
             });
         }
     }
@@ -257,11 +273,11 @@ const SearchScreen = () => {
     // fetch likes from Table
     const fetchLikes = async () => {
         //TODO: GET USER ID
-        const userID = '1';
+        const userID = user.userID;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${userID}`);
             const data = await response.json();
-            console.log("Fetched Likes:", data);
+            console.log(`Fetched ${user.userName}'s Likes:`, data);
             setLikedItems(data);
 
             const updatedIsFavourited = {};
@@ -473,7 +489,6 @@ const SearchScreen = () => {
                         </View>
 
                         {/*On Sale Row*/}
-                        {saleItems.length > 0 && (
                             <View style={styles.clothesRow}>
                                 <Text style={styles.headerText}>'search query' in Sale:</Text>
                                 <ScrollView
@@ -484,7 +499,9 @@ const SearchScreen = () => {
                                     scrollEventThrottle={16}
                                     style={{flexGrow: 0}}
                                 >
-                                    <View style={styles.RowImages}>
+                                    {saleItems.length > 0 && (
+
+                                        <View style={styles.RowImages}>
                                         {saleItems.map((item) => (
                                             <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
                                                 <View key={item.id} style={styles.imageContainer}>
@@ -551,6 +568,7 @@ const SearchScreen = () => {
                                             </TouchableOpacity>
                                         ))}
                                     </View>
+                                        )}
                                 </ScrollView>
                                 <TouchableOpacity style={styles.columnScrollMarker}
                                                   onPress={() => handleScrollRight(saleScrollRef, saleScrollX, setSaleScrollX)}>
@@ -560,7 +578,7 @@ const SearchScreen = () => {
                                     </View>
                                 </TouchableOpacity>
                             </View>
-                        )}
+
 
                         {/* New In Row*/}
                         <View style={styles.clothesRow}>

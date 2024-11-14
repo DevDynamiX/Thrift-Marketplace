@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { router } from "expo-router";
 import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable, Alert } from 'react-native';
 import { Firebase_Auth } from "@/firebaseConfig";
-// import { signInWithEmailAndPassword } from "@firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
@@ -79,7 +78,7 @@ const Login = () => {
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
-                    <ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
                         <View style={styles.header}>
                             <Image
                                 resizeMode="contain"
@@ -105,11 +104,13 @@ const Login = () => {
                                     placeholderTextColor="#6b7280"
                                     style={styles.inputControl}
                                     value={email}
+
                                 />
                             </View>
                             <View style={styles.input}>
                                 <Text style={styles.inputLabel}>Password</Text>
                                 <TextInput
+                                    autoCapitalize="none"
                                     autoCorrect={false}
                                     clearButtonMode="while-editing"
                                     onChangeText={(text) => setPassword(text)}
@@ -163,16 +164,22 @@ export const checkUserSession = async () => {
             const userData = JSON.parse(userDataString);
             const userToken = userData.token;
             const userEmail = userData.email;
+            const userName = userData.firstName;
+            const userID = userData.id;
 
             console.log({
                 "User Token": userToken,
-                "User Email": userEmail
+                "User Email": userEmail,
+                "User Name": userName,
+                "User ID": userID
             });
 
             return {
                 isLoggedIn: !!userToken,
                 userToken,
-                userEmail
+                userEmail,
+                userName,
+                userID
             };
         }
 
@@ -181,14 +188,16 @@ export const checkUserSession = async () => {
         return {
             isLoggedIn: false,
             userToken: null,
-            userEmail: null
+            userEmail: null,
+            userName: null,
+            userID: null
         };
     }
 };
 
 export const clearUserSession = async () => {
     try {
-        await AsyncStorage.multiRemove(['userToken', 'userEmail', 'lastLoginTime']);
+        await AsyncStorage.multiRemove(['userToken', 'userEmail', 'lastLoginTime', 'userName', 'userID']);
     }catch(error) {
         console.log(error);
     }

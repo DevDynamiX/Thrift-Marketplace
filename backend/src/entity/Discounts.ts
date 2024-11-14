@@ -16,7 +16,7 @@ export class Discounts {
     @JoinColumn({name: 'userId'})
     user!: User;
 
-    @ManyToOne(() => Recycling, (recycling) => recycling.id)
+    @ManyToOne(() => Recycling, (Recycling) => Recycling.discounts)
     @JoinColumn({name: 'recyclingId'})
     recycle!: Recycling;
 

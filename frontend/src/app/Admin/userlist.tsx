@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ImageBackground, TextInput, Modal, KeyboardAvoidingView, Platform } from "react-native";
+import {
+    View,
+    Text,
+    FlatList,
+    StyleSheet,
+    ActivityIndicator,
+    TouchableOpacity,
+    Alert,
+    ImageBackground,
+    TextInput,
+    Modal,
+    KeyboardAvoidingView,
+    Platform,
+    RefreshControl
+} from "react-native";
 import axios from "axios";
 import { Linking } from 'react-native';
 import Constants from "expo-constants";
+import {useFonts} from "expo-font";
 // push
 // Define the User type
 interface User {
@@ -22,11 +37,19 @@ const UsersList = () => {
     const [editedLastName, setEditedLastName] = useState<string>('');
     const [editedEmail, setEditedEmail] = useState<string>('');
     const [editedPassword, setEditedPassword] = useState<string>(''); // Password input left empty
+    const [ refresh, setRefresh] = useState(false);
+    const [fontsLoaded] = useFonts({
+        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
+        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
 
-    // Fetch users from the backend
-    useEffect(() => {
+    const fetchUsers  =  () => {
         axios
-            .get(`${Constants.expoConfig?.extra?.BACKEND_HOST}/users`) // Replace with your server's URL
+            .get(`${Constants.expoConfig?.extra?.BACKEND_HOST}/users`)
             .then((response) => {
                 setUsers(response.data);
                 setLoading(false);
@@ -35,7 +58,24 @@ const UsersList = () => {
                 setError("Failed to fetch users");
                 setLoading(false);
             });
+    }
+
+    // Fetch users from the backend
+    useEffect(() => {
+        fetchUsers();
     }, []);
+
+    const handleRefresh = async () => {
+        setRefresh(true);
+        try{
+            await fetchUsers();
+        } catch (error){
+            console.error("Failed to refresh . ", error);
+            Alert.alert('Error', 'Could not refresh .');
+        }finally{
+            setRefresh(false);
+        }
+    }
 
     // Handle Delete user with confirmation
     const deleteUser = (userId: number) => {
@@ -166,19 +206,26 @@ const UsersList = () => {
     return (
         <ImageBackground source={require('assets/images/TMBackground.png')} style={styles.background}>
             <View style={styles.container}>
-                <Text style={styles.productTitle}>User List</Text>
+                <Text style={styles.header}>User List</Text>
 
                 <TouchableOpacity
                     style={[styles.button, styles.contactButton, styles.emailAllButton]}
                     onPress={emailAllUsers}
                 >
-                    <Text style={styles.buttonText}>Email All Users</Text>
+                    <Text style={styles.emailAllText}>Email All Users</Text>
                 </TouchableOpacity>
 
                 <FlatList
                     data={users}
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id.toString()}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refresh}
+                            onRefresh={handleRefresh}
+                        />
+                    }
                 />
             </View>
 
@@ -259,23 +306,22 @@ const styles = StyleSheet.create({
         flex: 1,
         resizeMode: 'cover',
         justifyContent: 'center',
-        opacity: 0.85,
+        opacity: 0.90,
     },
     container: {
         flex: 1,
         padding: 20,
     },
-    productTitle: {
+    header: {
         fontFamily: 'shrikhand',
         fontSize: 40,
-        fontWeight: 'bold',
         color: '#219281FF',
         marginBottom: 20,
-        textAlign: 'center',
+        textAlign: 'left',
     },
     userRow: {
         padding: 20,
-        backgroundColor: "rgba(255, 255, 255, 0.85)",
+        backgroundColor: "rgb(255,255,255)",
         marginBottom: 20,
         borderRadius: 12,
         shadowColor: "#000",
@@ -285,23 +331,20 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     userId: {
-        fontSize: 18,
+        fontSize: 24,
         color: "#555",
         marginBottom: 5,
-        fontWeight: 'bold',
         fontFamily: 'shrikhand',
     },
     userName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: "#333",
+        fontSize: 22,
+        color: "#93D3AE",
         marginBottom: 5,
         fontFamily: 'shrikhand',
     },
     userEmail: {
-        fontFamily: 'shrikhand',
+        fontFamily: 'sulphurPoint',
         fontSize: 16,
-        fontWeight: 'bold',
         color: "#219281FF",
         marginBottom: 10,
     },
@@ -316,17 +359,18 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     deleteButton: {
-        backgroundColor: '#ff4747', // Red for delete
+        backgroundColor: '#F96635',
     },
     contactButton: {
-        backgroundColor: '#ffc107',
+        backgroundColor: '#F9A822',
     },
     editButton: {
-        backgroundColor: '#28a745',
+        backgroundColor: '#219281FF',
     },
     buttonText: {
         color: '#fff',
-        fontWeight: 'bold',
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 18,
     },
     loaderContainer: {
         flex: 1,
@@ -380,8 +424,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#ff4747',
     },
     emailAllButton: {
+        backgroundColor: '#93D3AE',
+        color: '',
         marginBottom: 20,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 2,
+        borderColor: '#219281FF',
+        borderWidth: 3
     },
+    emailAllText: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 28,
+        margin: 5,
+        textAlign: 'center',
+        color: '#219281FF',
+    }
 });
 
 export default UsersList;

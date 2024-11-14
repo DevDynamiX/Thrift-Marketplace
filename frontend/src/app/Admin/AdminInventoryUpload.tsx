@@ -10,7 +10,8 @@ import {
     TextInput,
     ScrollView,
     TouchableOpacity,
-    Alert, RefreshControl
+    Keyboard,
+    Alert, RefreshControl, KeyboardAvoidingView, Platform, TouchableWithoutFeedback
 } from 'react-native';
 import { Formik } from 'formik';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,11 +31,20 @@ const InsertProdScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
+    const [ refresh, setRefresh] = useState(false);
+
     const [imageUris, setImageUris] = useState({
         mainImage: '',
         image2: '',
         image3: '',
     });
+
+    const handleRefresh = () => {
+        setRefresh(true);
+        setTimeout(() => {
+            setRefresh(false);
+        }, 1000); // Simulate the refresh duration, you can adjust this
+    };
 
     const handleImagePick = async (imageType: string, setFieldValue: Function) => {
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -108,7 +118,6 @@ const InsertProdScreen = () => {
         setLoading(true);
 
         try {
-
             let adjustedSalePrice =  values.salePrice;
 
             if (values.onSale){
@@ -166,10 +175,9 @@ const InsertProdScreen = () => {
                 alert(`Error: ${responseData.message}`);
                 return;
             }
-
-
             Alert.alert("Success", "Item successfully added to inventory!");
             resetForm();
+            resetImages();
         } catch (error) {
             console.error('Error:', error);
             Alert.alert("Error", "An unexpected error occurred. Please try again.");
@@ -178,7 +186,13 @@ const InsertProdScreen = () => {
         }
     };
 
-
+    const resetImages = () => {
+        setImageUris({
+            mainImage: '',
+            image2: '',
+            image3: ''
+        })
+    }
 
     return (
         <SafeAreaView style = {styles.container}>
@@ -187,10 +201,18 @@ const InsertProdScreen = () => {
                 source = {require('@assets/images/TMBackground.png')}
                 resizeMode="stretch"
                 style = {styles.image}>
-
-                <View style = { styles.mainContainer }>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.avoidingView}
+                >
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <View style = { styles.mainContainer }>
                     <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
-                    <ScrollView style = {styles.Formik}>
+                    <ScrollView style = {styles.Formik}
+                                refreshControl={
+                                    <RefreshControl refreshing={refresh} onRefresh={() => handleRefresh()} />
+                                }
+                    >
                         {/*form to handle inventory uploads*/}
                         <Formik
                             initialValues={{
@@ -207,14 +229,13 @@ const InsertProdScreen = () => {
                                 onSale: false,
                                 salePrice: null,
                                 discountPercent: null,
-                                mainImage: null,
-                                image2: null,
-                                image3: null,
+                                mainImage: '',
+                                image2: '',
+                                image3: '',
                             }}
-
                             onSubmit={handleInventoryUpload}
                         >
-                            {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
+                            {({ handleChange, handleBlur, handleSubmit, values, setFieldValue, resetForm }) => (
                                 <View style={styles.formContainer}>
                                     <Text style = { styles.formHeader }> Add Item to Inventory: </Text>
                                     <Text style = { styles.infoText}> * indicates a required field </Text>
@@ -469,6 +490,8 @@ const InsertProdScreen = () => {
                         </Formik>
                     </ScrollView>
                 </View>
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
             </ImageBackground>
         </SafeAreaView>
     );
@@ -494,6 +517,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         height: '100%',
+        opacity: 0.95,
+
     },
     logo: {
         resizeMode: 'contain',
@@ -504,25 +529,27 @@ const styles = StyleSheet.create({
     },
 
     formContainer: {
-        height: '100%',
+        height: '95%',
         width: '90%',
         display: 'flex',
         justifyContent: 'center',
         padding: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.75)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         borderRadius: 10,
         position: 'relative',
         left: '5%',
         top: '0.5%',
         marginBottom: '1%',
-
     },
     formHeader: {
         fontFamily: 'shrikhand',
         color: '#219281FF',
         fontSize: 28,
         textAlign: 'center',
-        marginBottom: '5%',
+        marginBottom: '10%',
+        position: 'relative',
+        top: '2.5%'
+
     },
     label: {
         fontSize: 16,
@@ -564,7 +591,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 4,
         elevation: 5,
-        margin: 5,
+        position: "relative",
+        bottom: '5%'
 
     },
     buttonText: {
@@ -673,10 +701,11 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontFamily: 'shrikhand',
         textAlign: 'center',
-        marginBottom: 20,
         color: '#219281FF',
-        fontWeight: 'bold',
     },
+    avoidingView:{
+        width: '100%',
+    }
 
 
 });

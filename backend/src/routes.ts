@@ -4,6 +4,7 @@ import {CartController} from "./controller/CartController";
 import {OrderController} from "./controller/OrderController";
 import {RecyclingController} from "./controller/RecyclingController";
 import {UserLikesController} from "./controller/userLikesController";
+import {DiscountsController} from "./controller/DiscountsController";
 
 export const Routes = [
 
@@ -153,9 +154,36 @@ export const Routes = [
         action: "remove",
     },
     {
-        method: "put", // Update route
-        route: "/users/:id", // URL to identify the user by ID
+        method: "put",
+        route: "/users/:id",
         controller: UserController,
-        action: "update", // Call the 'update' method in UserController
+        action: "update",
+    },
+
+
+    //for discounts table
+    {
+        method: "get",
+        route: "/discounts",
+        controller: DiscountsController,
+        action: "all",
+    },
+    {
+        method: "get",
+        route: "/discounts/:userId",
+        controller: DiscountsController,
+        action: "one",
+    },
+    {
+        method: "post",
+        route: "/discounts",
+        controller: DiscountsController,
+        action: "save",
+    },
+    {
+        method: "delete",
+        route: "/discounts/:userId",
+        controller: DiscountsController,
+        action: "remove",
     },
 ];
