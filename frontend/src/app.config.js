@@ -1,5 +1,4 @@
 const { BACKEND_HOST } = require('./env');
-
 export default {
     expo: {
         name: "thrift-market",
@@ -9,5 +8,9 @@ export default {
         extra: {
             BACKEND_HOST,
         },
+        plugins: [
+            "expo-font",
+            "expo-router"
+        ]
     },
 };
