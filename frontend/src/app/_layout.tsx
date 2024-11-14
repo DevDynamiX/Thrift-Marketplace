@@ -210,7 +210,11 @@ const RootLayout = () => {
         <Stack.Screen
             name="pages/Recycling"
             options={{
-                headerShown: false,
+                title: "Recycling",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
             }}
         />
 

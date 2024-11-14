@@ -1,4 +1,3 @@
-
 import React, {
     useState,
     useEffect,
@@ -25,7 +24,8 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-import {useNavigation} from '@react-navigation/native';
+// Todo removed Navigitation as it caused a nested Navigition error
+// import {useNavigation} from '@react-navigation/native';
 import { Formik } from 'formik';
 import {Picker} from "@react-native-picker/picker";
 import {hidden} from "colorette";
@@ -36,7 +36,8 @@ const itemSize = width/3;
 
 //TODO: GET USER ID FOR FIELDS
 const RecycleNow = () => {
-    const navigation = useNavigation();
+    // Todo removed Navigitation as it caused a nested Navigition error
+    // const navigation = useNavigation();
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -117,9 +118,10 @@ const RecycleNow = () => {
                         <View style={styles.formContainer}>
                             <View style = {styles.top}>
                                 <View style = {styles.exitRow}>
-                                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                                    // Todo removed Navigitation as it caused a nested Navigition error
+                                    {/*<TouchableOpacity onPress={() => navigation.goBack()}>
                                         <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>*/}
                                     <Text style={styles.titleText}>Recycle Now</Text>
                                 </View>
                                 <View style={styles.separator} />
