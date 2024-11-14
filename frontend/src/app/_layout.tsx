@@ -80,16 +80,16 @@ const RootLayout = () => {
         />
 
         {/* All the new stuff i added  */}
-    <Stack.Screen
-        name="Admin/Adminpanel"
-        options={{
-            title: "Admin",
-            headerStyle: {
-                backgroundColor: "#5CB7A5",
-            },
-            headerTintColor: "white",
-        }}
-    />
+        <Stack.Screen
+            name="Admin/Adminpanel"
+            options={{
+                title: "Admin",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
 
 
         <Stack.Screen
@@ -115,7 +115,6 @@ const RootLayout = () => {
         />
 
 
-
         <Stack.Screen
             name="Admin/Category"
             options={{
@@ -139,21 +138,16 @@ const RootLayout = () => {
         />
 
 
-
-
-
-
-
-    <Stack.Screen
-        name="Admin/userlist"
-        options={{
-            title: "Registred Users",
-            headerStyle: {
-                backgroundColor: "#5CB7A5",
-            },
-            headerTintColor: "white",
-        }}
-    />
+        <Stack.Screen
+            name="Admin/userlist"
+            options={{
+                title: "Registred Users",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
 
         <Stack.Screen
             name="Admin/Recycling"
@@ -205,7 +199,11 @@ const RootLayout = () => {
         <Stack.Screen
             name="pages/YourFavourites"
             options={{
-                headerShown: false,
+                title: "Favourites",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
             }}
         />
 
@@ -217,7 +215,6 @@ const RootLayout = () => {
         />
 
     </Stack>;
-    {/* All the new stuff i added  */}
 };
 
 export default RootLayout;

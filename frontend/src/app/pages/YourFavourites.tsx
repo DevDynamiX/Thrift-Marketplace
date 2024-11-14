@@ -27,14 +27,16 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 import { router, useRouter} from "expo-router";
-import {useNavigation} from '@react-navigation/native';
+// Todo Removed due to causing Render Error Nested Navigation within Navigation
+// import {useNavigation} from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
 const YourFavourites = () => {
     const router = useRouter();
-    const navigation = useNavigation();
+    // Todo Removed due to causing Render Error Nested Navigation within Navigation
+    // const navigation = useNavigation();
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -307,9 +309,10 @@ const YourFavourites = () => {
                             {/*Recommended Row*/}
                             <View style={styles.favesRow}>
                                 <View style = {styles.exitRow}>
-                                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                                        <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
-                                    </TouchableOpacity>
+                                    // Todo: Remove or find better implementation
+                                    {/*<TouchableOpacity onPress={() => navigation.goBack()}>*/}
+                                    {/*    <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />*/}
+                                    {/*</TouchableOpacity>*/}
                                     <Text style={styles.titleText}>Your Favourites</Text>
 
                                 </View>
