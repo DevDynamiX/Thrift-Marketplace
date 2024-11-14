@@ -343,6 +343,7 @@ const HomeScreen = React.memo(() => {
                         />
                     }
                 >
+                    <Text>.</Text>
                     <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                     <ImageBackground

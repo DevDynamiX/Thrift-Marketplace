@@ -290,7 +290,6 @@ const CartPage: React.FC = () => {
                                 <Text style  = {styles.text}>R{Number(total).toFixed(2)}</Text>
                             </View>
 
-                            {/*TODO: if total is over 500 its free*/}
                             <View style = {styles.paymentDetailsContainer}>
                                 <Text style = {styles.text}>Shipping Fees: </Text>
                                 <Text style  = {styles.text}>
@@ -624,11 +623,7 @@ const styles = StyleSheet.create({
         paddingLeft: 10
     }
 
-
-
-
-
-
+    
 });
 
 export default CartPage;
