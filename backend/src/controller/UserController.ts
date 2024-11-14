@@ -136,4 +136,34 @@ export class UserController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+
+    // Update user details(Ika added this code)
+    async update(request: Request, response: Response): Promise<any> {
+        const id = parseInt(request.params.id); // Get user ID from URL
+        const { email, password, firstName, lastName } = request.body; // Get updated details from request body
+
+        // Check if user exists
+        let userToUpdate = await this.userRepository.findOne({ where: { id } });
+
+        if (!userToUpdate) {
+            return response.status(404).json({ message: "User not found" });
+        }
+
+        // Update user fields if provided
+        if (email) userToUpdate.email = email;
+        if (password) userToUpdate.password = await bcrypt.hash(password, 10); // Hash password if updated
+        if (firstName) userToUpdate.firstName = firstName;
+        if (lastName) userToUpdate.lastName = lastName;
+
+        // Save the updated user back to the database
+        await this.userRepository.save(userToUpdate);
+
+        // Remove password from response to avoid sending it back to the client
+        const { password: _, ...userWithoutPassword } = userToUpdate;
+
+        return response.json(userWithoutPassword); // Return updated user details
+    }
+
+
+
 }
