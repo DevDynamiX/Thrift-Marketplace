@@ -19,9 +19,8 @@ import { Formik } from 'formik';
 import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
 
-//TODO: SAVE GENERATED discount to table
 const ViewRecycling = () => {
-
+    const [discountedItems, setDiscountedItems] = useState([]);  // State to track discounted items
     const [recyclingItems, setRecyclingItems ] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -65,39 +64,51 @@ const ViewRecycling = () => {
         }
     };
 
-// useEffect to fetch data on mount
     useEffect(() => {
         fetchRecycling();
     }, []);
 
-
     //delete request
-    const handleItemDelete = async (id) => {
+    const handleItemDelete = async (id, discountApplied) => {
         try {
-            //use recyclingID here
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/recycling/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
 
-            if(!response.ok) {
-                throw new Error('Failed to remove item!');
+            if(discountApplied){
+                const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if(!response.ok) {
+                    throw new Error('Failed to remove discount!');
+                }
+
+                Alert.alert('Success', 'Discount Successfully removed from Recycling queue!');
+            }else {
+                //use recyclingID here
+                const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/recycling/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to remove item!');
+                }
+                Alert.alert('Success', 'Item Successfully removed from Recycling queue!');
             }
-
-            fetchRecycling();
-
-            Alert.alert('Success', 'Item Successfully removed from Recycling queue!');
+            fetchRecycling()
         }catch (error){
-            Alert.alert('Error', 'Could not remove entry from recycling queue!');
+            Alert.alert('Error', 'Could not remove entry or discount!');
             console.error('Error deleting item:', error)
         }
 
     }
 
     //view recycling details
-    const openEditModal = (item:id) => {
+    const openEditModal = (item) => {
+        console.log('opening modal for: ', item.id)
         setSelectedItem(item);
         setModalVisible(true);
     };
@@ -108,7 +119,7 @@ const ViewRecycling = () => {
     };
 
     //warn for delete
-    const warnUser = (id) => {
+    const warnUser = (id, discountApplied) => {
         Alert.alert(
             'DELETE',
             'Are you sure you want to delete this item?',
@@ -121,7 +132,7 @@ const ViewRecycling = () => {
                 },
                 {
                     text: 'YES',
-                    onPress: () => handleItemDelete(id)
+                    onPress: () => handleItemDelete(id, discountApplied)
                 }
             ]
         )
@@ -154,9 +165,11 @@ const ViewRecycling = () => {
         // Prepare form data
         const formData = {
             discountCode,
-            recyclingId:item.id,
+            recyclingId:selectedItem!.id,
             userID: 1,
         };
+
+        console.log('Recycle item ID: ', selectedItem.id);
 
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts`, {
@@ -180,8 +193,13 @@ const ViewRecycling = () => {
                         return;
                     }
 
+                    //TODO: send user an email with code
                     Alert.alert('Success', `Discount Code generated and saved for: ${selectedItem.firstName}`);
-                    setModalVisible(false);  // Close modal
+
+                    setDiscountedItems((prev) => [...prev, {...selectedItem, discountApplied: true}]);
+                    setRecyclingItems((prev) => prev.filter(item => item.id !== selectedItem.id));
+
+                    setModalVisible(false);
                 } catch (error) {
                     console.error('Error parsing response:', error);
                     Alert.alert('Error', 'Invalid response format.');
@@ -196,30 +214,41 @@ const ViewRecycling = () => {
         }
     };
 
-
     const renderProduct = ({ item }) => (
         <View style={styles.productContainer}>
-            {item.onSale && <NewBanner/>}
             <View style={styles.recDetails}>
                 <Text style={styles.recTitle}>{item.email}</Text>
-                <Text style = {styles.recBody}>{item.firstName} {item.lastName}</Text>
+                <Text style = {styles.recBodyName}>{item.firstName} {item.lastName}</Text>
                 <Text style = {styles.recBody}>{item.description}</Text>
                 <Text style = {styles.recBody}>{item.dropoffLocation}</Text>
 
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => openEditModal(item)}
-                    >
-                        <Text style={styles.buttonText}>Accept</Text>
-                    </TouchableOpacity>
+                    {!item.discountApplied ? (
+                        <TouchableOpacity
+                            style={styles.editButton}
+                            onPress={() => openEditModal(item)}
+                        >
+                            <Text style={styles.buttonText}>Accept</Text>
+                        </TouchableOpacity>
+                    ): null}
 
-                    <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => warnUser(item.id)}
-                    >
-                        <Text style={styles.buttonText}>Delete</Text>
-                    </TouchableOpacity>
+
+                    {item.discountApplied ? (
+                        <TouchableOpacity
+                            style={styles.deleteButton}
+                            onPress={() => warnUser(item.id, true)}
+                        >
+                            <Text style={styles.buttonText}>Delete Discount</Text>
+                        </TouchableOpacity>
+                    ):(
+                        <TouchableOpacity
+                            style={styles.deleteButton}
+                            onPress={() => warnUser(item.id, false)}
+                        >
+                            <Text style={styles.buttonText}>Delete</Text>
+                        </TouchableOpacity>
+                    )}
+
                 </View>
 
 
@@ -227,12 +256,24 @@ const ViewRecycling = () => {
         </View>
     );
 
+    const renderFooter = () => {
+        if (discountedItems.length === 0) return null;
 
-    const NewBanner = () => (
-        <View style = { styles.bannerContainer }>
-            <Text style = {styles.bannerText}> New </Text>
-        </View>
-    );
+        return (
+            <View>
+                <View style = {styles.separator}/>
+                <View style = {styles.discountsAppliedContainer}>
+                    <Text style = {styles.discountHeader}>Discounts Generated:</Text>
+                </View>
+                <FlatList
+                    data = { discountedItems }
+                    renderItem={ renderProduct }
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                />
+            </View>
+        )
+    }
 
     return (
         <ImageBackground
@@ -252,73 +293,77 @@ const ViewRecycling = () => {
                             onRefresh={handleRefresh}
                         />
                     }
+                    ListFooterComponent={ renderFooter }
                 />
 
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={closeModal}
-                >
 
-                        <View style = {styles.modalContainer}>
-                            <Formik
-                                initialValues={{
-                                    discountCode: '',
-                                }}
-                                onSubmit={handleDiscountUpload}
-                            >
-                                {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
-                                    <View style={styles.modalView}>
-                                        <View style = { styles.headerContainer}>
-                                            <Text style={styles.modalTitle}>Send Discount:</Text>
-                                        </View>
+                {modalVisible && (
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={closeModal}
+                    >
 
-                                        <Picker
-                                            style={styles.pickerStyle}
-                                            onValueChange={handleChange('discount')}
-                                        >
-                                            <Picker.Item label="Select a Discount Percent" value="" />
-                                            <Picker.Item label="5%" value="5" />
-                                            <Picker.Item label="10%" value="10" />
-                                            <Picker.Item label="15%" value="15" />
-                                            <Picker.Item label="20%" value="20" />
-                                            <Picker.Item label="25%" value="25" />
-                                            <Picker.Item label="30%" value="30" />
-                                            <Picker.Item label="35%" value="35" />
-                                            <Picker.Item label="40%" value="40" />
-                                            <Picker.Item label="45%" value="45" />
-                                            <Picker.Item label="50%" value="50" />
-                                            <Picker.Item label="55%" value="55" />
-                                            <Picker.Item label="60%" value="60" />
-                                            <Picker.Item label="65%" value="65" />
-                                            <Picker.Item label="70%" value="70" />
-                                            <Picker.Item label="75%" value="75" />
-                                            <Picker.Item label="80%" value="80" />
-                                            <Picker.Item label="85%" value="85" />
-                                            <Picker.Item label="90%" value="90" />
-                                            <Picker.Item label="95%" value="95" />
-                                            <Picker.Item label="100%" value="100" />
-                                        </Picker>
-
-                                        <View style={styles.modalButtonContainer}>
-                                            <Text>Send --user-- an email:</Text>
-                                            <View style = {styles.modalButtons}>
-                                                <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-                                                    <Text style={styles.buttonText}>Send</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    style={styles.cancelButton}
-                                                    onPress={() => setModalVisible(false)}
-                                                >
-                                                    <Text style={styles.buttonText}>Cancel</Text>
-                                                </TouchableOpacity>
+                            <View style = {styles.modalContainer}>
+                                <Formik
+                                    initialValues={{
+                                        discountCode: '',
+                                    }}
+                                    onSubmit={handleDiscountUpload}
+                                >
+                                    {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
+                                        <View style={styles.modalView}>
+                                            <View style = { styles.headerContainer}>
+                                                <Text style={styles.modalTitle}>Send Discount:</Text>
                                             </View>
-                                        </View>
-                                    </View>)}
-                            </Formik>
-                        </View>
-                </Modal>
+
+                                            <Picker
+                                                style={styles.pickerStyle}
+                                                onValueChange={handleChange('discount')}
+                                            >
+                                                <Picker.Item label="Select a Discount Percent" value="" />
+                                                <Picker.Item label="5%" value="5" />
+                                                <Picker.Item label="10%" value="10" />
+                                                <Picker.Item label="15%" value="15" />
+                                                <Picker.Item label="20%" value="20" />
+                                                <Picker.Item label="25%" value="25" />
+                                                <Picker.Item label="30%" value="30" />
+                                                <Picker.Item label="35%" value="35" />
+                                                <Picker.Item label="40%" value="40" />
+                                                <Picker.Item label="45%" value="45" />
+                                                <Picker.Item label="50%" value="50" />
+                                                <Picker.Item label="55%" value="55" />
+                                                <Picker.Item label="60%" value="60" />
+                                                <Picker.Item label="65%" value="65" />
+                                                <Picker.Item label="70%" value="70" />
+                                                <Picker.Item label="75%" value="75" />
+                                                <Picker.Item label="80%" value="80" />
+                                                <Picker.Item label="85%" value="85" />
+                                                <Picker.Item label="90%" value="90" />
+                                                <Picker.Item label="95%" value="95" />
+                                                <Picker.Item label="100%" value="100" />
+                                            </Picker>
+
+                                            <View style={styles.modalButtonContainer}>
+                                                <Text>Send   <Text style = {styles.emailText}>'{selectedItem.email}'</Text>  an email? </Text>
+                                                <View style = {styles.modalButtons}>
+                                                    <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+                                                        <Text style={styles.buttonText}>Send</Text>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity
+                                                        style={styles.cancelButton}
+                                                        onPress={() => setModalVisible(false)}
+                                                    >
+                                                        <Text style={styles.buttonText}>Cancel</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        </View>)}
+                                </Formik>
+                            </View>
+                    </Modal>
+                )}
             </View>
         </ImageBackground>
     );
@@ -331,9 +376,9 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     header: {
-        fontSize: 24,
+        fontSize: 30,
         fontFamily: 'shrikhand',
-        textAlign: 'center',
+        textAlign: 'left',
         marginBottom: 20,
         color: '#219281FF',
     },
@@ -343,10 +388,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         height: '100%',
+        opacity: 0.95,
+
     },
     productContainer: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backgroundColor: 'rgb(255,255,255)',
         padding: 15,
         marginBottom: 10,
         borderRadius: 8,
@@ -360,15 +407,25 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     recTitle: {
-        fontFamily: 'sulphurPoint_Bold',
+        fontFamily: 'shrikhand',
         fontSize: 22,
         color: '#219281FF',
     },
     recBody: {
         fontFamily: 'sulphurPoint',
-        fontSize: 18,
+        fontSize: 20,
         paddingTop: 1,
-        paddingBottom: 1
+        paddingBottom: 1,
+        marginLeft:10,
+        color: '#1a1a1a'
+    },
+    recBodyName: {
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 22,
+        paddingTop: 1,
+        paddingBottom: 1,
+        marginBottom: 5,
+        color: '#93D3AE'
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -535,6 +592,35 @@ const styles = StyleSheet.create({
         color: '#FFFFFF', // Text color
         fontWeight: 'bold',
     },
+    separator: {
+        alignSelf: 'center',
+        height: 2,
+        width: '80%',
+        backgroundColor: 'rgb(92,183,165)',
+        marginTop: 5,
+        marginBottom: 15,
+        borderRadius: 2,
+    },
+    discountHeader: {
+        fontFamily: 'shrikhand',
+        fontSize: 25,
+        color: 'rgb(92,183,165)',
+        textAlign: 'center',
+    },
+    discountsAppliedContainer:{
+        flex: 1,
+        backgroundColor: '#ffffff',
+        padding: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 5,
+        marginBottom: 20
+    },
+    emailText: {
+        color: 'rgb(92,183,165)',
+    }
 
 });
 
