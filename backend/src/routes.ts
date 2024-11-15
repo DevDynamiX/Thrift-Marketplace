@@ -158,4 +158,10 @@ export const Routes = [
         controller: UserController,
         action: "update", // Call the 'update' method in UserController
     },
+    {
+        method: "delete",
+        route: "/cart/clear",
+        controller: CartController,
+        action: "clearCart",
+    },
 ];
