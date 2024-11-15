@@ -186,4 +186,10 @@ export const Routes = [
         controller: DiscountsController,
         action: "remove",
     },
+    {
+        method: "delete",
+        route: "/cart/clear",
+        controller: CartController,
+        action: "clearCart",
+    },
 ];

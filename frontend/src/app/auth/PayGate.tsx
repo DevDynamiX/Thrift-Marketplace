@@ -23,7 +23,9 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
-    const { total } = useLocalSearchParams();
+
+
+    const { totalWithShipping } = useLocalSearchParams();
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCVV] = useState('');
@@ -74,7 +76,7 @@ const PaymentScreen = () => {
                 body: JSON.stringify({
                     orderNumber: orderNumber,
                     email: email,
-                    total: Number(total)
+                    total: Number(totalWithShipping)
                 })
             });
 
@@ -84,8 +86,20 @@ const PaymentScreen = () => {
             }
             const data = await response.json();
             setStatusMessage(`Payment Complete. Order Number: ${orderNumber}`);
+
+            //const clearCartResponse = await fetch('http://localhost:3000/cart/clear', {
+            //   method: 'POST',
+            //    headers: {
+            //        'Content-Type': 'application/json',
+            //    }
+            //});
+            //if (!clearCartResponse.ok) {
+            //    throw new Error("Failed to clear cart");
+            //}
+
         } catch (error) {
             setStatusMessage(error instanceof Error ? error.message : 'Payment Failed');
+            console.log(error);
             Alert.alert("Error", "Payment failed. Please try again.");
         } finally {
             setIsProcessing(false);
@@ -113,7 +127,7 @@ const PaymentScreen = () => {
 
                 <View style={styles.container}>
                     <View style = {styles.totalTextContainer}>
-                        <Text style = {styles.totalText}>Total Amount: R{Number(total).toFixed(2)}</Text>
+                        <Text style = {styles.totalText}>Total Amount: R{Number(totalWithShipping).toFixed(2)}</Text>
                     </View>
 
                     <View style={styles.inputContainer}>
