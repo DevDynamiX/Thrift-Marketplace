@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     View,
     Text,
@@ -15,6 +15,7 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import {useFonts} from "expo-font";
 import Icon from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //TODO: add field to apply discount from recycling
 //TODO: change total to reflect Discounts.ts etc
@@ -23,7 +24,9 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
-    const { total } = useLocalSearchParams();
+
+
+    const { totalWithShipping } = useLocalSearchParams();
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCVV] = useState('');
@@ -31,6 +34,8 @@ const PaymentScreen = () => {
     const [discount, setDiscount] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [address, setAddress] = useState('');
+    const [username, setUsername] = useState('');
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -40,6 +45,24 @@ const PaymentScreen = () => {
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+
+    useEffect(() => {
+        const fetchUserName = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('Stored email:', userDataString);
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    setUsername(userData.email);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUserName();
+    }, []);
 
     if (!fontsLoaded) {
         return (
@@ -52,7 +75,7 @@ const PaymentScreen = () => {
     const handlePayment = async () => {
         // basic validation , adjust if required
         // validation of user entry to simulate use of payment system
-        if (!cardNumber || !expiryDate || !cvv || !email) {
+        if (!cardNumber || !expiryDate || !cvv || !username||!address) {
             Alert.alert("Error", "Please complete all fields");
             return;
         }
@@ -73,8 +96,9 @@ const PaymentScreen = () => {
                 },
                 body: JSON.stringify({
                     orderNumber: orderNumber,
-                    email: email,
-                    total: Number(total)
+                    email: username,
+                    address: address,
+                    total: Number(totalWithShipping)
                 })
             });
 
@@ -84,8 +108,20 @@ const PaymentScreen = () => {
             }
             const data = await response.json();
             setStatusMessage(`Payment Complete. Order Number: ${orderNumber}`);
+
+            //const clearCartResponse = await fetch('http://localhost:3000/cart/clear', {
+            //   method: 'POST',
+            //    headers: {
+            //        'Content-Type': 'application/json',
+            //    }
+            //});
+            //if (!clearCartResponse.ok) {
+            //    throw new Error("Failed to clear cart");
+            //}
+
         } catch (error) {
             setStatusMessage(error instanceof Error ? error.message : 'Payment Failed');
+            console.log(error);
             Alert.alert("Error", "Payment failed. Please try again.");
         } finally {
             setIsProcessing(false);
@@ -99,7 +135,19 @@ const PaymentScreen = () => {
         const formattedText = text.replace(/[^0-9\/]/g, '');
 
         if (formattedText.length <= 5) {
-            setExpiryDate(formattedText);
+            const [inputMonth,inputYear] = formattedText.split('/').map(Number);
+
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth() + 1;
+            const currentYear = currentDate.getFullYear()%100;
+
+            if(
+                formattedText.includes('/') && !isNaN(inputMonth) && !isNaN(inputYear)
+            ){
+                setExpiryDate(formattedText);
+            }else{
+                setExpiryDate(formattedText);
+            }
         }
     };
 
@@ -113,16 +161,26 @@ const PaymentScreen = () => {
 
                 <View style={styles.container}>
                     <View style = {styles.totalTextContainer}>
-                        <Text style = {styles.totalText}>Total Amount: R{Number(total).toFixed(2)}</Text>
+                        <Text style = {styles.totalText}>Total Amount: R{Number(totalWithShipping).toFixed(2)}</Text>
                     </View>
 
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
                             placeholder="Email"
-                            value={email}
+                            value={username}
                             onChangeText={setEmail}
                             keyboardType="email-address"
+                            editable={false}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Delivery Address"
+                            value={address}
+                            onChangeText={setAddress}
                         />
                     </View>
 

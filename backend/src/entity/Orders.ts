@@ -14,4 +14,7 @@ export class Orders {
 
     @CreateDateColumn()
     CreateDate!: Date;
+
+    @Column()
+    address: string="";
 }

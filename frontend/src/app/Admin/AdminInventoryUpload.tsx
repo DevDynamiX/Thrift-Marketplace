@@ -207,7 +207,7 @@ const InsertProdScreen = () => {
                 >
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <View style = { styles.mainContainer }>
-                    <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
+                            {/* <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>*/}
                     <ScrollView style = {styles.Formik}
                                 refreshControl={
                                     <RefreshControl refreshing={refresh} onRefresh={() => handleRefresh()} />
@@ -569,12 +569,14 @@ const styles = StyleSheet.create({
     },
     Formik: {
         position: "relative",
-        bottom: '3%'
+        bottom: '3%',
+        marginTop: '35',
     },
     submitBtnContainer: {
         margin: '10%',
         width: 'auto',
     },
+    //
     submitButton: {
         backgroundColor: '#219281FF',
         display: "flex",

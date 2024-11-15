@@ -640,6 +640,7 @@ const styles = StyleSheet.create({
         flex:1,
         backgroundColor:'#93D3AE',
 
+
     },
     image: {
          flex: 1,
