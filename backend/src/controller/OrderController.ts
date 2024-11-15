@@ -10,10 +10,10 @@ export class OrderController {
         try {
             console.log('Received order data:', request.body);
 
-            const { orderNumber, email, total } = request.body;
+            const { orderNumber, email,address, total } = request.body;
 
-            if (!orderNumber || !email || total === undefined) {
-                console.log('Validation failed:', { orderNumber, email, total });
+            if (!orderNumber || !email || total === undefined || !address) {
+                console.log('Validation failed:', { orderNumber, email, total, address });
                 return response.status(400).json({ error: "Missing required fields" });
             }
 
@@ -21,6 +21,7 @@ export class OrderController {
             order.orderNumber = orderNumber;
             order.email = email;
             order.total = total;
+            order.address = address;
 
             console.log('Created order entity:', order);
 
@@ -31,7 +32,14 @@ export class OrderController {
             return response.status(201).json(result);
         } catch (error) {
             console.error('Detailed error in createOrder:', error);
-            return response.status(500).json({ error: `Failed to create order.` });
+            console.error('Error stack trace:', error);
+
+            let errorMessage = 'Failed to create order.';
+            if (error) {
+                errorMessage = `Failed to create order: ${error}`;
+            }
+            return response.status(500).json({ error: errorMessage });
+
         }
     }
 
