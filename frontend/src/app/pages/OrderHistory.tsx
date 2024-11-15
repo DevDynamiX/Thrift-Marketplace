@@ -8,6 +8,7 @@ interface Order {
     orderNumber: number;
     email: string;
     total: number;
+    address: string;
 }
 
 const OrdersTable: React.FC = () => {
@@ -78,7 +79,7 @@ const OrdersTable: React.FC = () => {
         <View style={styles.orderContainer}>
             <Text style={styles.orderNumber}>Order: {item.orderNumber}</Text>
             <Text style={styles.orderEmail}>Email: {item.email}</Text>
-
+            <Text style={styles.orderEmail}>Email: {item.address}</Text>
         </View>
     );
 
