@@ -2,7 +2,7 @@ import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Discounts } from "../entity/Discounts";
 import { User } from "../entity/User";
-import { Recycling} from "../entity/Recycling";
+import { Recycling } from "../entity/Recycling";
 import {DeepPartial} from "typeorm";
 
 export class DiscountsController {
@@ -15,9 +15,11 @@ export class DiscountsController {
     async all(request: Request, response: Response, next: NextFunction) {
         try {
             const discounts = await this.discountsRepository.find({
-                order: {id: 'asc'}
+                relations: ['recycling', 'user'],
             });
             return response.json(discounts);
+
+
         } catch (error) {
             console.error("Error Fetching Discounts: ", error);
             return response.status(500).json({ message: "Error Fetching Discounts" });
@@ -28,23 +30,44 @@ export class DiscountsController {
     async save(req: Request, res: Response) {
         const {
             discountCode,
+            recyclingId,
             userID,
-            recyclingID,
         } = req.body;
 
+        if(!req.body){
+            console.error("Error Fetching body");
+        }else{
+            console.log('Full request body:', req.body);
+
+        }
+
+        console.log('User:', userID);
+        console.log('Recycling:', recyclingId);
 
         if (!discountCode || !userID) {
             return res.status(400).json({ success: false, message: "All fields are required." });
         }
 
         try {
-
             const user =  await this.userRepository.findOne({where:{id:userID}});
-            if (!userID) {
-                return res.status(400).json({ success: false, message: "User ID is required." });
+            const recycling = await this.recyclingRepository.findOne({where:{id:recyclingId}})
+
+            if (user) {
+                console.log("User found:", user);
+            } else {
+                console.log("User not found with ID:", userID);
             }
 
-            const recycling = await this.recyclingRepository.findOne({where:{id:recyclingID}})
+            if (recycling) {
+                console.log("Recycling found:", recycling);
+            } else {
+                console.log("Recycling not found with ID:", recyclingId);
+            }
+
+            if (!user || !recycling) {
+                console.log("User or Recycling not found.");
+                return res.status(404).json({ success: false, message: "User or Recycling record not found." });
+            }
 
             const savedDiscount = this.discountsRepository.create({
                 discountCode,
@@ -52,9 +75,15 @@ export class DiscountsController {
                 recycling,
             } as DeepPartial<Discounts>);
 
+            console.log("Saving Discount Entity:", savedDiscount);
+
+            console.log('**************************');
+            console.log("User ID in Discount Entity:", savedDiscount.user?.id);
+            console.log("Recycling ID in Discount Entity:", savedDiscount.recycling?.id);
+
             await this.discountsRepository.save(savedDiscount);
 
-            console.log("Parsed Request Body:", req.body);
+            console.log("Discount saved successfully:", savedDiscount);
 
             return res.json({
                 success: true,
@@ -68,24 +97,41 @@ export class DiscountsController {
 
     // Remove a item
     async remove(req: Request, res: Response, next: NextFunction) {
-        const discountID = req.params.id;
+        const recyclingID = req.params.id;
 
-        if (!discountID) {
+        console.log("Recycling ID: ", recyclingID);
+
+        if (!recyclingID) {
             return res.status(400).json({ error: 'Discount ID is missing' });
         }
 
-        console.log('Received ID:', discountID);
+        console.log('Received ID:', recyclingID);
 
         try {
-            const deleteResult = await this.discountsRepository.delete(discountID);
+            const discount =  await this.discountsRepository.findOne({
+                where: {id: recyclingID},
+                relations: ['recycling'],
+            })
 
-            if (deleteResult.affected === 0) {
+            if (!discount) {
                 return res.status(404).json({ success: false, message: 'Discount Not Found!' });
             }
 
-            console.log('Discount deleted successfully.');
+            await this.discountsRepository.update(recyclingID, {userId:null});
 
-            return res.status(200).json({message: "Discount has been removed"});
+            if(discount.recycling){
+                await this.recyclingRepository.update(discount.recycling.id,{userId:null});
+                await this.recyclingRepository.delete(discount.recycling.id);
+            }
+
+            const deleteResult = await this.discountsRepository.delete(recyclingID);
+
+            if(deleteResult.affected === 0) {
+                return res.status(404).json({ success: false, message: "Discount Not Found!" });
+            }
+
+            console.log('Discount deleted successfully');
+            return res.status(500).json({message: "Discount deleted successfully."})
 
         } catch (error) {
             console.error("Error Removing Discount: ", error);

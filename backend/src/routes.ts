@@ -182,7 +182,7 @@ export const Routes = [
     },
     {
         method: "delete",
-        route: "/discounts/:userId",
+        route: "/discounts/:recyclingID",
         controller: DiscountsController,
         action: "remove",
     },

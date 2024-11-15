@@ -99,7 +99,6 @@ const App = () => {
                     <Icon name="hammer-outline" size={24} color="#fff" />
                     <Text style={styles.buttonText}>Admin</Text>
                 </Pressable>
-                {/* All the new stuff i added  */}
 
             </View>
         </Animated.View>

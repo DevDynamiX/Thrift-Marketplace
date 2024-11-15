@@ -29,9 +29,9 @@ const MenuButton = ({ text, iconSource, path, navigateTo, onPress }: MenuButtonP
         <TouchableOpacity
             onPress={() => {
                 if (onPress) {
-                    onPress(); // Call the onPress if provided (for logout)
+                    onPress();
                 } else if (path && navigateTo) {
-                    navigateTo(path); // Call navigateTo if path is provided
+                    navigateTo(path);
                 }
             }}
             style={styles.menuButton}
@@ -147,7 +147,6 @@ const Profile: React.FC = () => {
                                 iconSource={require('@assets/images/videogame.png')}
                                 onPress={() => {
                                     console.log("Logging out");
-
                                     handleLogout();
                                 }}
                             />

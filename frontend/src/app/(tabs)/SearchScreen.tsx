@@ -24,7 +24,7 @@ const itemSize = width/3;
 
 const SearchScreen = () => {
 
-    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, userName: null, userID: null})
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -81,7 +81,7 @@ const SearchScreen = () => {
 
     //saving liked items to table
     const toggleFavourite = (id) => {
-        console.log(`Toggling favourite for itemwith ID: ${id}`);
+        console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -106,28 +106,31 @@ const SearchScreen = () => {
                 [id]: true,
             }));
 
-            console.log("Attempting to add like:", {itemID: id, userID: 1 });
+            console.log("Attempting to add like:", {itemID: id, userID: user.userID });
 
             setLikedItems((prevLikedItems = []) => {
-                const likedItem = prevLikedItems.some(item => item.id === id);
+                const items = Array.isArray(prevLikedItems) ? prevLikedItems : [];
+
+                const likedItem = items.some(item => item.id === id);
 
                 if (!likedItem) {
-
-                    const userID = user.userID;
-
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': "application/json",
                         },
-                        body: JSON.stringify({ itemID: id, userID: userID }),
+                        body: JSON.stringify({ itemID: id, userID: user.userID }),
                     })
                         .then(response => response.json())
                         .then(data => {
                             console.log('Item added to likes:', data);
+
                             if(data && data.likes) {
                                 console.log("Likes found: ", data.likes);
-                                setLikedItems((prevLikedItem) => [...prevLikedItems, {id}]);
+                                setLikedItems((prevLikedItems) => [
+                                    ...(Array.isArray(prevLikedItems) ? prevLikedItems : []),
+                                    { id },
+                                ]);
                             } else {
                                 console.error('Unexpected response data: ', data);
                             }
@@ -143,13 +146,12 @@ const SearchScreen = () => {
                 [id]: false,
             }));
 
-            //TODO: change to userID
             fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(`Item removed ${id} from ${user.userName}'s Likes:`, data);
+                    console.log(`Item removed from ${user.firstName}'s likes:`, data);
                     setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id != id));
                 })
                 .catch(error => {
@@ -192,7 +194,6 @@ const SearchScreen = () => {
                 if (!existingItem) {
                     console.log("Attempting to add to cart:", {itemID: id, userID: user.userID});
 
-                    // TODO: get userID from session
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
                         method: 'POST',
                         headers: {
@@ -215,14 +216,13 @@ const SearchScreen = () => {
             });
         } else {
 
-            console.log(`Removing item ${id} from ${user.userName}'s cart`);
+            console.log(`Removing item ${id} from ${user.firstName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
                 [id]: false
             }))
 
-            //TODO: change to userID
             fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
@@ -234,7 +234,7 @@ const SearchScreen = () => {
                         [id]: false,
                     }));
                 }).catch(error => {
-                console.error(`Error removing from ${user.userName}'s 'Cart': `, error);
+                console.error(`Error removing from ${user.firstName}'s 'Cart': `, error);
             });
         }
     }
@@ -272,23 +272,23 @@ const SearchScreen = () => {
 
     // fetch likes from Table
     const fetchLikes = async () => {
-        //TODO: GET USER ID
-        const userID = user.userID;
         try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${userID}`);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
-            console.log(`Fetched ${user.userName}'s Likes:`, data);
+            console.log(`Fetched Likes for ${user.firstName}:`, data);
             setLikedItems(data);
 
             const updatedIsFavourited = {};
 
-            data.forEach(item => {
-                updatedIsFavourited[item.unit.id] = true;
-            });
+            if(data) {
+                data.forEach(item => {
+                    updatedIsFavourited[item.unit.id] = true;
+                });
+            }
             setIsFavourited(updatedIsFavourited);
 
         } catch (error) {
-            console.error("Error fetching 'Likes': ", error);
+            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);
         }

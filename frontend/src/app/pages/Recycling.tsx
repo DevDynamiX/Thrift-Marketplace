@@ -14,7 +14,6 @@ import {
     Text,
     Dimensions,
     ActivityIndicator,
-    ScrollView,
     ImageStyle,
     TouchableOpacity,
     Modal,
@@ -25,10 +24,10 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-import {useNavigation} from '@react-navigation/native';
 import { Formik } from 'formik';
 import {Picker} from "@react-native-picker/picker";
 import {hidden} from "colorette";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const { width } = Dimensions.get('window');
@@ -36,7 +35,7 @@ const itemSize = width/3;
 
 //TODO: GET USER ID FOR FIELDS
 const RecycleNow = () => {
-    const navigation = useNavigation();
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -50,6 +49,44 @@ const RecycleNow = () => {
     const [isRecyclingAnimationCompleted, setIsRecyclingAnimationCompleted] = useState({});
     const [playRecyclingAnimation, setPlayRecyclingAnimation] = useState({});
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
 
 
     // If fonts are not loaded, show a loading indicator within the component itself
@@ -67,7 +104,7 @@ const RecycleNow = () => {
 
         try {
             const formData = {
-                userID: 1,
+                userID: user.userID,
                 email: values.email,
                 firstName: values.firstName,
                 lastName: values.lastName,
@@ -93,10 +130,13 @@ const RecycleNow = () => {
                 return;
             }
 
+            console.log(`Saved recycling for ${user.firstName}`);
+
             Alert.alert("Success", "Recycling successfully logged!");
             resetForm();
         } catch (error) {
             console.error('Error:', error);
+            console.log(`Couldn't save recycling for ${user.firstName}`);
             Alert.alert("Error", "An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);
@@ -113,11 +153,10 @@ const RecycleNow = () => {
                     resizeMode="stretch"
                     style = {styles.image}>
                     <View style={styles.recContainer}>
-                        <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
                         <View style={styles.formContainer}>
                             <View style = {styles.top}>
                                 <View style = {styles.exitRow}>
-                                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                                    <TouchableOpacity>
                                         <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
                                     </TouchableOpacity>
                                     <Text style={styles.titleText}>Recycle Now</Text>
@@ -127,7 +166,7 @@ const RecycleNow = () => {
 
                             <Formik
                                 initialValues={{
-                                    userID: 1,
+                                    userID: user.userID,
                                     email: '',
                                     firstName: '',
                                     lastName: '',
@@ -142,9 +181,8 @@ const RecycleNow = () => {
                                         <Text style = { styles.formHeaders }> Send Your Recycling: </Text>
                                         <Text style = { styles.infoText}> * indicates a required field </Text>
 
-                                        {/*TODO: submit userID from session*/}
                                         <TextInput
-                                            // onChangeText={handleChange('userID')}
+                                            //onChangeText={handleChange('userID')}
                                             // onBlur={handleBlur('userID')}
                                             value={values.userID}
                                             editable={false}
@@ -250,12 +288,12 @@ const styles = StyleSheet.create({
         width: '90%',
         bottom: '16%'
     },
-    logo: {
-        resizeMode: 'contain' as ImageStyle['resizeMode'],
-        width: 260,
-        position:'relative',
-        top: '15%'
-    },
+    // logo: {
+    //     resizeMode: 'contain' as ImageStyle['resizeMode'],
+    //     width: 260,
+    //     position:'relative',
+    //     top: '15%'
+    // },
     exitRow: {
         flexDirection: 'row'
     },
