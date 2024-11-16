@@ -24,7 +24,6 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-import { checkUserSession } from "@/app/auth/LoginScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Product {
@@ -40,11 +39,9 @@ const itemSize = width/3;
 
 const HomeScreen = React.memo(() => {
 
-    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null, gender:null})
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
@@ -87,6 +84,7 @@ const HomeScreen = React.memo(() => {
                     const userData = JSON.parse(userDataString);
                     console.log('Email from userData:', userData.email);
                     console.log('ID from userData:', userData.id);
+                    console.log('Gender from userData:', userData.gender);
 
                     setUser({
                         isLoggedIn: true, // Assuming the user is logged in if data exists
@@ -94,6 +92,7 @@ const HomeScreen = React.memo(() => {
                         userEmail: userData.email || null,
                         firstName: userData.firstName || null,
                         userID: userData.id || null,
+                        gender: userData.gender || null,
                     });
 
                     console.log('*************');
@@ -103,6 +102,7 @@ const HomeScreen = React.memo(() => {
                         userEmail: userData.email || null,
                         firstName: userData.firstName || null,
                         userID: userData.id || null,
+                        gender: userData.gender || null,
                     });
                     console.log('*************');
                 }
@@ -391,95 +391,140 @@ const HomeScreen = React.memo(() => {
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
-                            {/*TODO: Filter by gender*/}
-                            <View style={styles.rowsContainer}>
-                                {/*Recommended Row*/}
-                                <View style={styles.clothesRow}>
-                                    <Text style={styles.headerText}>Recommended for {user.firstName ? user.firstName : 'user'}</Text>
-                                    <ScrollView
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        ref={recommendedScrollRef}
-                                        onScroll={(event) => setRecommendedScrollX((event.nativeEvent.contentOffset.x))}
-                                        scrollEventThrottle={16}
-                                        style={{flexGrow: 0}}
-                                        testID = "recommendedScrollView"
-                                    >
-                                        <View style={styles.RowImages}>
-                                            {inventoryItems.slice(0, 10).map((item) => (
-                                                <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item}`}>
-                                                    <View key={item.id} style={styles.imageContainer}>
-                                                        <Image style={styles.clothesImage}
-                                                               source={{uri: item.mainImage}}/>
+                                <View style={styles.rowsContainer}>
+                                    {/* Recommended Row */}
+                                    <View style={styles.clothesRow}>
+                                        <Text style={styles.headerText}>
+                                            Recommended for {user.firstName ? user.firstName : 'user'}
+                                        </Text>
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            ref={recommendedScrollRef}
+                                            onScroll={(event) => setRecommendedScrollX(event.nativeEvent.contentOffset.x)}
+                                            scrollEventThrottle={16}
+                                            style={{ flexGrow: 0 }}
+                                            testID="recommendedScrollView"
+                                        >
+                                            <View style={styles.RowImages}>
+                                                {inventoryItems
+                                                    .filter((item) => {
+                                                        if (user.gender === 'female') {
+                                                            return item.sex === 'female' || item.sex === 'unisex';
+                                                        } else if (user.gender === 'male') {
+                                                            return item.sex === 'male' || item.sex === 'unisex';
+                                                        } else {
+                                                            // For other genders, show all items
+                                                            return true;
+                                                        }
+                                                    })
+                                                    .slice(0, 10)
+                                                    .map((item) => (
+                                                        <TouchableOpacity
+                                                            key={item.id}
+                                                            onPress={() => toggleItemModal(item)}
+                                                            testID={`recommendedItem-${item}`}
+                                                        >
+                                                            <View key={item.id} style={styles.imageContainer}>
+                                                                <Image
+                                                                    style={styles.clothesImage}
+                                                                    source={{ uri: item.mainImage }}
+                                                                />
 
-                                                        {item.onSale && (
-                                                            <View style={styles.discountBanner}>
-                                                                <Text style={styles.discountText}>
-                                                                    {`Now R${item.salePrice}`}
-                                                                </Text>
+                                                                {item.onSale && (
+                                                                    <View style={styles.discountBanner}>
+                                                                        <Text style={styles.discountText}>
+                                                                            {`Now R${item.salePrice}`}
+                                                                        </Text>
+                                                                    </View>
+                                                                )}
+
+                                                                <View style={styles.actionButtons}>
+                                                                    <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
+                                                                        {isFavourited[item.id] &&
+                                                                        playHeartAnimation[item.id] ? (
+                                                                            <LottieView
+                                                                                source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                                autoPlay
+                                                                                loop={false}
+                                                                                onAnimationFinish={() =>
+                                                                                    setPlayHeartAnimation((prev) => ({
+                                                                                        ...prev,
+                                                                                        [item.id]: false,
+                                                                                    }))
+                                                                                }
+                                                                                style={styles.heartAnimation}
+                                                                            />
+                                                                        ) : (
+                                                                            <Icon
+                                                                                name={
+                                                                                    isFavourited[item.id]
+                                                                                        ? 'heart'
+                                                                                        : 'heart-outline'
+                                                                                }
+                                                                                style={[
+                                                                                    styles.staticHeart,
+                                                                                    isFavourited[item.id] &&
+                                                                                    styles.filledHeart,
+                                                                                ]}
+                                                                                size={30}
+                                                                            />
+                                                                        )}
+                                                                    </TouchableOpacity>
+
+                                                                    <TouchableOpacity onPress={() => toggleCart(item.id)}>
+                                                                        {isAddedToCart[item.id] &&
+                                                                        playCartAnimation[item.id] ? (
+                                                                            <LottieView
+                                                                                source={require('@assets/animations/cartAnimation.json')}
+                                                                                autoPlay
+                                                                                loop={false}
+                                                                                onAnimationFinish={() =>
+                                                                                    handleAnimationFinish(item.id)
+                                                                                }
+                                                                                style={styles.cartAnimation}
+                                                                            />
+                                                                        ) : (
+                                                                            <Icon
+                                                                                name={
+                                                                                    isAddedToCart[item.id]
+                                                                                        ? 'checkmark-circle'
+                                                                                        : 'cart-outline'
+                                                                                }
+                                                                                style={[
+                                                                                    styles.staticCart,
+                                                                                    isAddedToCart[item.id] &&
+                                                                                    styles.filledCart,
+                                                                                ]}
+                                                                                size={32}
+                                                                            />
+                                                                        )}
+                                                                    </TouchableOpacity>
+                                                                </View>
                                                             </View>
-                                                        )}
-
-                                                        <View style={styles.actionButtons}>
-                                                            <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
-                                                                {isFavourited[item.id] && playHeartAnimation[item.id] ? (
-                                                                    <LottieView
-                                                                        source={require('@assets/animations/likeButtonAnimation.json')}
-                                                                        autoPlay
-                                                                        loop={false}
-                                                                        onAnimationFinish={() =>
-                                                                            setPlayHeartAnimation((prev) => ({
-                                                                            ...prev,
-                                                                            [item.id]: false,
-                                                                        }))
-                                                                        }
-                                                                        style={styles.heartAnimation}
-                                                                    />
-                                                                ) : (
-                                                                    <Icon
-                                                                        name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
-                                                                        style={[
-                                                                            styles.staticHeart,
-                                                                            isFavourited[item.id] && styles.filledHeart,
-                                                                        ]}
-                                                                        size={30}
-                                                                    />
-                                                                )}
-                                                            </TouchableOpacity>
-
-                                                            <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                                {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
-                                                                    <LottieView
-                                                                        source={require('@assets/animations/cartAnimation.json')}
-                                                                        autoPlay
-                                                                        loop={false}
-                                                                        onAnimationFinish={() => handleAnimationFinish(item.id)}
-                                                                        style = { styles.cartAnimation }
-                                                                    />
-                                                                ) : (
-                                                                    <Icon
-                                                                        name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
-                                                                        style={[
-                                                                            styles.staticCart,
-                                                                            isAddedToCart[item.id] && styles.filledCart
-                                                                        ]}
-                                                                        size={32}
-                                                                    />
-                                                                )}
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                    </View>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </View>
-                                    </ScrollView>
-                                    <TouchableOpacity style={styles.columnScrollMarker}
-                                                      onPress={() => handleScrollRight(recommendedScrollRef, recommendedScrollX, setRecommendedScrollX)}>
-                                        <View>
-                                            <Icon name="chevron-forward-outline" style={styles.arrowIcon} size={30}/>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                            </View>
+                                        </ScrollView>
+                                        <TouchableOpacity
+                                            style={styles.columnScrollMarker}
+                                            onPress={() =>
+                                                handleScrollRight(
+                                                    recommendedScrollRef,
+                                                    recommendedScrollX,
+                                                    setRecommendedScrollX
+                                                )
+                                            }
+                                        >
+                                            <View>
+                                                <Icon
+                                                    name="chevron-forward-outline"
+                                                    style={styles.arrowIcon}
+                                                    size={30}
+                                                />
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
 
                                 {/*On Sale Row*/}
                                     <View style={styles.clothesRow}>
@@ -658,7 +703,6 @@ const HomeScreen = React.memo(() => {
                                         </View>
                                     </TouchableOpacity>
                                 </View>
-                                <Text> hi </Text>
 
                                 {/*when you click on an item*/}
                                 {selectedItem && (
@@ -824,7 +868,6 @@ const HomeScreen = React.memo(() => {
                                     </View>
                                 </Modal>
                             </View>
-                            <Text>.</Text>
                         </View>
                     </ImageBackground>
                 </ScrollView>
@@ -943,13 +986,12 @@ const styles = StyleSheet.create({
         left: '5%'
     },
     headerText: {
-        fontFamily: 'sulphurPoint_Bold',  // Keep the bold font for emphasis
-        fontSize: 24,  // Slightly increase font size for readability
-        color: '#3b3b3b',  // Dark gray for contrast
-        backgroundColor: 'rgba(33, 146, 129, 0.5)',  // Transparent light green background
-        borderRadius: 4,  // Rounded corners for a soft look
-        textTransform: 'capitalize',  // Soft capitalized style
-        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.2)',  // Subtle shadow for depth
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 24,
+        color: '#3b3b3b',
+        backgroundColor: 'rgba(33, 146, 129, 0.5)',
+        borderRadius: 4,
+        textTransform: 'capitalize',
         paddingLeft: 10,
         marginLeft: 6
     },

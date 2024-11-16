@@ -227,14 +227,14 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     title: {
+        fontFamily: 'shrikhand',
         fontSize: 31,
-        fontWeight: '700',
         color: '#1D2A32',
         marginBottom: 6,
     },
     subtitle: {
+        fontFamily: 'sulphurPoint',
         fontSize: 15,
-        fontWeight: '500',
         color: '#929292',
     },
     header: {
@@ -260,12 +260,14 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     formLink: {
-        fontSize: 16,
+        fontFamily: 'sulphurPoint',
+        fontSize: 18,
         fontWeight: '600',
         color: '#ec5707',
         textAlign: 'center',
     },
     formFooter: {
+        fontFamily: 'sulphurPoint',
         fontSize: 15,
         fontWeight: '600',
         color: '#222',
@@ -273,15 +275,20 @@ const styles = StyleSheet.create({
         letterSpacing: 0.15,
     },
     input: {
+        fontFamily: 'sulphurPoint',
         marginBottom: 16,
     },
     inputLabel: {
-        fontSize: 17,
+        fontSize: 20,
         fontWeight: '600',
-        color: '#222',
+        color: '#219281FF',
         marginBottom: 8,
+        marginLeft: 10,
+        fontFamily: 'sulphurPoint_Bold',
+
     },
     inputControl: {
+        fontFamily: 'sulphurPoint',
         height: 50,
         backgroundColor: '#fff',
         paddingHorizontal: 16,
@@ -304,29 +311,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#ec5707',
         borderColor: '#ec5707',
     },
-    googleBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 30,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderWidth: 1,
-        backgroundColor: 'rgb(57,56,56)',
-        borderColor: 'rgb(57,56,56)',
-        marginTop: 10,
-        marginBottom: 10
-    },
-    googleLogo: {
-        width: 24,
-        height: 24,
-        marginRight: 8,
-        opacity: 0.8,
-    },
     btnText: {
-        fontSize: 18,
+        fontSize: 22,
         lineHeight: 26,
         fontWeight: '600',
         color: '#fff',
+        fontFamily: 'sulphurPoint',
     },
+
 });
