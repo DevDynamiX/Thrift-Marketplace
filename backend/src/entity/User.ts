@@ -48,6 +48,6 @@ export class User {
     Recycling!: Recycling[];
 
     // For Discounts table
-    @OneToMany(() => Discounts, (Discount) => Discount.user)
-    Discounts!: Discounts[];
+    @OneToMany(() => Discounts, (discounts) => discounts.user)
+    discounts!: Discounts[];
 }

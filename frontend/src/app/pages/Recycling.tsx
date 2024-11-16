@@ -1,3 +1,4 @@
+
 import React, {
     useState,
     useEffect,
@@ -13,7 +14,6 @@ import {
     Text,
     Dimensions,
     ActivityIndicator,
-    ScrollView,
     ImageStyle,
     TouchableOpacity,
     Modal,
@@ -24,11 +24,10 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-// Todo removed Navigitation as it caused a nested Navigition error
-// import {useNavigation} from '@react-navigation/native';
 import { Formik } from 'formik';
 import {Picker} from "@react-native-picker/picker";
 import {hidden} from "colorette";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const { width } = Dimensions.get('window');
@@ -36,8 +35,7 @@ const itemSize = width/3;
 
 //TODO: GET USER ID FOR FIELDS
 const RecycleNow = () => {
-    // Todo removed Navigitation as it caused a nested Navigition error
-    // const navigation = useNavigation();
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -51,6 +49,44 @@ const RecycleNow = () => {
     const [isRecyclingAnimationCompleted, setIsRecyclingAnimationCompleted] = useState({});
     const [playRecyclingAnimation, setPlayRecyclingAnimation] = useState({});
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
 
 
     // If fonts are not loaded, show a loading indicator within the component itself
@@ -68,7 +104,7 @@ const RecycleNow = () => {
 
         try {
             const formData = {
-                userID: 1,
+                userID: user.userID,
                 email: values.email,
                 firstName: values.firstName,
                 lastName: values.lastName,
@@ -94,10 +130,13 @@ const RecycleNow = () => {
                 return;
             }
 
+            console.log(`Saved recycling for ${user.firstName}`);
+
             Alert.alert("Success", "Recycling successfully logged!");
             resetForm();
         } catch (error) {
             console.error('Error:', error);
+            console.log(`Couldn't save recycling for ${user.firstName}`);
             Alert.alert("Error", "An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);
@@ -114,15 +153,12 @@ const RecycleNow = () => {
                     resizeMode="stretch"
                     style = {styles.image}>
                     <View style={styles.recContainer}>
-                        //
-                        {/*<Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>*/}
                         <View style={styles.formContainer}>
                             <View style = {styles.top}>
                                 <View style = {styles.exitRow}>
-                                    // Todo removed Navigitation as it caused a nested Navigition error
-                                    {/*<TouchableOpacity onPress={() => navigation.goBack()}>
+                                    <TouchableOpacity>
                                         <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
-                                    </TouchableOpacity>*/}
+                                    </TouchableOpacity>
                                     <Text style={styles.titleText}>Recycle Now</Text>
                                 </View>
                                 <View style={styles.separator} />
@@ -130,7 +166,7 @@ const RecycleNow = () => {
 
                             <Formik
                                 initialValues={{
-                                    userID: 1,
+                                    userID: user.userID,
                                     email: '',
                                     firstName: '',
                                     lastName: '',
@@ -145,9 +181,8 @@ const RecycleNow = () => {
                                         <Text style = { styles.formHeaders }> Send Your Recycling: </Text>
                                         <Text style = { styles.infoText}> * indicates a required field </Text>
 
-                                        {/*TODO: submit userID from session*/}
                                         <TextInput
-                                            // onChangeText={handleChange('userID')}
+                                            //onChangeText={handleChange('userID')}
                                             // onBlur={handleBlur('userID')}
                                             value={values.userID}
                                             editable={false}
@@ -237,87 +272,149 @@ const RecycleNow = () => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor:'#93D3AE',
+        flex:1,
     },
     image: {
-//
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '100%',
         height: '100%',
     },
     recContainer: {
-        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
-        alignItems: 'center',
+        position: 'relative',
+        width: '90%',
+        bottom: '16%'
     },
-    formContainer: {
-        width: '85%',
-        backgroundColor: 'rgba(255, 255, 255, 0.75)',
-        borderRadius: 10,
-        padding: 15,
-        marginTop: 30,
+    // logo: {
+    //     resizeMode: 'contain' as ImageStyle['resizeMode'],
+    //     width: 260,
+    //     position:'relative',
+    //     top: '15%'
+    // },
+    exitRow: {
+        flexDirection: 'row'
     },
     titleText: {
         fontFamily: 'shrikhand',
-        fontSize: 26,
+        fontSize: 30,
         color: '#219281FF',
+        marginLeft: 15,
+        marginBottom: '2%'
+    },
+    backIcon: {
+        transform: [{ rotate: '180deg' }],
+        color: '#93D3AE',
+    },
+    formContainer: {
+        height: '70%',
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        padding: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.75)',
+        borderRadius: 10,
+        position: 'relative',
+        paddingTop: 55,
+
+    },
+    formHeader: {
+        fontFamily: 'shrikhand',
+        color: '#219281FF',
+        fontSize: 28,
         textAlign: 'center',
-        marginBottom: 10,
+        marginBottom: '5%',
+    },
+    label: {
+        fontSize: 16,
+        marginBottom: 5,
+        color: '#212121',
+        fontFamily: 'sulphurPoint',
+    },
+    input: {
+        height: 30,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        marginBottom: 12,
+        paddingLeft: 10,
+        borderRadius: 4,
+        fontFamily: 'sulphurPoint',
+        color: '#219281FF',
+    },
+    submitBtnContainer: {
+        margin: '10%',
+        width: 'auto',
+    },
+    submitButton: {
+        backgroundColor: '#219281FF',
+        display: "flex",
+        flexDirection: 'row-reverse',
+        justifyContent: 'center',
+        padding: 10,
+        alignItems: "center",
+        borderRadius: 5,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 2,
+            height: 2,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 5,
+        margin: 5,
+
+    },
+    buttonText: {
+        fontFamily: 'sulphurPoint',
+        color: '#93D3AE',
+        fontSize: 20,
+        marginRight: 15,
+    },
+    form:{
+        marginTop: 10,
     },
     formHeaders: {
         fontFamily: 'sulphurPoint_Bold',
-        fontSize: 20,
+        fontSize: 28,
         color: '#219281FF',
-        paddingBottom: 10,
+        paddingBottom: 15
     },
     infoText: {
         fontFamily: 'sulphurPoint',
         color: '#FF0000',
         textAlign: 'right',
+        marginTop: 5,
+        marginBottom:5 ,
     },
-    label: {
-        fontSize: 14,
-        marginBottom: 4,
-        color: '#212121',
-        fontFamily: 'sulphurPoint',
+    top: {
+        flexDirection: 'column',
     },
-    input: {
-        height: 36,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        marginBottom: 10,
-        paddingLeft: 8,
-        borderRadius: 4,
-        color: '#219281FF',
+    separator: {
+        height: 1,
+        backgroundColor: 'rgba(55,55,55,0.18)',
+        marginVertical: 3,
+        width: '100%',
+    },
+    recAnimationModal: {
+        width: '20%',
+        height: undefined,
+        aspectRatio: 1
+    },
+    formFilled:{
+        position: 'relative',
+        bottom: '2%'
     },
     pickerStyleRec: {
         fontFamily: 'sulphurPoint',
-        fontSize: 13,
+        fontSize: 14,
         color: '#219281FF',
         backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        marginBottom: 10,
-    },
-    submitButton: {
-        backgroundColor: '#219281FF',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        padding: 8,
-        alignItems: "center",
-        borderRadius: 5,
-        marginTop: 15,
-    },
-    buttonText: {
-        fontFamily: 'sulphurPoint',
-        color: '#93D3AE',
-        fontSize: 18,
-    },
-    recAnimationModal: {
-        width: 36,
-        height: 36,
-        marginRight: 8,
-    },
+    }
 
 
 });
+
 
 export default RecycleNow;

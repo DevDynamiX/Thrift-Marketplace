@@ -13,7 +13,8 @@ export class RecyclingController {
     async all(request: Request, response: Response, next: NextFunction) {
         try {
             const recycling = await this.recyclingRepository.find({
-                order: {createdAt: "asc", id: 'asc'}
+                relations: ['user'],
+                order: { createdAt: "asc", id: 'asc' }
             });
             return response.json(recycling);
         } catch (error) {

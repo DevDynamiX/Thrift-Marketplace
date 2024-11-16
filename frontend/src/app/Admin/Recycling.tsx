@@ -19,10 +19,14 @@ import { Formik } from 'formik';
 import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
 
+//TODO: GET USER ID
 const ViewRecycling = () => {
     const [discountedItems, setDiscountedItems] = useState([]);  // State to track discounted items
     const [recyclingItems, setRecyclingItems ] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
+
+    const [recyclingSectionItems, setRecyclingSectionItems] = useState([]);
+    const [discountedSectionItems, setDiscountedSectionItems] = useState([]);
 
     const [selectedItem, setSelectedItem] = useState(null);
 
@@ -57,21 +61,74 @@ const ViewRecycling = () => {
                 throw new Error('Failed to fetch Recycling data');
             }
             const data = await response.json();
-            setRecyclingItems(data);
+
+            console.log('Recycling: Backend Response: ', data);
+
+            const updatedRecyclingItems = data.map(item => ({
+                ...item,
+                discountApplied: false,
+            }));
+
+            return updatedRecyclingItems;
 
         } catch (error) {
             console.error('Error fetching Recycling data: ', error);
+            return [];
         }
     };
 
+    const fetchDiscounts =  async () => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch Discounts data');
+            }
+            const data = await response.json();
+
+            console.log('Discounts: Backend Response: ', data);
+
+            const updatedDiscountItems = data.map(item => ({
+                ...item,
+                discountApplied: true,
+            }));
+
+            return updatedDiscountItems;
+
+        } catch (error) {
+            console.error('Error fetching Discounts data: ', error);
+            return [];
+        }
+    }
+
     useEffect(() => {
-        fetchRecycling();
+        const categoriseItems = async () => {
+            try {
+                const recycling = await fetchRecycling();
+                setRecyclingItems(recycling);
+
+                const discounts = await fetchDiscounts();
+                setDiscountedItems(discounts);
+
+                const discountedIDs = discounts.map((discount) => discount.recycling?.id);
+
+                const updatedRecyclingItems = recycling.map((item) => ({ ...item, discountApplied: discountedIDs.includes(item.id) }));
+
+                const topItems =  updatedRecyclingItems.filter((item) => !item.discountApplied);
+                const bottomItems = updatedRecyclingItems.filter((item) => item.discountApplied);
+
+                setRecyclingSectionItems(topItems);
+                setDiscountedSectionItems(bottomItems);
+            } catch (error) {
+                console.error('Error fetching data: ', error);
+            }
+        }
+        categoriseItems();
     }, []);
 
-    //delete request
+
+    //delete request for recycling
     const handleItemDelete = async (id, discountApplied) => {
         try {
-
             if(discountApplied){
                 const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts/${id}`, {
                     method: 'DELETE',
@@ -79,9 +136,14 @@ const ViewRecycling = () => {
                         'Content-Type': 'application/json',
                     },
                 });
+
+                console.log("Attempting to delete discount with ID:", id);
+
                 if(!response.ok) {
                     throw new Error('Failed to remove discount!');
                 }
+
+                console.log("Deleted discount with ID:", id);
 
                 Alert.alert('Success', 'Discount Successfully removed from Recycling queue!');
             }else {
@@ -93,12 +155,19 @@ const ViewRecycling = () => {
                     },
                 });
 
+                console.log("Attempting to delete entry with ID:", id);
+
                 if (!response.ok) {
                     throw new Error('Failed to remove item!');
                 }
+
+                console.log("Deleted entry with ID:", id);
+
+
                 Alert.alert('Success', 'Item Successfully removed from Recycling queue!');
             }
             fetchRecycling()
+            fetchDiscounts()
         }catch (error){
             Alert.alert('Error', 'Could not remove entry or discount!');
             console.error('Error deleting item:', error)
@@ -108,6 +177,7 @@ const ViewRecycling = () => {
 
     //view recycling details
     const openEditModal = (item) => {
+        console.log('Opening modal for: ', item);
         console.log('opening modal for: ', item.id)
         setSelectedItem(item);
         setModalVisible(true);
@@ -148,12 +218,14 @@ const ViewRecycling = () => {
         return result;
     };
 
+    console.log('SelectedItem: ', selectedItem);
+
     //saving to discount table
     const handleDiscountUpload = async (values) => {
         const discountPercent = Number(values.discount);
 
         // Generate random string for the discount code
-        const random = Random(5);  // Assuming you have a function to generate a random string
+        const random = Random(5);
 
         if (!discountPercent) {
             Alert.alert('Please Select a discount percentage!');
@@ -166,10 +238,13 @@ const ViewRecycling = () => {
         const formData = {
             discountCode,
             recyclingId:selectedItem!.id,
-            userID: 1,
+            userID: selectedItem!.user.id,
         };
 
-        console.log('Recycle item ID: ', selectedItem.id);
+        console.log('Recycle item ID: ', selectedItem!.id);
+        console.log('User ID: ', selectedItem!.user.id );
+
+        console.log("Data being sent: ", formData)
 
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts`, {
@@ -180,14 +255,11 @@ const ViewRecycling = () => {
                 body: JSON.stringify(formData),
             });
 
-            // Check if response is okay before parsing
             if (response.ok) {
                 const responseText = await response.text();
                 let responseData = {};
                 try {
                     responseData = JSON.parse(responseText);
-                    console.log('Parsed Response:', responseData);
-
                     if (!responseData.success) {
                         Alert.alert('Error', 'Could not save discount.');
                         return;
@@ -196,8 +268,13 @@ const ViewRecycling = () => {
                     //TODO: send user an email with code
                     Alert.alert('Success', `Discount Code generated and saved for: ${selectedItem.firstName}`);
 
+                    console.log('Discount saved for recycling ID: ', selectedItem.id);
+
                     setDiscountedItems((prev) => [...prev, {...selectedItem, discountApplied: true}]);
                     setRecyclingItems((prev) => prev.filter(item => item.id !== selectedItem.id));
+
+                    console.log('Recycling items:', recyclingItems)
+                    console.log('Discount items:', discountedItems)
 
                     setModalVisible(false);
                 } catch (error) {
@@ -218,29 +295,32 @@ const ViewRecycling = () => {
         <View style={styles.productContainer}>
             <View style={styles.recDetails}>
                 <Text style={styles.recTitle}>{item.email}</Text>
-                <Text style = {styles.recBodyName}>{item.firstName} {item.lastName}</Text>
-                <Text style = {styles.recBody}>{item.description}</Text>
-                <Text style = {styles.recBody}>{item.dropoffLocation}</Text>
+                <Text style={styles.recBodyName}>
+                    {item.firstName} {item.lastName}
+                </Text>
+                <Text style={styles.recBody}>{item.description}</Text>
+                <Text style={styles.recBody}>{item.dropoffLocation}</Text>
 
                 <View style={styles.buttonContainer}>
-                    {!item.discountApplied ? (
+                    {!item.discountApplied && (
                         <TouchableOpacity
                             style={styles.editButton}
                             onPress={() => openEditModal(item)}
                         >
                             <Text style={styles.buttonText}>Accept</Text>
                         </TouchableOpacity>
-                    ): null}
+                    )}
 
-
-                    {item.discountApplied ? (
+                    {item.discountApplied && (
                         <TouchableOpacity
                             style={styles.deleteButton}
                             onPress={() => warnUser(item.id, true)}
                         >
                             <Text style={styles.buttonText}>Delete Discount</Text>
                         </TouchableOpacity>
-                    ):(
+                    )}
+
+                    {!item.discountApplied && (
                         <TouchableOpacity
                             style={styles.deleteButton}
                             onPress={() => warnUser(item.id, false)}
@@ -248,32 +328,30 @@ const ViewRecycling = () => {
                             <Text style={styles.buttonText}>Delete</Text>
                         </TouchableOpacity>
                     )}
-
                 </View>
-
-
             </View>
         </View>
     );
 
+    // Render Footer
     const renderFooter = () => {
-        if (discountedItems.length === 0) return null;
+        if (discountedSectionItems.length === 0) return null;
 
         return (
             <View>
-                <View style = {styles.separator}/>
-                <View style = {styles.discountsAppliedContainer}>
-                    <Text style = {styles.discountHeader}>Discounts Generated:</Text>
+                <View style={styles.separator} />
+                <View style={styles.discountsAppliedContainer}>
+                    <Text style={styles.discountHeader}>Discounts Generated:</Text>
                 </View>
                 <FlatList
-                    data = { discountedItems }
-                    renderItem={ renderProduct }
-                    keyExtractor={(item) => item.id}
+                    data={discountedSectionItems}
+                    renderItem={renderProduct}
+                    keyExtractor={(item) => item.id.toString()}
                     showsVerticalScrollIndicator={false}
                 />
             </View>
-        )
-    }
+        );
+    };
 
     return (
         <ImageBackground
@@ -283,9 +361,9 @@ const ViewRecycling = () => {
             <View style={styles.container}>
                 <Text style={styles.header}>Manage Recycling</Text>
                 <FlatList
-                    data={recyclingItems}
+                    data={recyclingSectionItems}
                     renderItem={renderProduct}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.id.toString()}
                     showsVerticalScrollIndicator={false}
                     refreshControl={
                         <RefreshControl
