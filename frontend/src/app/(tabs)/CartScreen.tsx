@@ -381,15 +381,16 @@ const styles = StyleSheet.create({
         width:'90%',
         height: '100%',
         position: "relative",
-        bottom: '18%',
+        top: '7%',
         left: '5%',
     },
     pageContent: {
         display:'flex',
         flexDirection: 'column',
-        height: '54%',
+        height: '60%',
         width: '100%',
-        marginBottom: 50
+        marginBottom: 100,
+        bottom: '23%',
     },
 
     productCard: {
@@ -408,8 +409,7 @@ const styles = StyleSheet.create({
     },
     cartContainer: {
         backgroundColor: 'rgb(180,238,206)',
-        margin: 10,
-        padding: 16,
+        padding: 10,
         borderRadius: 10,
         shadowColor: '#000',
         shadowOffset: {
@@ -420,12 +420,13 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
         position: 'relative',
-        bottom: 70
+        bottom: '43%'
     },
     cartTitle: {
         fontFamily: 'sulphurPoint_Bold',
         color:'#333333',
-        fontSize: 20,
+        fontSize: 22,
+        marginLeft: 10
     },
     cartItem: {
         fontFamily: 'sulphurPoint',
@@ -484,8 +485,8 @@ const styles = StyleSheet.create({
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: '70%',
-        position: "static",
-        top: 160,
+        position: "relative",
+        //top:'80%',
         marginBottom: '8%',
     },
     separator: {
@@ -600,6 +601,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: 'green',
         marginTop: 4,
+        marginLeft: 10
     },
     itemDetails: {
         width:'100%',
@@ -613,11 +615,11 @@ const styles = StyleSheet.create({
     text: {
         fontFamily: 'sulphurPoint',
         color: 'rgba(55,55,55,0.7)',
-        fontSize: 16
+        fontSize: 16,
+        width: '55%'
     },
     salePriceText: {
         position:'relative',
-        right: '15%',
         fontSize: 18,
         textDecorationLine: 'line-through',
         color: 'gray',

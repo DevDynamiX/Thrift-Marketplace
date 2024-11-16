@@ -66,7 +66,7 @@ export class RecyclingController {
 
     // Remove a item
     async remove(req: Request, res: Response, next: NextFunction) {
-        const id = req.params.id;
+        const id = Number(req.params.id);
 
         if (!id) {
             return res.status(400).json({ error: 'Item ID is missing' });

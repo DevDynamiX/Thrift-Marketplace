@@ -97,7 +97,7 @@ export class DiscountsController {
 
     // Remove a item
     async remove(req: Request, res: Response, next: NextFunction) {
-        const recyclingID = req.params.id;
+        const recyclingID = Number(req.params.id);
 
         console.log("Recycling ID: ", recyclingID);
 
@@ -117,10 +117,10 @@ export class DiscountsController {
                 return res.status(404).json({ success: false, message: 'Discount Not Found!' });
             }
 
-            await this.discountsRepository.update(recyclingID, {userId:null});
+            //await this.discountsRepository.update(recyclingID, {user:null});
 
             if(discount.recycling){
-                await this.recyclingRepository.update(discount.recycling.id,{userId:null});
+                //await this.recyclingRepository.update(discount.recycling.id,{user:null});
                 await this.recyclingRepository.delete(discount.recycling.id);
             }
 

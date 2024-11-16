@@ -28,8 +28,6 @@ import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 import { router, useRouter} from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// Todo Removed due to causing Render Error Nested Navigation within Navigation
-// import {useNavigation} from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
@@ -349,70 +347,66 @@ const YourFavourites = () => {
                             {/*Recommended Row*/}
                             <View style={styles.favesRow}>
                                 <View style = {styles.exitRow}>
-                                    // Todo: Remove or find better implementation
-                                    {/*<TouchableOpacity onPress={() => navigation.goBack()}>*/}
-                                    {/*    <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />*/}
-                                    {/*</TouchableOpacity>*/}
                                     <Text style={styles.titleText}>Your Favourites</Text>
 
                                 </View>
 
-                                <ScrollView>
+                                <ScrollView showsVerticalScrollIndicator={false}>
                                     <View style={styles.favsImages}>
-                                    {likedItems.slice(0, 10).map((likedItem) => (
-                                        <TouchableOpacity key={likedItem.id} onPress={() => toggleItemModal(likedItem)} >
-                                            <View key={likedItem.id} style={styles.imageContainer}>
-                                                <Image style={styles.clothesImage}
-                                                       source={{uri: likedItem.unit.mainImage}}/>
+                                        {likedItems.slice(0, 10).map((likedItem) => (
+                                            <TouchableOpacity key={likedItem.id} onPress={() => toggleItemModal(likedItem)} >
+                                                <View key={likedItem.id} style={styles.imageContainer}>
+                                                    <Image style={styles.clothesImage}
+                                                           source={{uri: likedItem.unit.mainImage}}/>
 
-                                                {likedItem.unit.onSale && (
-                                                    <View style={styles.discountBanner}>
-                                                        <Text style={styles.discountText}>
-                                                            {`Now R${likedItem.unit.salePrice}`}
-                                                        </Text>
-                                                    </View>
-                                                )}
+                                                    {likedItem.unit.onSale && (
+                                                        <View style={styles.discountBanner}>
+                                                            <Text style={styles.discountText}>
+                                                                {`Now R${likedItem.unit.salePrice}`}
+                                                            </Text>
+                                                        </View>
+                                                    )}
 
-                                                <View style={styles.actionButtons}>
-                                                    <TouchableOpacity onPress={() => toggleFavourite(likedItem.unit.id)}>
-                                                        <Icon
-                                                            name={isFavourited[likedItem.unit.id] ? 'heart' : 'heart-outline'}
-                                                            style={[
-                                                                styles.staticHeart,
-                                                                isFavourited[likedItem.unit.id] && styles.filledHeart,
-                                                            ]}
-                                                            size={30}
-                                                        />
-                                                    </TouchableOpacity>
-
-                                                    <TouchableOpacity onPress={() => toggleCart(likedItem.unit.id)}>
-                                                        {isAddedToCart[likedItem.unit.id] && playCartAnimation[likedItem.unit.id] ? (
-                                                            <LottieView
-                                                                source={require('@assets/animations/cartAnimation.json')}
-                                                                autoPlay
-                                                                loop={false}
-                                                                onAnimationFinish={() => handleAnimationFinish(likedItem.unit.id)}
-                                                                style = { styles.cartAnimation }
-                                                            />
-                                                        ) : (
+                                                    <View style={styles.actionButtons}>
+                                                        <TouchableOpacity onPress={() => toggleFavourite(likedItem.unit.id)}>
                                                             <Icon
-                                                                name={isAddedToCart[likedItem.unit.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                name={isFavourited[likedItem.unit.id] ? 'heart' : 'heart-outline'}
                                                                 style={[
-                                                                    styles.staticCart,
-                                                                    isAddedToCart[likedItem.unit.id] && styles.filledCart
+                                                                    styles.staticHeart,
+                                                                    isFavourited[likedItem.unit.id] && styles.filledHeart,
                                                                 ]}
-                                                                size={32}
+                                                                size={30}
                                                             />
-                                                        )}
-                                                    </TouchableOpacity>
+                                                        </TouchableOpacity>
+
+                                                        <TouchableOpacity onPress={() => toggleCart(likedItem.unit.id)}>
+                                                            {isAddedToCart[likedItem.unit.id] && playCartAnimation[likedItem.unit.id] ? (
+                                                                <LottieView
+                                                                    source={require('@assets/animations/cartAnimation.json')}
+                                                                    autoPlay
+                                                                    loop={false}
+                                                                    onAnimationFinish={() => handleAnimationFinish(likedItem.unit.id)}
+                                                                    style = { styles.cartAnimation }
+                                                                />
+                                                            ) : (
+                                                                <Icon
+                                                                    name={isAddedToCart[likedItem.unit.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                    style={[
+                                                                        styles.staticCart,
+                                                                        isAddedToCart[likedItem.unit.id] && styles.filledCart
+                                                                    ]}
+                                                                    size={32}
+                                                                />
+                                                            )}
+                                                        </TouchableOpacity>
+                                                    </View>
                                                 </View>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                    <View style = {styles.addMore}>
-                                        <CustomButton  path="(tabs)/HomeScreen" navigateTo={navigateTo} />
+                                            </TouchableOpacity>
+                                        ))}
+                                        <View style = {styles.addMore}>
+                                            <CustomButton  path="(tabs)/HomeScreen" navigateTo={navigateTo} />
+                                        </View>
                                     </View>
-                                </View>
                                 </ScrollView>
 
                             </View>
@@ -639,8 +633,6 @@ const styles = StyleSheet.create({
     container: {
         flex:1,
         backgroundColor:'#93D3AE',
-
-
     },
     image: {
          flex: 1,
@@ -653,22 +645,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         position: 'relative',
+        bottom: '17%'
     },
 
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: 260,
-        position:'static',
-        top: '1%',
-        right: '10%'
+        position:'relative',
+        right: '12%',
+        bottom: '47%'
     },
 
     //all the rows and titles
     favsGridContainer: {
         padding: 15,
         width: '90%',
-        position: "relative",
-        bottom: '13%',
+        position: "absolute",
+        top: '16%',
         backgroundColor: 'rgba(255,255,255,0.75)',
         borderRadius: 10,
     },
