@@ -12,13 +12,11 @@ export class Discounts {
     discountCode!: string;
 
     //relation with user table
-    @ManyToOne(() => User, (user) => user.Discounts)
+    @ManyToOne(() => User, (user) => user.discounts, {onDelete:'SET NULL'})
     @JoinColumn({name: 'userId'})
     user!: User;
 
-    @ManyToOne(() => Recycling, (Recycling) => Recycling.discounts)
+    @ManyToOne(() => Recycling, (Recycling) => Recycling.discounts, {onDelete:'CASCADE'})
     @JoinColumn({name: 'recyclingId'})
-    recycle!: Recycling;
-
-
+    recycling!: Recycling;
 }

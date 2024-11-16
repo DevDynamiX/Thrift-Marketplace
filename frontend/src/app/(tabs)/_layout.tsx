@@ -27,7 +27,7 @@ const TabsLayout = () => {
                     title: "Home",
                     tabBarIcon: ({ focused }) => (
                         <View style={{ alignItems: 'center' }}>
-                            <Ionicons name={focused ? 'home' : 'home-outline'} size={focused ? 40 : 24} color={focused ? '#219281' : '#219281'} />
+                            <Ionicons name={focused ? 'home' : 'home-outline'} size={focused ? 32 : 24} color={focused ? '#219281' : '#219281'} />
                         </View>
                     ),
                 }}
@@ -39,7 +39,7 @@ const TabsLayout = () => {
                     title: "Search",
                     tabBarIcon: ({ focused }) => (
                         <View style={{ alignItems: 'center' }}>
-                            <Ionicons name={focused ? 'search' : 'search-outline'} size={focused ? 40 : 24} color={focused ? '#219281' : '#219281'} />
+                            <Ionicons name={focused ? 'search' : 'search-outline'} size={focused ? 32 : 24} color={focused ? '#219281' : '#219281'} />
                         </View>
                     ),
                 }}
@@ -51,7 +51,7 @@ const TabsLayout = () => {
                     title: "Cart",
                     tabBarIcon: ({ focused }) => (
                         <View style={{ alignItems: 'center' }}>
-                            <Ionicons name={focused ? 'cart' : 'cart-outline'} size={focused ? 40 : 24} color={focused ? '#219281' : '#219281'} />
+                            <Ionicons name={focused ? 'cart' : 'cart-outline'} size={focused ? 32 : 24} color={focused ? '#219281' : '#219281'} />
                         </View>
                     ),
                 }}
@@ -63,7 +63,7 @@ const TabsLayout = () => {
                     title: "Profile",
                     tabBarIcon: ({ focused }) => (
                         <View style={{ alignItems: 'center' }}>
-                            <Ionicons name={focused ? 'person' : 'person-outline'} size={focused ? 40 : 24} color={focused ? '#219281' : '#219281'} />
+                            <Ionicons name={focused ? 'person' : 'person-outline'} size={focused ? 32 : 24} color={focused ? '#219281' : '#219281'} />
                         </View>
                     ),
                 }}

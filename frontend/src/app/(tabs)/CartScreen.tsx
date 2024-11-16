@@ -24,6 +24,7 @@ import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
 import {async} from "@firebase/util";
 import { checkUserSession } from "@/app/auth/LoginScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 interface Product {
@@ -36,8 +37,7 @@ const itemSize = width/3;
 
 
 const CartPage: React.FC = () => {
-    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, userName: null, userID: null})
-
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: 1})
 
     const [products, setProducts] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState([]);
@@ -58,15 +58,43 @@ const CartPage: React.FC = () => {
 
     //getting user data from session
     useEffect(() => {
-        const fetchUserSession = async () =>{
-            const sessionData = await checkUserSession();
-            setUser(sessionData);
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
 
-            console.log("Data in the session: ", sessionData);
-        }
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
 
-        fetchUserSession();
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
     }, []);
+
 
     if (!fontsLoaded) {
         return (
@@ -94,12 +122,13 @@ const CartPage: React.FC = () => {
 
     const fetchCart= async () => {
         setIsLoading(true);
-        const userID = user.userID;
+
         try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart?userID=${userID}`);
+            console.log("User ID: ", user.userID);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart?userID=${user.userID}`);
             const data = await response.json();
 
-            console.log(`Fetched ${user.userName}'s Cart:`, data);
+            console.log(`Fetched ${user.firstName}'s Cart:`, data);
 
             if(Array.isArray(data)) {
                 setCartItems(data);
@@ -145,7 +174,7 @@ const CartPage: React.FC = () => {
                             })
                                 .then(response => response.json())
                                 .then(data => {
-                                    console.log(`Item removed from ${user.userName}'s Cart:`, data);
+                                    console.log(`Item removed from ${user.firstName}'s Cart:`, data);
                                     setCartItems(prevCartItems  => prevCartItems.filter(item => item.id !== product.id));
                                     Alert.alert('Removed from Cart', `"${product.inventoryItem.itemName}" has been removed from your cart.`);
                                     fetchCart();
@@ -352,15 +381,16 @@ const styles = StyleSheet.create({
         width:'90%',
         height: '100%',
         position: "relative",
-        bottom: '18%',
+        top: '7%',
         left: '5%',
     },
     pageContent: {
         display:'flex',
         flexDirection: 'column',
-        height: '54%',
+        height: '60%',
         width: '100%',
-        marginBottom: 50
+        marginBottom: 100,
+        bottom: '23%',
     },
 
     productCard: {
@@ -379,8 +409,7 @@ const styles = StyleSheet.create({
     },
     cartContainer: {
         backgroundColor: 'rgb(180,238,206)',
-        margin: 10,
-        padding: 16,
+        padding: 10,
         borderRadius: 10,
         shadowColor: '#000',
         shadowOffset: {
@@ -391,12 +420,13 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
         position: 'relative',
-        bottom: 70
+        bottom: '43%'
     },
     cartTitle: {
         fontFamily: 'sulphurPoint_Bold',
         color:'#333333',
-        fontSize: 20,
+        fontSize: 22,
+        marginLeft: 10
     },
     cartItem: {
         fontFamily: 'sulphurPoint',
@@ -455,8 +485,8 @@ const styles = StyleSheet.create({
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: '70%',
-        position: "static",
-        top: 160,
+        position: "relative",
+        //top:'80%',
         marginBottom: '8%',
     },
     separator: {
@@ -571,6 +601,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: 'green',
         marginTop: 4,
+        marginLeft: 10
     },
     itemDetails: {
         width:'100%',
@@ -584,11 +615,11 @@ const styles = StyleSheet.create({
     text: {
         fontFamily: 'sulphurPoint',
         color: 'rgba(55,55,55,0.7)',
-        fontSize: 16
+        fontSize: 16,
+        width: '55%'
     },
     salePriceText: {
         position:'relative',
-        right: '15%',
         fontSize: 18,
         textDecorationLine: 'line-through',
         color: 'gray',

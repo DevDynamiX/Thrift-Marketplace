@@ -13,7 +13,8 @@ export class RecyclingController {
     async all(request: Request, response: Response, next: NextFunction) {
         try {
             const recycling = await this.recyclingRepository.find({
-                order: {createdAt: "asc", id: 'asc'}
+                relations: ['user'],
+                order: { createdAt: "asc", id: 'asc' }
             });
             return response.json(recycling);
         } catch (error) {
@@ -65,7 +66,7 @@ export class RecyclingController {
 
     // Remove a item
     async remove(req: Request, res: Response, next: NextFunction) {
-        const id = req.params.id;
+        const id = Number(req.params.id);
 
         if (!id) {
             return res.status(400).json({ error: 'Item ID is missing' });

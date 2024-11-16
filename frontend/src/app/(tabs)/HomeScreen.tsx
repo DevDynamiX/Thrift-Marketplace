@@ -25,6 +25,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 import { checkUserSession } from "@/app/auth/LoginScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Product {
     id: number;
@@ -39,7 +40,7 @@ const itemSize = width/3;
 
 const HomeScreen = React.memo(() => {
 
-    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, userName: null, userID: null})
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     const [fontsLoaded] = useFonts({
         'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
@@ -75,14 +76,41 @@ const HomeScreen = React.memo(() => {
 
     //getting user data from session
     useEffect(() => {
-        const fetchUserSession = async () =>{
-            const sessionData = await checkUserSession();
-            setUser(sessionData);
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
 
-            console.log("Data in the session: ", sessionData);
-        }
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
 
-        fetchUserSession();
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
     }, []);
 
     // If fonts are not loaded, show a loading indicator within the component itself
@@ -96,7 +124,7 @@ const HomeScreen = React.memo(() => {
 
     //saving liked items to table
     const toggleFavourite = (id) => {
-        console.log(`Toggling favourite for item with ID: ${id}`);
+        console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -121,29 +149,31 @@ const HomeScreen = React.memo(() => {
                 [id]: true,
             }));
 
-            console.log("Attempting to add like:", {itemID: id, userID: 1 });
+            console.log("Attempting to add like:", {itemID: id, userID: user.userID });
 
             setLikedItems((prevLikedItems = []) => {
-                const likedItem = prevLikedItems.some(item => item.id === id);
+                const items = Array.isArray(prevLikedItems) ? prevLikedItems : [];
+
+                const likedItem = items.some(item => item.id === id);
 
                 if (!likedItem) {
-
-                    // TODO: get userID from session
-                    const userID = user.userID;
-
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': "application/json",
                         },
-                        body: JSON.stringify({ itemID: id, userID: userID }),
+                        body: JSON.stringify({ itemID: id, userID: user.userID }),
                     })
                         .then(response => response.json())
                         .then(data => {
                             console.log('Item added to likes:', data);
+
                             if(data && data.likes) {
                                 console.log("Likes found: ", data.likes);
-                                setLikedItems((prevLikedItem) => [...prevLikedItems, {id}]);
+                                setLikedItems((prevLikedItems) => [
+                                    ...(Array.isArray(prevLikedItems) ? prevLikedItems : []),
+                                    { id },
+                                ]);
                             } else {
                                 console.error('Unexpected response data: ', data);
                             }
@@ -159,13 +189,12 @@ const HomeScreen = React.memo(() => {
                 [id]: false,
             }));
 
-            //TODO: change to userID
             fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(`Item removed from ${user.userName}'s likes:`, data);
+                    console.log(`Item removed from ${user.firstName}'s likes:`, data);
                     setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id != id));
                 })
                 .catch(error => {
@@ -176,7 +205,7 @@ const HomeScreen = React.memo(() => {
 
     //saving cart items to table
     const toggleCart = (id) => {
-        console.log(`Toggling cart for item with ID: ${id}`);
+        console.log(`Toggling cart for item with ID: ${id}, for ${user.firstName}. `);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -195,10 +224,8 @@ const HomeScreen = React.memo(() => {
             [id]: newAddedToCart,
         }));
 
-        const userID = user.userID;
-
         if (newAddedToCart) {
-            console.log("Attempting to add to cart:", { itemID: id, userID: userID });
+            console.log("Attempting to add to cart:", { itemID: id, userID: user.userID });
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -208,15 +235,14 @@ const HomeScreen = React.memo(() => {
             setCartItems((prevCartItems = []) => {
                 const existingItem = prevCartItems.some(item => item.id === id);
                 if (!existingItem) {
-                        console.log("Attempting to add to cart:", {itemID: id, userID: 1});
+                        console.log("Attempting to add to cart:", {itemID: id, userID: user.userID});
 
-                        // TODO: get userID from session
                         fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': "application/json",
                             },
-                            body: JSON.stringify({itemID: id, userID: 1}),
+                            body: JSON.stringify({itemID: id, userID: user.userID}),
                         })
                             .then(response => response.json())
                             .then((data) => {
@@ -233,14 +259,13 @@ const HomeScreen = React.memo(() => {
             });
         } else {
 
-            console.log(`Removing item ${id} from ${user.userName}'s cart`);
+            console.log(`Removing item ${id} from ${user.firstName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
                 [id]: false
             }))
 
-            //TODO: change to userID
             fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
@@ -252,7 +277,7 @@ const HomeScreen = React.memo(() => {
                         [id]: false,
                     }));
                 }).catch(error => {
-                    console.error(`Error removing from ${user.userName}'s 'Cart': `, error);
+                    console.error(`Error removing from ${user.firstName}'s 'Cart': `, error);
                 });
         }
     }
@@ -290,23 +315,23 @@ const HomeScreen = React.memo(() => {
 
     // fetch likes from Table
     const fetchLikes = async () => {
-        //TODO: GET USER ID
-        const userID = user.userID;
         try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${userID}`);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
-            console.log(`Fetched Likes for ${user.userName}:`, data);
+            console.log(`Fetched Likes for ${user.firstName}:`, data);
             setLikedItems(data);
 
             const updatedIsFavourited = {};
 
-            data.forEach(item => {
-                updatedIsFavourited[item.unit.id] = true;
-            });
+            if(data) {
+                data.forEach(item => {
+                    updatedIsFavourited[item.unit.id] = true;
+                });
+            }
             setIsFavourited(updatedIsFavourited);
 
         } catch (error) {
-            console.error(`Error fetching ${user.userName}'s 'Likes': `, error);
+            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);
         }
@@ -356,14 +381,13 @@ const HomeScreen = React.memo(() => {
                         />
                     }
                 >
-                    <Text>..</Text>
                     <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                     <ImageBackground
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-                        <Text>..</Text>
+                        <Text></Text>
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
@@ -371,7 +395,7 @@ const HomeScreen = React.memo(() => {
                             <View style={styles.rowsContainer}>
                                 {/*Recommended Row*/}
                                 <View style={styles.clothesRow}>
-                                    <Text style={styles.headerText}>Recommended for {user.userName ? user.userName : 'user'}</Text>
+                                    <Text style={styles.headerText}>Recommended for {user.firstName ? user.firstName : 'user'}</Text>
                                     <ScrollView
                                         horizontal
                                         showsHorizontalScrollIndicator={false}

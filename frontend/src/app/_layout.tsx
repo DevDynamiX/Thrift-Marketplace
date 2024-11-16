@@ -152,7 +152,7 @@ const RootLayout = () => {
         <Stack.Screen
             name="Admin/Recycling"
             options={{
-                title: "Recyling",
+                title: "Recycling",
                 headerStyle: {
                     backgroundColor: "#5CB7A5",
                 },

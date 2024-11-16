@@ -27,16 +27,15 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 import { router, useRouter} from "expo-router";
-// Todo Removed due to causing Render Error Nested Navigation within Navigation
-// import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
 const YourFavourites = () => {
     const router = useRouter();
-    // Todo Removed due to causing Render Error Nested Navigation within Navigation
-    // const navigation = useNavigation();
+
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -63,6 +62,44 @@ const YourFavourites = () => {
     const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
 
     // If fonts are not loaded, show a loading indicator within the component itself
     if (!fontsLoaded) {
@@ -109,15 +146,14 @@ const YourFavourites = () => {
         }
 
         if (isFavourited[id]) {
-            console.log("Attempting to remove like:", { itemID: id, userID: 1 });
+            console.log("Attempting to remove like:", { itemID: id, userID: user.userID });
 
-            //TODO: change to userID
-            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/1`, {
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Item removed from likes:', data);
+                    console.log("Item removed from ${user.firstName}'s likes:", data);
                     setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id !== id));
                     setIsFavourited(prev => ({
                         ...prev,
@@ -157,7 +193,7 @@ const YourFavourites = () => {
         }));
 
         if (newAddedToCart) {
-            console.log("Attempting to add to cart:", { itemID: id, userID: 1 });
+            console.log("Attempting to add to ${user.firstName}'s cart:", { itemID: id, userID: user.userID });
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -167,15 +203,14 @@ const YourFavourites = () => {
             setCartItems((prevCartItems = []) => {
                 const existingItem = prevCartItems.some(item => item.id === id);
                 if (!existingItem) {
-                    console.log("Attempting to add to cart:", {itemID: id, userID: 1});
+                    console.log("Attempting to add to cart:", {itemID: id, userID: user.userID});
 
-                    // TODO: get userID from session
                     fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': "application/json",
                         },
-                        body: JSON.stringify({itemID: id, userID: 1}),
+                        body: JSON.stringify({itemID: id, userID: user.userID}),
                     })
                         .then(response => response.json())
                         .then((data) => {
@@ -199,8 +234,7 @@ const YourFavourites = () => {
                 [id]: false
             }))
 
-            //TODO: change to userID
-            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/1`, {
+            fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then((response) => response.json())
@@ -229,14 +263,18 @@ const YourFavourites = () => {
 
     // fetch likes from Table
     const fetchLikes = async () => {
-        //TODO: GET USER ID
-        const userID = '1';
         try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${userID}`);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
-            console.log("Fetched Likes:", data);
-            setLikedItems(data);
 
+            console.log(`Fetched ${user.firstName}'s Likes:`, data);
+
+            if(!Array.isArray(data)){
+                console.error("Fetched data is not in an array: ", data);
+                setLikedItems([]);
+            }else {
+                setLikedItems(data);
+            }
         } catch (error) {
             console.error("Error fetching 'Likes': ", error);
         } finally {
@@ -253,10 +291,10 @@ const YourFavourites = () => {
         const updatedIsFavourited = {};
 
         likedItems.forEach(item => {
-            updatedIsFavourited[item.unit.id] = true;  // Mark liked items as true in isFavourited
+            updatedIsFavourited[item.unit.id] = true;
         });
 
-        setIsFavourited(updatedIsFavourited);  // Update the state with the liked items
+        setIsFavourited(updatedIsFavourited);
     }, [likedItems]);
 
     if(isLoading){
@@ -309,70 +347,66 @@ const YourFavourites = () => {
                             {/*Recommended Row*/}
                             <View style={styles.favesRow}>
                                 <View style = {styles.exitRow}>
-                                    // Todo: Remove or find better implementation
-                                    {/*<TouchableOpacity onPress={() => navigation.goBack()}>*/}
-                                    {/*    <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />*/}
-                                    {/*</TouchableOpacity>*/}
                                     <Text style={styles.titleText}>Your Favourites</Text>
 
                                 </View>
 
-                                <ScrollView>
+                                <ScrollView showsVerticalScrollIndicator={false}>
                                     <View style={styles.favsImages}>
-                                    {likedItems.slice(0, 10).map((likedItem) => (
-                                        <TouchableOpacity key={likedItem.id} onPress={() => toggleItemModal(likedItem)} >
-                                            <View key={likedItem.id} style={styles.imageContainer}>
-                                                <Image style={styles.clothesImage}
-                                                       source={{uri: likedItem.unit.mainImage}}/>
+                                        {likedItems.slice(0, 10).map((likedItem) => (
+                                            <TouchableOpacity key={likedItem.id} onPress={() => toggleItemModal(likedItem)} >
+                                                <View key={likedItem.id} style={styles.imageContainer}>
+                                                    <Image style={styles.clothesImage}
+                                                           source={{uri: likedItem.unit.mainImage}}/>
 
-                                                {likedItem.unit.onSale && (
-                                                    <View style={styles.discountBanner}>
-                                                        <Text style={styles.discountText}>
-                                                            {`Now R${likedItem.unit.salePrice}`}
-                                                        </Text>
-                                                    </View>
-                                                )}
+                                                    {likedItem.unit.onSale && (
+                                                        <View style={styles.discountBanner}>
+                                                            <Text style={styles.discountText}>
+                                                                {`Now R${likedItem.unit.salePrice}`}
+                                                            </Text>
+                                                        </View>
+                                                    )}
 
-                                                <View style={styles.actionButtons}>
-                                                    <TouchableOpacity onPress={() => toggleFavourite(likedItem.unit.id)}>
-                                                        <Icon
-                                                            name={isFavourited[likedItem.unit.id] ? 'heart' : 'heart-outline'}
-                                                            style={[
-                                                                styles.staticHeart,
-                                                                isFavourited[likedItem.unit.id] && styles.filledHeart,
-                                                            ]}
-                                                            size={30}
-                                                        />
-                                                    </TouchableOpacity>
-
-                                                    <TouchableOpacity onPress={() => toggleCart(likedItem.unit.id)}>
-                                                        {isAddedToCart[likedItem.unit.id] && playCartAnimation[likedItem.unit.id] ? (
-                                                            <LottieView
-                                                                source={require('@assets/animations/cartAnimation.json')}
-                                                                autoPlay
-                                                                loop={false}
-                                                                onAnimationFinish={() => handleAnimationFinish(likedItem.unit.id)}
-                                                                style = { styles.cartAnimation }
-                                                            />
-                                                        ) : (
+                                                    <View style={styles.actionButtons}>
+                                                        <TouchableOpacity onPress={() => toggleFavourite(likedItem.unit.id)}>
                                                             <Icon
-                                                                name={isAddedToCart[likedItem.unit.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                name={isFavourited[likedItem.unit.id] ? 'heart' : 'heart-outline'}
                                                                 style={[
-                                                                    styles.staticCart,
-                                                                    isAddedToCart[likedItem.unit.id] && styles.filledCart
+                                                                    styles.staticHeart,
+                                                                    isFavourited[likedItem.unit.id] && styles.filledHeart,
                                                                 ]}
-                                                                size={32}
+                                                                size={30}
                                                             />
-                                                        )}
-                                                    </TouchableOpacity>
+                                                        </TouchableOpacity>
+
+                                                        <TouchableOpacity onPress={() => toggleCart(likedItem.unit.id)}>
+                                                            {isAddedToCart[likedItem.unit.id] && playCartAnimation[likedItem.unit.id] ? (
+                                                                <LottieView
+                                                                    source={require('@assets/animations/cartAnimation.json')}
+                                                                    autoPlay
+                                                                    loop={false}
+                                                                    onAnimationFinish={() => handleAnimationFinish(likedItem.unit.id)}
+                                                                    style = { styles.cartAnimation }
+                                                                />
+                                                            ) : (
+                                                                <Icon
+                                                                    name={isAddedToCart[likedItem.unit.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                    style={[
+                                                                        styles.staticCart,
+                                                                        isAddedToCart[likedItem.unit.id] && styles.filledCart
+                                                                    ]}
+                                                                    size={32}
+                                                                />
+                                                            )}
+                                                        </TouchableOpacity>
+                                                    </View>
                                                 </View>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                    <View style = {styles.addMore}>
-                                        <CustomButton  path="(tabs)/HomeScreen" navigateTo={navigateTo} />
+                                            </TouchableOpacity>
+                                        ))}
+                                        <View style = {styles.addMore}>
+                                            <CustomButton  path="(tabs)/HomeScreen" navigateTo={navigateTo} />
+                                        </View>
                                     </View>
-                                </View>
                                 </ScrollView>
 
                             </View>
@@ -599,8 +633,6 @@ const styles = StyleSheet.create({
     container: {
         flex:1,
         backgroundColor:'#93D3AE',
-
-
     },
     image: {
          flex: 1,
@@ -613,22 +645,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         position: 'relative',
+        bottom: '17%'
     },
 
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: 260,
-        position:'static',
-        top: '1%',
-        right: '10%'
+        position:'relative',
+        right: '12%',
+        bottom: '47%'
     },
 
     //all the rows and titles
     favsGridContainer: {
         padding: 15,
         width: '90%',
-        position: "relative",
-        bottom: '13%',
+        position: "absolute",
+        top: '16%',
         backgroundColor: 'rgba(255,255,255,0.75)',
         borderRadius: 10,
     },

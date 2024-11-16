@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, StyleSheet } from 'react-native';
+import {View, FlatList, Text, StyleSheet, StatusBar, ImageBackground, Image, ScrollView} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from "expo-constants";
+import {handleLogout} from "@/app";
 
 interface Order {
     orderNumber: number;
@@ -16,6 +17,47 @@ const OrdersTable: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
+
+    //getting user data from session
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
 
     useEffect(() => {
         const fetchUserEmail = async () => {
@@ -97,7 +139,14 @@ const OrdersTable: React.FC = () => {
 
     if (error) {
         return (
-            <SafeAreaView style={styles.container}>
+            <>
+            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
+
+            <ImageBackground
+                source={require('@assets/images/TMBackground.png')} // Replace with your background image
+                style={styles.backgroundImage}
+            >
+                <SafeAreaView style={styles.container}>
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>Error: {error}</Text>
                     <Text
@@ -112,6 +161,8 @@ const OrdersTable: React.FC = () => {
                     </Text>
                 </View>
             </SafeAreaView>
+            </ImageBackground>
+        </>
         );
     }
 
@@ -180,7 +231,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginVertical: 8,
         borderRadius: 8,
-        backgroundColor: '#f9f9f9',
+        //backgroundColor: '#f9f9f9',
     },
     orderNumber: {
         fontSize: 16,
@@ -206,6 +257,21 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         color: '#666',
+    },
+    backgroundImage: {
+        width: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: -1,
+        resizeMode: 'cover',
+    },
+    safeArea: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+        bottom: '24%',
+        width: '100%',
     },
 });
 

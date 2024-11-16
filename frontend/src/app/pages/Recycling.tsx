@@ -1,3 +1,4 @@
+
 import React, {
     useState,
     useEffect,
@@ -24,11 +25,10 @@ import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-// Todo removed Navigitation as it caused a nested Navigition error
-// import {useNavigation} from '@react-navigation/native';
 import { Formik } from 'formik';
 import {Picker} from "@react-native-picker/picker";
 import {hidden} from "colorette";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const { width } = Dimensions.get('window');
@@ -36,8 +36,7 @@ const itemSize = width/3;
 
 //TODO: GET USER ID FOR FIELDS
 const RecycleNow = () => {
-    // Todo removed Navigitation as it caused a nested Navigition error
-    // const navigation = useNavigation();
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
@@ -48,9 +47,48 @@ const RecycleNow = () => {
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+
     const [isRecyclingAnimationCompleted, setIsRecyclingAnimationCompleted] = useState({});
     const [playRecyclingAnimation, setPlayRecyclingAnimation] = useState({});
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
 
 
     // If fonts are not loaded, show a loading indicator within the component itself
@@ -68,7 +106,7 @@ const RecycleNow = () => {
 
         try {
             const formData = {
-                userID: 1,
+                userID: user.userID,
                 email: values.email,
                 firstName: values.firstName,
                 lastName: values.lastName,
@@ -94,10 +132,13 @@ const RecycleNow = () => {
                 return;
             }
 
+            console.log(`Saved recycling for ${user.firstName}`);
+
             Alert.alert("Success", "Recycling successfully logged!");
             resetForm();
         } catch (error) {
             console.error('Error:', error);
+            console.log(`Couldn't save recycling for ${user.firstName}`);
             Alert.alert("Error", "An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);
@@ -114,23 +155,15 @@ const RecycleNow = () => {
                     resizeMode="stretch"
                     style = {styles.image}>
                     <View style={styles.recContainer}>
-                        //
-                        {/*<Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>*/}
                         <View style={styles.formContainer}>
                             <View style = {styles.top}>
-                                <View style = {styles.exitRow}>
-                                    // Todo removed Navigitation as it caused a nested Navigition error
-                                    {/*<TouchableOpacity onPress={() => navigation.goBack()}>
-                                        <Icon name="chevron-forward-outline" style={styles.backIcon} size={30} />
-                                    </TouchableOpacity>*/}
                                     <Text style={styles.titleText}>Recycle Now</Text>
-                                </View>
                                 <View style={styles.separator} />
                             </View>
 
                             <Formik
                                 initialValues={{
-                                    userID: 1,
+                                    userID: user.userID,
                                     email: '',
                                     firstName: '',
                                     lastName: '',
@@ -145,9 +178,8 @@ const RecycleNow = () => {
                                         <Text style = { styles.formHeaders }> Send Your Recycling: </Text>
                                         <Text style = { styles.infoText}> * indicates a required field </Text>
 
-                                        {/*TODO: submit userID from session*/}
                                         <TextInput
-                                            // onChangeText={handleChange('userID')}
+                                            //onChangeText={handleChange('userID')}
                                             // onBlur={handleBlur('userID')}
                                             value={values.userID}
                                             editable={false}
@@ -241,7 +273,6 @@ const styles = StyleSheet.create({
         backgroundColor:'#93D3AE',
     },
     image: {
-//
         width: '100%',
         height: '100%',
     },
@@ -254,8 +285,10 @@ const styles = StyleSheet.create({
         width: '85%',
         backgroundColor: 'rgba(255, 255, 255, 0.75)',
         borderRadius: 10,
+        position: 'relative',
+        paddingTop: 30,
         padding: 15,
-        marginTop: 30,
+
     },
     titleText: {
         fontFamily: 'shrikhand',
@@ -269,15 +302,18 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: '#219281FF',
         paddingBottom: 10,
+        textAlign: 'center'
     },
     infoText: {
         fontFamily: 'sulphurPoint',
         color: '#FF0000',
         textAlign: 'right',
+        marginTop: 10,
     },
     label: {
-        fontSize: 14,
+        fontSize: 16,
         marginBottom: 4,
+        marginLeft: 10,
         color: '#212121',
         fontFamily: 'sulphurPoint',
     },
@@ -315,6 +351,15 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         marginRight: 8,
+    },
+    separator: {
+        alignSelf: 'center',
+        height: 2,
+        width: '80%',
+        backgroundColor: 'rgba(71,67,67,0.5)',
+        marginTop: 5,
+        marginBottom: 15,
+        borderRadius: 2,
     },
 
 

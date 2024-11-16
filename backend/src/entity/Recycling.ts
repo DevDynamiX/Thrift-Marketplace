@@ -27,11 +27,11 @@ export class Recycling {
     createdAt!: Date;
 
     //creating discount ID
-    @OneToMany(() => Discounts, (Discounts) => Discounts.recycle)
+    @OneToMany(() => Discounts, (Discounts) => Discounts.recycling)
     discounts?: Discounts[];
 
     //link user ID to user table
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.Recycling, {onDelete: "SET NULL"})
     @JoinColumn({name: 'userId'})
     user!: User;
 
