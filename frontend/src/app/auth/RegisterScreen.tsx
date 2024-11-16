@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { router } from "expo-router";
 import Constants from 'expo-constants';
+import { Picker } from "@react-native-picker/picker";
 import { Firebase_Auth } from "@/firebaseConfig";
 import { createUserWithEmailAndPassword } from "@firebase/auth";
 
@@ -23,7 +24,7 @@ const SignUp = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [gender, setGender] = useState('');
+    const [gender, setGender] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [isFocus, setIsFocus] = useState(false);
 
@@ -56,6 +57,7 @@ const SignUp = () => {
                     lastName: lastName,
                     email: email,
                     password: password,
+                    gender: gender,
                 }),
             });
 
@@ -138,6 +140,18 @@ const SignUp = () => {
                                     style={styles.inputControl}
                                     value={email}
                                 />
+                            </View>
+                            <View style={styles.input}>
+                                <Text style={styles.inputLabel}>Gender</Text>
+                                <Picker
+                                    selectedValue={gender}
+                                    onValueChange={(itemValue) => setGender(itemValue)}
+                                >
+                                    <Picker.Item label="Select Gender" value="" />
+                                    <Picker.Item label="Male" value="male" />
+                                    <Picker.Item label="Female" value="female" />
+                                    <Picker.Item label="Other" value="other" />
+                                </Picker>
                             </View>
                             <View style={styles.input}>
                                 <Text style={styles.inputLabel}>Password</Text>
