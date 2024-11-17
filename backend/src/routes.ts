@@ -192,4 +192,10 @@ export const Routes = [
         controller: CartController,
         action: "clearCart",
     },
+    {
+        method: "put",
+        route: "/orders/:orderNumber/status",
+        controller: OrderController,
+        action: "updateOrderStatus",
+    }
 ];
