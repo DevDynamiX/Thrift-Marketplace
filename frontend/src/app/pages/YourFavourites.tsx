@@ -259,31 +259,47 @@ const YourFavourites = () => {
         }));
     }
 
+    let isFetching = false;
+
     // fetch likes from Table
-    const fetchLikes = async () => {
+    const fetchLikes = async ( isRefresh = false) => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+         if (isFetching) return; 
+            isFetching = true;
+            
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
 
             console.log(`Fetched ${user.firstName}'s Likes:`, data);
 
-            if(!Array.isArray(data)){
-                console.error("Fetched data is not in an array: ", data);
+            if (!data.success) {
+                console.error("Backend error:", data.message);
                 setLikedItems([]);
-            }else {
-                setLikedItems(data);
+            } else {
+                setLikedItems(data.likes || []);
             }
         } catch (error) {
             console.error("Error fetching 'Likes': ", error);
         } finally {
             setIsLoading(false);
+            isFetching = false; 
         }
     };
 
     useEffect(() => {
-        setIsLoading(true);
-        fetchLikes();
-    }, []);
+        if (user.userID) {
+            console.log("UserID available, fetching likes.");
+            setIsLoading(true);
+            fetchLikes();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
 
     useEffect(() => {
         const updatedIsFavourited = {};
@@ -327,7 +343,7 @@ const YourFavourites = () => {
                 refreshControl={
                     <RefreshControl
                         refreshing={isLoading}
-                        onRefresh={fetchLikes}
+                        onRefresh={() => fetchLikes(true)}
                     />
                 }
                 contentContainerStyle={styles.scrollViewContent}

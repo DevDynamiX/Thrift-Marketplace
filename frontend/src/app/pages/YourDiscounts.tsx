@@ -4,17 +4,15 @@ import {
     Text,
     FlatList,
     Image,
-    Button,
     StyleSheet,
-    TextInput,
-    Modal,
     Alert,
     TouchableOpacity,
     ImageBackground,
-    ScrollView, RefreshControl,  KeyboardAvoidingView, Platform, TouchableWithoutFeedback
+    RefreshControl,
+    Platform,
+    Clipboard
 } from 'react-native';
 import  { useFonts } from 'expo-font';
-import Clipboard from '@react-native-clipboard/clipboard';
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -72,8 +70,17 @@ const ViewDiscounts = () => {
         fetchUser();
     }, []);
 
-    const fetchUserDiscounts = async () => {
-        if (!user.userID) return;
+    let isFetching = false;
+
+    const fetchUserDiscounts = async (isRefresh = false) => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts/${user.userID}`);
             if (!response.ok) {
@@ -87,15 +94,22 @@ const ViewDiscounts = () => {
             setDiscounts(data);
         } catch (error) {
             console.error('Error fetching discounts data: ', error);
+        } finally {
+            setIsLoading(false);
+            isFetching = false;
         }
     };
 
-// useEffect to fetch data on mount
     useEffect(() => {
-        if (user.isLoggedIn && user.userID) {
+        if (user.userID) {
+            console.log("UserID available, fetching discounts.");
+            setIsLoading(true);
             fetchUserDiscounts();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
         }
-        }, []);
+    }, [user.userID]);
+
 
     const openEditModal = (item) => {
         setSelectedItem(item);
@@ -107,10 +121,11 @@ const ViewDiscounts = () => {
         setModalVisible(false);
     };
 
-    const copyToClipboard = (text) => {
-        Clipboard.setString(text);
-        Alert.alert('Success', 'Code copied to clipboard!');
-    };
+     const copyToClipboard = (text) => {
+         Clipboard.setString(text);
+         Alert.alert('Copied to clipboard!');
+     };
+
 
     const renderDiscount = ({ item }) => {
         if (!item) return null;
@@ -131,8 +146,7 @@ const ViewDiscounts = () => {
                 </Text>
                 <TouchableOpacity
                     style={styles.copyButton}
-                    onPress={() => copyToClipboard(item.discountCode)}
-                >
+                    onPress={() => copyToClipboard(item.discountCode)}>
                     <Text style={styles.buttonText}>Copy Code</Text>
                 </TouchableOpacity>
             </View>
@@ -156,7 +170,7 @@ const ViewDiscounts = () => {
                     refreshControl={
                         <RefreshControl
                             refreshing={isLoading}
-                            onRefresh={fetchUserDiscounts}
+                            onRefresh={() => fetchUserDiscounts(true)}
                         />
                     }
                     showsVerticalScrollIndicator={false}
@@ -203,7 +217,7 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 5,
     },
-    discountContainer:{
+    codeContainer:{
         position: 'relative',
         top: '10%',
         backgroundColor: '#ffffff',
@@ -213,11 +227,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 10,
         elevation: 5,
-    },
-    codeContainer:{
         width: '100%',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        marginBottom: 15,
     },
     discountsInfo:{
         margin:10,
@@ -276,8 +289,6 @@ const styles = StyleSheet.create({
         top: '5%',
         transform: [{ rotate: '-45deg' }]
     },
-
-
 });
 
 export default ViewDiscounts;

@@ -251,6 +251,7 @@ const SearchScreen = () => {
     //render error could be here
     //fetch inventory from Table
     const fetchInventory = async () => {
+        if (!inventoryItems) return;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
             const data = await response.json();
@@ -270,6 +271,8 @@ const SearchScreen = () => {
 
     // fetch likes from Table
     const fetchLikes = async () => {
+        if (!user.userID) return;
+        if (!likedItems) return;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
@@ -286,6 +289,7 @@ const SearchScreen = () => {
             setIsFavourited(updatedIsFavourited);
 
         } catch (error) {
+            if (!likedItems) return;
             console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);

@@ -313,8 +313,18 @@ const HomeScreen = React.memo(() => {
         fetchInventory().finally(() => setIsLoading(false));
     }, []);
 
+    let isFetching = false;
+
     // fetch likes from Table
     const fetchLikes = async () => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
@@ -334,13 +344,18 @@ const HomeScreen = React.memo(() => {
             console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);
-        }
+            isFetching = false;         }
     };
 
     useEffect(() => {
-        setIsLoading(true);
-        fetchLikes();
-    }, []);
+        if (user.userID) {
+            console.log("UserID available, fetching likes.");
+            setIsLoading(true);
+            fetchLikes();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
 
@@ -387,7 +402,6 @@ const HomeScreen = React.memo(() => {
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-                        <Text></Text>
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
@@ -869,6 +883,7 @@ const HomeScreen = React.memo(() => {
                                 </Modal>
                             </View>
                         </View>
+                        <Text></Text>
                     </ImageBackground>
                 </ScrollView>
             </SafeAreaView>
