@@ -387,7 +387,7 @@ const HomeScreen = React.memo(() => {
                         source={require('@assets/images/TMBackground.png')}
                         resizeMode="stretch"
                         style={styles.image}>
-                        <Text>...</Text>
+                        <Text></Text>
                             <View style={styles.MainContainer}>
                             <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 

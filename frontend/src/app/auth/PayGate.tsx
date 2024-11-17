@@ -20,8 +20,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 //TODO: add field to apply discount from recycling
 //TODO: change total to reflect Discounts.ts etc
 
-//TODO: field for delivery address???
-
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
 
@@ -109,15 +107,6 @@ const PaymentScreen = () => {
             const data = await response.json();
             setStatusMessage(`Payment Complete. Order Number: ${orderNumber}`);
 
-            //const clearCartResponse = await fetch('http://localhost:3000/cart/clear', {
-            //   method: 'POST',
-            //    headers: {
-            //        'Content-Type': 'application/json',
-            //    }
-            //});
-            //if (!clearCartResponse.ok) {
-            //    throw new Error("Failed to clear cart");
-            //}
 
         } catch (error) {
             setStatusMessage(error instanceof Error ? error.message : 'Payment Failed');
@@ -279,22 +268,25 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 4,
         elevation: 5,
+        width: '90%',
+        alignSelf: 'center',
+
     },
     mainContainer: {
         position: 'relative',
-        bottom: '10%'
+        bottom: '5%'
     },
     logo: {
         resizeMode: 'contain',
         width: '100%',
         height: '20%',
         position: "relative",
-        right: '18%'
+        right: '12%',
+        top: '2%'
     },
     input:{
         width: '100%',
         fontSize: 16,
-        borderWidth:0,
         marginVertical:10,
         paddingHorizontal:5,
         fontFamily: 'sulphurPoint'
@@ -315,7 +307,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'gray',
+        borderColor: 'rgba(51,51,51,0.19)',
         borderRadius: 5,
         paddingHorizontal: 10,
         marginVertical: 10,
