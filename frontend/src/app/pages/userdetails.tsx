@@ -1,28 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, KeyboardAvoidingView, ScrollView, Platform, ImageBackground, TouchableOpacity, Image } from 'react-native';
+import {
+    View,
+    Text,
+    TextInput,
+    Alert,
+    StyleSheet,
+    ImageBackground,
+    TouchableOpacity,
+    ScrollView,
+    Platform,
+    KeyboardAvoidingView,
+    Image,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router'; // Import useRouter for navigation
+import { useRouter } from 'expo-router';
 import { handleLogout } from '../index';
 
+// Define the user data type
+type UserData = {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+};
+
 const EditUserDetails = () => {
-    const [userId, setUserId] = useState('');
-    const [email, setEmail] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
+    const [firstName, setFirstName] = useState<string>('');
+    const [lastName, setLastName] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
 
-    const router = useRouter(); // Access the router
+    const router = useRouter();
 
-    // Load user details from AsyncStorage
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 const userDataString = await AsyncStorage.getItem('userData');
                 if (userDataString) {
-                    const userData = JSON.parse(userDataString);
-                    setUserId(userData.id); // Adjust key names as per backend
+                    const userData: UserData = JSON.parse(userDataString);
+                    setUserId(userData.id);
                     setEmail(userData.email);
                     setFirstName(userData.firstName);
                     setLastName(userData.lastName);
@@ -37,19 +56,7 @@ const EditUserDetails = () => {
         fetchUserData();
     }, []);
 
-    // Validate inputs before updating
-    const validateInputs = () => {
-        if (!email || !firstName || !lastName || !password) {
-            Alert.alert('Error', 'Please fill in all fields.');
-            return false;
-        }
-        return true;
-    };
-
-    // Update user details
     const handleUpdate = async () => {
-        if (!validateInputs()) return;
-
         try {
             const BACKEND_HOST = Constants.expoConfig?.extra?.BACKEND_HOST;
             if (!BACKEND_HOST) {
@@ -57,17 +64,23 @@ const EditUserDetails = () => {
                 return;
             }
 
+            const updatedFields: Partial<UserData & { password?: string }> = {};
+            if (email) updatedFields.email = email;
+            if (firstName) updatedFields.firstName = firstName;
+            if (lastName) updatedFields.lastName = lastName;
+            if (password) updatedFields.password = password;
+
             const response = await fetch(`${BACKEND_HOST}/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer YOUR_TOKEN`, // Adjust if using tokens
                 },
-                body: JSON.stringify({ email, firstName, lastName, password }),
+                body: JSON.stringify(updatedFields),
             });
 
             if (response.ok) {
-                const updatedUserData = await response.json();
+                const updatedUserData: UserData = await response.json();
                 await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
                 Alert.alert('Success', 'User details updated successfully!');
             } else {
@@ -79,7 +92,6 @@ const EditUserDetails = () => {
         }
     };
 
-    // Delete user account
     const handleDelete = async () => {
         Alert.alert(
             'Confirm Delete',
@@ -106,14 +118,9 @@ const EditUserDetails = () => {
                             });
 
                             if (response.ok) {
-                                // Clear user data from AsyncStorage
                                 await AsyncStorage.removeItem('userData');
                                 Alert.alert('Success', 'Your account has been deleted.');
-
-
                                 handleLogout();
-
-
                             } else {
                                 Alert.alert('Error', 'Failed to delete your account.');
                             }
@@ -150,29 +157,31 @@ const EditUserDetails = () => {
                         value={email}
                         onChangeText={setEmail}
                     />
+
                     <Text style={styles.label}>First Name:</Text>
                     <TextInput
                         style={styles.input}
                         value={firstName}
                         onChangeText={setFirstName}
                     />
+
                     <Text style={styles.label}>Last Name:</Text>
                     <TextInput
                         style={styles.input}
                         value={lastName}
                         onChangeText={setLastName}
                     />
+
                     <Text style={styles.label}>Password:</Text>
                     <TextInput
                         style={styles.input}
                         secureTextEntry={true}
                         value={password}
                         onChangeText={setPassword}
-                        placeholder={password ? "Leave to keep password" : "Type new password to edit"}
+                        placeholder={password ? 'Leave empty to keep current password' : 'Type new password to update'}
                         placeholderTextColor="#aaa"
                     />
 
-                    {/* Update button with icon */}
                     <TouchableOpacity style={styles.menuButton} onPress={handleUpdate}>
                         <Image source={require('assets/images/update.png')} style={styles.icon} />
                         <Text style={styles.buttonText}>Update Details</Text>
@@ -184,7 +193,6 @@ const EditUserDetails = () => {
                         <View style={styles.line} />
                     </View>
 
-                    {/* Delete button with icon */}
                     <TouchableOpacity style={[styles.menuButton, { backgroundColor: 'red' }]} onPress={handleDelete}>
                         <Image source={require('assets/images/delete-account.png')} style={styles.icon} />
                         <Text style={styles.buttonText}>Delete Account</Text>
@@ -194,6 +202,7 @@ const EditUserDetails = () => {
         </ImageBackground>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -278,5 +287,5 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
 });
-
+//
 export default EditUserDetails;
