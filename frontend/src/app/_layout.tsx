@@ -217,7 +217,16 @@ const RootLayout = () => {
                 headerTintColor: "white",
             }}
         />
-
+        <Stack.Screen
+            name="pages/userdetails"
+            options={{
+                title: "User Details",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
     </Stack>;
 };
 
