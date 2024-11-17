@@ -22,8 +22,6 @@ import {sum} from "@firebase/firestore";
 import {useFonts} from "expo-font";
 import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
-import {async} from "@firebase/util";
-import { checkUserSession } from "@/app/auth/LoginScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
@@ -48,8 +46,6 @@ const CartPage: React.FC = () => {
     const [ refresh, setRefresh] = useState(false);
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
@@ -420,7 +416,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
         position: 'relative',
-        bottom: '43%'
+        bottom: '47%'
     },
     cartTitle: {
         fontFamily: 'sulphurPoint_Bold',
@@ -480,13 +476,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#FF0000',
         textAlign: 'center',
-
     },
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: '70%',
         position: "relative",
-        //top:'80%',
         marginBottom: '8%',
     },
     separator: {

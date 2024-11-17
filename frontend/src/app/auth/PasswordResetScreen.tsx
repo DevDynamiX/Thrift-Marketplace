@@ -1,10 +1,18 @@
 import React, {useState} from 'react';
 import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Pressable } from 'react-native';
 import {router} from "expo-router";
+import {useFonts} from "expo-font";
 
 export default function ChangePassword() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
+    const [fontsLoaded] = useFonts({
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
@@ -13,7 +21,7 @@ export default function ChangePassword() {
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
-                    <ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
                         <View style={styles.header}>
                             <Image
                                 resizeMode="contain"
@@ -115,19 +123,19 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     title: {
+        fontFamily: 'shrikhand',
         fontSize: 31,
-        fontWeight: '700',
-        color: '#1D2A32',
+        color: '#ec5707',
         marginBottom: 6,
         paddingBottom: 15,
         textAlign: 'center',
     },
     subtitle: {
+        fontFamily: 'sulphurPoint',
         fontSize: 15,
-        fontWeight: '500',
         color: '#929292',
         textAlign: 'center',
-        marginBottom: 20,
+        width: '75%'
     },
     header: {
         alignItems: 'center',
@@ -148,10 +156,11 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     inputLabel: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 17,
-        fontWeight: '600',
-        color: '#222',
+        color: '#219281FF',
         marginBottom: 8,
+        marginLeft: 10,
     },
     inputControl: {
         height: 50,
@@ -165,20 +174,16 @@ const styles = StyleSheet.create({
         borderColor: '#C9D3DB',
     },
     passwordCriteria: {
-        marginTop: 20,
         marginBottom: 20,
         alignItems: 'center',
         paddingBottom: 10,
-
-
     },
     criteriaText: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 16,
-        fontWeight: '500',
-        color: '#222',
+        color: '#ec5707',
         textAlign: 'center',
         marginBottom: 8,
-
     },
     formAction: {
         marginTop: 16,
@@ -194,7 +199,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#6ABFAD',
     },
     btnText: {
-        fontSize: 18,
+        fontFamily: 'sulphurPoint',
+        fontSize: 22,
         fontWeight: '600',
         color: '#fff',
     },
@@ -206,5 +212,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#FF4500',
         textDecorationLine: 'underline',
+        fontFamily: 'sulphurPoint'
     },
 });

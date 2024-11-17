@@ -17,7 +17,6 @@ import {useFonts} from "expo-font";
 import {Picker} from "@react-native-picker/picker";
 import { Formik } from 'formik';
 import Constants from "expo-constants";
-import Icon from "react-native-vector-icons/Ionicons";
 
 //TODO: GET USER ID
 const ViewRecycling = () => {
@@ -33,8 +32,6 @@ const ViewRecycling = () => {
     const [ refresh, setRefresh] = useState(false);
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),

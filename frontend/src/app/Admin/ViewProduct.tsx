@@ -20,8 +20,6 @@ import Icon from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import Constants from "expo-constants";
 
-
-
 // Define the Product type
 type Product = {
     id: string;
@@ -48,14 +46,11 @@ const ViewProducts = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const [inventoryItems, setInventoryItems ] = useState<Product[]>([]);
-    //const [isLoading, setIsLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
 
     const [selectedItem, setSelectedItem] = useState(null);
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
