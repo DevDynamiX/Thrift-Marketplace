@@ -117,55 +117,62 @@ const Profile: React.FC = () => {
                             <View style={styles.greenLine}></View>
 
                             {/* Menu Buttons */}
-                            <MenuButton
-                                text="Your Details"
-                                iconSource={require('@assets/images/gamer.png')}
-                                path="/YourDetails"
-                                navigateTo={navigateTo}
-                            />
-                            <MenuButton
-                                text="Your Favorites"
-                                iconSource={require('@assets/images/heart.png')}
-                                path="/pages/YourFavourites"
-                                navigateTo={navigateTo}
-                            />
-                            <MenuButton
-                                text="Recycle Now"
-                                iconSource={require('@assets/images/received.png')}
-                                path="/pages/Recycling"
-                                navigateTo={navigateTo}
-                            />
-                            <MenuButton
-                                text="Order History"
-                                iconSource={require('@assets/images/retro-game.png')}
-                                path="/pages/OrderHistory"
-                                navigateTo={navigateTo}
-                            />
-                            {/* Logout button */}
-                            <MenuButton
-                                text="Logout"
-                                iconSource={require('@assets/images/videogame.png')}
-                                onPress={() => {
-                                    console.log("Logging out");
-                                    handleLogout();
-                                }}
-                            />
+                            <View style = {styles.menuButtons}>
+                                <MenuButton
+                                    text="Your Details"
+                                    iconSource={require('@assets/images/gamer.png')}
+                                    path="/YourDetails"
+                                    navigateTo={navigateTo}
+                                />
+                                <MenuButton
+                                    text="Your Favorites"
+                                    iconSource={require('@assets/images/heart.png')}
+                                    path="/pages/YourFavourites"
+                                    navigateTo={navigateTo}
+                                />
+                                <MenuButton
+                                    text="Your Discounts"
+                                    iconSource={require('@assets/images/coupon.png')}
+                                    path="/pages/YourDiscounts"
+                                    navigateTo={navigateTo}
+                                />
+                                <MenuButton
+                                    text="Recycle Now"
+                                    iconSource={require('@assets/images/received.png')}
+                                    path="/pages/Recycling"
+                                    navigateTo={navigateTo}
+                                />
+                                <MenuButton
+                                    text="Order History"
+                                    iconSource={require('@assets/images/retro-game.png')}
+                                    path="/pages/OrderHistory"
+                                    navigateTo={navigateTo}
+                                />
+                                <MenuButton
+                                    text="Logout"
+                                    iconSource={require('@assets/images/videogame.png')}
+                                    onPress={() => {
+                                        console.log("Logging out");
+                                        handleLogout();
+                                    }}
+                                />
 
-                            <View style={styles.greenSeparator}></View>
+                                <View style={styles.greenSeparator}></View>
 
-                            <MenuButton
-                                text="Terms and Conditions"
-                                iconSource={require('@assets/images/logo.png')}
-                                path="../webview/TermsOfService"
-                                navigateTo={navigateTo}
-                            />
+                                <MenuButton
+                                    text="Terms and Conditions"
+                                    iconSource={require('@assets/images/logo.png')}
+                                    path="../webview/TermsOfService"
+                                    navigateTo={navigateTo}
+                                />
 
-                            <MenuButton
-                                text="Support"
-                                iconSource={require('@assets/images/IMG_3695.jpg')}
-                                path="../webview/ContactUs"
-                                navigateTo={navigateTo}
-                            />
+                                <MenuButton
+                                    text="Support"
+                                    iconSource={require('@assets/images/IMG_3695.jpg')}
+                                    path="../webview/ContactUs"
+                                    navigateTo={navigateTo}
+                                />
+                            </View>
                         </View>
                     </ScrollView>
                 </SafeAreaView>
@@ -253,13 +260,17 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         borderColor: 'rgb(92,183,165)',
     },
+    menuButtons: {
+        width: '100%',
+        alignItems: 'center',
+    },
     menuButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgb(92,183,165)',
         paddingVertical: 10,
         borderRadius: 30,
-        marginBottom: 15,
+        marginBottom: 9,
         justifyContent: 'center',
         width: '90%',
         elevation: 5, // Shadow for Android

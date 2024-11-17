@@ -187,15 +187,17 @@ export const Routes = [
         action: "remove",
     },
     {
-        method: "delete",
-        route: "/cart/clear",
-        controller: CartController,
-        action: "clearCart",
+        method: "get",
+        route: "/discounts/:id",
+        controller: DiscountsController,
+        action: "one",
     },
+
     {
         method: "put",
         route: "/orders/:orderNumber/status",
         controller: OrderController,
         action: "updateOrderStatus",
-    }
+    },
+
 ];

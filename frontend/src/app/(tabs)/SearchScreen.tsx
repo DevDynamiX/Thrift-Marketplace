@@ -27,8 +27,6 @@ const SearchScreen = () => {
     const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
@@ -253,6 +251,7 @@ const SearchScreen = () => {
     //render error could be here
     //fetch inventory from Table
     const fetchInventory = async () => {
+        if (!inventoryItems) return;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
             const data = await response.json();
@@ -272,6 +271,8 @@ const SearchScreen = () => {
 
     // fetch likes from Table
     const fetchLikes = async () => {
+        if (!user.userID) return;
+        if (!likedItems) return;
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
             const data = await response.json();
@@ -288,6 +289,7 @@ const SearchScreen = () => {
             setIsFavourited(updatedIsFavourited);
 
         } catch (error) {
+            if (!likedItems) return;
             console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);

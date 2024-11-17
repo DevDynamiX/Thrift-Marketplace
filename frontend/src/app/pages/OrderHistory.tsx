@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from "expo-constants";
 import {handleLogout} from "@/app";
+import {useFonts} from "expo-font";
 
 interface Order {
     orderNumber: number;
@@ -13,6 +14,13 @@ interface Order {
 }
 
 const OrdersTable: React.FC = () => {
+    const [fontsLoaded] = useFonts({
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
+
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

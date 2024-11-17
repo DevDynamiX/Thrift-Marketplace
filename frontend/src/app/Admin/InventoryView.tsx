@@ -15,20 +15,14 @@ import {
     Switch,
     Modal
 } from 'react-native';
-import { Formik } from 'formik';
-import * as ImagePicker from 'expo-image-picker';
-import * as Yup from 'yup';
+
 import {useFonts} from "expo-font";
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Table, TableWrapper, Row, Cell } from 'react-native-table-component';
 
-
-
 const CartScreen = () =>{
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
