@@ -120,7 +120,7 @@ const Profile: React.FC = () => {
                             <MenuButton
                                 text="Your Details"
                                 iconSource={require('@assets/images/gamer.png')}
-                                path="/YourDetails"
+                                path="/pages/userdetails"
                                 navigateTo={navigateTo}
                             />
                             <MenuButton
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-    },
+    },//
     menuText: {
         fontFamily: 'sulphurPoint',
         fontSize: 18,

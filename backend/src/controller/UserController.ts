@@ -136,8 +136,7 @@ export class UserController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
-
-    // Update user details(Ika added this code)
+// This is ikas function, minor changes
     async update(request: Request, response: Response): Promise<any> {
         const id = parseInt(request.params.id); // Get user ID from URL
         const { email, password, firstName, lastName } = request.body; // Get updated details from request body
@@ -150,8 +149,13 @@ export class UserController {
         }
 
         // Update user fields if provided
-        if (email) userToUpdate.email = email;
-        if (password) userToUpdate.password = await bcrypt.hash(password, 10); // Hash password if updated
+        if (email) {
+            userToUpdate.email = email;
+            userToUpdate.username = email;  // Update username to match the new email
+        }
+        if (password) {
+            userToUpdate.password = await bcrypt.hash(password, 10); // Hash password if updated
+        }
         if (firstName) userToUpdate.firstName = firstName;
         if (lastName) userToUpdate.lastName = lastName;
 
