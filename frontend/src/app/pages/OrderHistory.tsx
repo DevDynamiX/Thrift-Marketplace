@@ -3,7 +3,6 @@ import {View, FlatList, Text, StyleSheet, StatusBar, ImageBackground, Image, Scr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from "expo-constants";
-import {handleLogout} from "@/app";
 import {useFonts} from "expo-font";
 
 interface Order {
@@ -129,7 +128,7 @@ const OrdersTable: React.FC = () => {
         <View style={styles.orderContainer}>
             <Text style={styles.orderNumber}>Order: {item.orderNumber}</Text>
             <Text style={styles.orderEmail}>Email: {item.email}</Text>
-            <Text style={styles.orderEmail}>Email: {item.address}</Text>
+            <Text style={styles.orderEmail}>Address: {item.address}</Text>
         </View>
     );
 
@@ -151,7 +150,8 @@ const OrdersTable: React.FC = () => {
             <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
 
             <ImageBackground
-                source={require('@assets/images/TMBackground.png')} // Replace with your background image
+                source={require('@assets/images/TMBackground.png')}
+                resizeMode="stretch"
                 style={styles.backgroundImage}
             >
                 <SafeAreaView style={styles.container}>
@@ -175,37 +175,55 @@ const OrdersTable: React.FC = () => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.headerContainer}>
-                <Text style={styles.headerText}>Orders</Text>
-            </View>
-            <FlatList<Order>
-                data={orders}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                ListEmptyComponent={() => (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No orders found</Text>
+        <>
+            <StatusBar barStyle="light-content" backgroundColor="black" translucent={true}/>
+
+            <ImageBackground
+                source={require('@assets/images/TMBackground.png')}
+                resizeMode="stretch"
+                style={styles.backgroundImage}
+            >
+                <SafeAreaView style={styles.container}>
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.headerText}>Your Orders:</Text>
                     </View>
-                )}
-            />
-        </SafeAreaView>
+                    <FlatList<Order>
+                        data={orders}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        ListEmptyComponent={() => (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>No orders found</Text>
+                            </View>
+                        )}
+                    />
+                </SafeAreaView>
+            </ImageBackground>
+        </>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#fff',
+        flex:1,
+        //backgroundColor:'#93D3AE',
     },
     headerContainer: {
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        width:'90%',
+        backgroundColor: '#ffffff',
+        padding: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 5,
+        alignSelf: 'center'
     },
     headerText: {
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'shrikhand',
+        fontSize: 30,
+        color: '#219281FF',
+        textAlign: 'center'
     },
     loadingContainer: {
         flex: 1,
@@ -213,8 +231,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     loadingText: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 18,
-        fontWeight: 'bold',
     },
     errorContainer: {
         flex: 1,
@@ -222,60 +240,70 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     errorText: {
+        fontFamily: 'sulphurPoint',
         fontSize: 18,
-        fontWeight: 'bold',
-        color: 'red',
         marginBottom: 8,
+        color: '#FF0000',
     },
     retryText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: '#219281FF',
         textDecorationLine: 'underline',
     },
     orderContainer: {
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomColor: '#219281FF',
         marginHorizontal: 16,
         marginVertical: 8,
         borderRadius: 8,
         //backgroundColor: '#f9f9f9',
     },
     orderNumber: {
+        fontFamily: 'sulphurPoint',
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 4,
     },
     orderEmail: {
+        fontFamily: 'sulphurPoint',
         fontSize: 14,
         color: '#666',
         marginBottom: 4,
     },
     orderTotal: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 16,
-        fontWeight: 'bold',
         color: '#2c3e50',
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        width:'90%',
+        backgroundColor: '#ffffff',
         padding: 20,
+        marginTop: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 5,
+        alignSelf: 'center'
     },
     emptyText: {
-        fontSize: 16,
-        color: '#666',
+        fontFamily: 'sulphurPoint',
+        fontSize: 20,
+        color: '#FF0000',
     },
     backgroundImage: {
+        flex: 1,
+        justifyContent: 'center',
         width: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        zIndex: -1,
-        resizeMode: 'cover',
+        height: '100%',
     },
     safeArea: {
-        justifyContent: 'center',
+         justifyContent: 'center',
         alignItems: 'center',
         position: 'relative',
         bottom: '24%',

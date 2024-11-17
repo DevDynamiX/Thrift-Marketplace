@@ -262,7 +262,6 @@ const ViewRecycling = () => {
                         return;
                     }
 
-                    //TODO: send user an email with code
                     Alert.alert('Success', `Discount Code generated and saved for: ${selectedItem.firstName}`);
 
                     console.log('Discount saved for recycling ID: ', selectedItem.id);

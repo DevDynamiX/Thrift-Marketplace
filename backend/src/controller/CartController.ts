@@ -11,8 +11,13 @@ export class CartController {
     private userRepository  = AppDataSource.getRepository(User)
 
     async all(req:Request,res:Response){
-       const { userID } = req.query;
-       const userIDNumber = Number(userID);
+        const userID = parseInt(req.params.userID);
+        const userIDNumber = Number(userID);
+
+        if (!userID) {
+            console.log("No user ID provided.");
+            return res.status(400).json({message: "User ID is required."});
+        }
 
        console.log("Fetching Cart for user: ", userID);
 
@@ -21,6 +26,10 @@ export class CartController {
                 where: { user: {id: userIDNumber} },
                 relations: ["inventoryItem"],
             });
+
+            if (userCart.length === 0) {
+                return res.status(404).json({ message: "No discounts for this user!" });
+            }
 
             console.log('User cart: ', userCart);
 

@@ -28,14 +28,13 @@ export class UserLikesController {
 
         const userIDNumber = Number(userID);
 
-
         try {
             const userLikes = await this.likesRepository.find({
                 where: {user: {id: userIDNumber}},
                 relations: ['unit'],
             });
 
-            console.log("User Likes", userLikes);
+            console.log("User Likes:", userLikes);
 
             return res.status(200).json({
                 success: true,

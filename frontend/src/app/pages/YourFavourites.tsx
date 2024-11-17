@@ -128,7 +128,6 @@ const YourFavourites = () => {
         router.push(path);
     };
 
-
     //saving liked items to table
     const toggleFavourite = (id) => {
         console.log(`Toggling Favourite for ${id}`);
@@ -167,7 +166,6 @@ const YourFavourites = () => {
             console.log("Item is not liked yet, no action taken");
         }
     }
-
 
     //saving cart items to table
     const toggleCart = (id) => {
@@ -316,7 +314,6 @@ const YourFavourites = () => {
     }
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
-
 
     const toggleItemModal = (item:any) => {
         setSelectedItem(item);

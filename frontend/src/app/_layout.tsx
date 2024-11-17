@@ -218,6 +218,28 @@ const RootLayout = () => {
             }}
         />
 
+        <Stack.Screen
+            name="pages/OrderHistory"
+            options={{
+                title: "Order History",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/YourDiscounts"
+            options={{
+                title: "Your Discounts",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
     </Stack>;
 };
 

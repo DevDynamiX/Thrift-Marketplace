@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
         fontFamily: 'sulphurPoint',
     },
     input: {
-        height: 30,
+        height: 35,
         borderColor: '#ccc',
         borderWidth: 1,
         marginBottom: 12,
@@ -574,7 +574,6 @@ const styles = StyleSheet.create({
         margin: '10%',
         width: 'auto',
     },
-    //
     submitButton: {
         backgroundColor: '#219281FF',
         display: "flex",

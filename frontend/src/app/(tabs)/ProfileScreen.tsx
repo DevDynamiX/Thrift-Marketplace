@@ -11,7 +11,6 @@ import {
     Pressable, Button, Animated, Alert, ScrollView
 } from 'react-native';
 import {handleLogout} from '../index';
-import Constants from "expo-constants";
 import { router, useRouter} from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
