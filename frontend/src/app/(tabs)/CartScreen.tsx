@@ -45,12 +45,30 @@ const CartPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [ refresh, setRefresh] = useState(false);
 
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+    const autoRefreshInterval = useRef<NodeJS.Timeout>();
+
+
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+
+    useEffect(() => {
+        autoRefreshInterval.current = setInterval(() => {
+            if (!isLoading) {
+                fetchCart();
+                setLastUpdate(new Date());
+            }
+        }, 1000); // 30 seconds
+        return () => {
+            if (autoRefreshInterval.current) {
+                clearInterval(autoRefreshInterval.current);
+            }
+        };
+    }, [isLoading]);
 
     //getting user data from session
     useEffect(() => {
