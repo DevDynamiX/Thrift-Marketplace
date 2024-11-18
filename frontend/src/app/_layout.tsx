@@ -262,6 +262,39 @@ const RootLayout = () => {
             }}
         />
 
+        <Stack.Screen
+            name="pages/Recommended"
+            options={{
+                title: "Recommended for You",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/onSale"
+            options={{
+                title: "On Sale",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/newIn"
+            options={{
+                title: "New In",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
     </Stack>;
 };
 

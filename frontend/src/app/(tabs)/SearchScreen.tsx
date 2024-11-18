@@ -1001,10 +1001,13 @@ const styles = StyleSheet.create({
 
     headerText: {
         fontFamily: 'sulphurPoint_Bold',
-        fontSize: 18,
-        color: '#212121',
-        marginLeft: 10,
-        paddingBottom:'2%',
+        fontSize: 24,
+        color: '#3b3b3b',
+        backgroundColor: 'rgba(33, 146, 129, 0.5)',
+        borderRadius: 4,
+        textTransform: 'capitalize',
+        paddingLeft: 10,
+        marginLeft: 6
     },
     discountBanner: {
         position: 'absolute',

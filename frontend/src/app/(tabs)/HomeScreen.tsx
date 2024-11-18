@@ -1064,7 +1064,6 @@ const styles = StyleSheet.create({
 
     //each row of images with title
     clothesRow: {
-        //flex: 1,
         width: '100%',
         height: 200,
         flexDirection: "column",
