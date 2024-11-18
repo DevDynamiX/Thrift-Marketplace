@@ -969,13 +969,12 @@ const HomeScreen = React.memo(() => {
                                 </Modal>
                             </View>
                         </View>
-                        <Text>...</Text>
+                        <Text>....</Text>
                     </ImageBackground>
                 </ScrollView>
             </SafeAreaView>
     );
 })
-
 
 interface CustomButtonProps {
     text: string;

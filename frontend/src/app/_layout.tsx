@@ -240,6 +240,28 @@ const RootLayout = () => {
             }}
         />
 
+        <Stack.Screen
+            name="auth/PayGate"
+            options={{
+                title: "Pay Now",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/PostPay"
+            options={{
+                title: "Payment Successful",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
     </Stack>;
 };
 

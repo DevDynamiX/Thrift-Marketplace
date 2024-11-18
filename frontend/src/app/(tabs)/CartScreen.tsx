@@ -48,6 +48,7 @@ const CartPage: React.FC = () => {
     const [discountCode, setDiscountCode] = useState('');
     const [appliedDiscount, setAppliedDiscount] = useState(null);
     const [discounts, setDiscounts ] = useState([]);
+    const [discountedAmount, setDiscountedAmount ] = useState([]);
 
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
@@ -144,27 +145,21 @@ const CartPage: React.FC = () => {
 
         if(!discountCode) {
             Alert.alert("No Discounts available!");
+            return undefined;
         }
         if (!Array.isArray(discounts) || discounts.length === 0) {
             console.warn("Discounts are not available or empty.");
             return undefined;
         }
         const availableDiscounts = discounts || [];
-        const discount = discounts.find(d => d.discountCode === discountCode.trim)
+        const discount = discounts.find(d => d.discountCode === discountCode.trim())
 
         if (!discount) {
             console.log('Discount not found for code:', discountCode);
+            return undefined;
         }
 
-        console.log('Available Discounts:', availableDiscounts);
-        console.log('Discount Code to Validate:', discountCode);
-
-        if (availableDiscounts) {
-            const discount = availableDiscounts.find(d => d.discountCode === discountCode);
-            console.log('Found Discount:', discount);
-        } else {
-            console.error('Available Discounts is undefined or null');
-        }
+        console.log("Found Discount: ", discount)
 
         return discount;
     }
@@ -179,8 +174,11 @@ const CartPage: React.FC = () => {
             return;
         }
 
+        const discountPercent = discount.discountCode.slice(-2);
+
         setAppliedDiscount(discount);
-        Alert.alert(`Discount Applied: ${discount.discountCode}`);
+        Alert.alert(`${discountPercent}% OFF!`, ` Discount Applied: ${discount.discountCode}`);
+        closeModal();
     }
 
     useEffect(() => {
@@ -191,23 +189,62 @@ const CartPage: React.FC = () => {
             },0);
 
         let discountedTotal = newTotal;
+        let discountedAmount = 0;
 
         if (appliedDiscount) {
-            const discountPercent = parseInt(appliedDiscount.discountCode.slice(-2), 10);
+            const discountCode =  appliedDiscount.discountCode.trim();
+            const discountPercent = parseInt(discountCode.slice(-2), 10);
 
             console.log("Discount percent: ", discountPercent)
 
-            if(isNaN(discountPercent)) {
-                const discountAmount = (newTotal * discountPercent)/100;
-                discountedTotal =  newTotal -  discountAmount;
+            if(discountPercent >= 0 && discountPercent <= 100) {
+                const discountedAmount = (newTotal * discountPercent)/100;
+                discountedTotal =  newTotal -  discountedAmount;
+
+                setDiscountedAmount(discountedAmount);
+
+                console.log("Discount Percent:", discountPercent);
+                console.log("Discount Amount:", (newTotal * discountPercent) / 100);
+
+            } else {
+                console.log("Invalid discount percentage.");
             }
         }
 
-        const totalWithShipping  =  discountedTotal >= freeShipping ? discountedTotal : discountedTotal + shipping;
+        const totalWithShipping  =  discountedTotal > freeShipping ? discountedTotal : discountedTotal + shipping;
 
         setTotal(discountedTotal);
         setTotalWithShipping(totalWithShipping);
+
+        console.log("Cart Items:", cartItems);
+        console.log("Subtotal (newTotal):", newTotal);
+        console.log("Discounted Amount:", discountedAmount);
+        console.log("Discounted Total:", discountedTotal);
+        console.log("Total With Shipping:", totalWithShipping);
+
         },[cartItems, appliedDiscount]);
+
+    const removeDiscount = () => {
+        setAppliedDiscount(null);
+        const newTotal = cartItems.reduce((sum, item) => {
+            const price = item.inventoryItem.onSale
+                ? Number(item.inventoryItem.salePrice) || 0
+                : Number(item.inventoryItem.itemPrice) || 0;
+            return sum + price;
+        }, 0);
+
+        let discountedTotal = newTotal;
+
+        // Recalculate total without discount
+        const totalWithShipping = discountedTotal > freeShipping ? discountedTotal : discountedTotal + shipping;
+
+        setTotal(discountedTotal);
+        setTotalWithShipping(totalWithShipping);
+        setDiscountedAmount(0);  // Reset discounted amount
+
+        console.log("Discount Removed");
+
+    }
 
     let isFetching = false;
 
@@ -303,7 +340,7 @@ const CartPage: React.FC = () => {
     const goToCart = () =>{
         router.push({
             pathname:'auth/PayGate',
-            params:{totalWithShipping},
+            params:{totalWithShipping, discountCode},
         });
     };
 
@@ -412,7 +449,7 @@ const CartPage: React.FC = () => {
                             animationType="slide"
                             transparent={true}
                             visible={modalVisible}
-                            onRequestClose={closeModal} // Handle the back button on Android
+                            onRequestClose={closeModal}
                         >
                             <View style={styles.modalContainer}>
                                 <View style={styles.modalContent}>
@@ -474,7 +511,17 @@ const CartPage: React.FC = () => {
                     </View>
 
                     <View style={styles.cartContainer}>
-                        <Text style={styles.cartTitle}>Checkout: </Text>
+                        <View style = {styles.checkoutHeader}>
+                            <Text style={styles.cartTitle}>Checkout: </Text>
+
+                            {discountedAmount > 0 && (
+                                <View style={styles.removeDiscountContainer}>
+                                    <TouchableOpacity onPress={removeDiscount} style={styles.removeDiscountButton}>
+                                        <Text style={styles.removeButtonText}>Remove Discount</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
 
                         <View style={styles.separator} />
 
@@ -483,6 +530,13 @@ const CartPage: React.FC = () => {
                                 <Text style = {styles.text}>Your Cart Subtotal: </Text>
                                 <Text style  = {styles.text}>R{Number(total).toFixed(2)}</Text>
                             </View>
+
+                            {discountedAmount > 0 && (
+                                <View style={styles.paymentDetailsContainer}>
+                                    <Text style={styles.text}>Discount Applied: </Text>
+                                    <Text style={styles.text}>-R{discountedAmount.toFixed(2)}</Text>
+                                </View>
+                            )}
 
                             <View style = {styles.paymentDetailsContainer}>
                                 <Text style = {styles.text}>Shipping Fees: </Text>
@@ -532,7 +586,7 @@ const styles = StyleSheet.create({
         width:'90%',
         height: '100%',
         position: "relative",
-        top: '2%',
+        top: '5%',
         left: '5%',
     },
     pageContent: {
@@ -570,7 +624,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
         position: 'relative',
-        bottom: '58%'
+        bottom: '64%'
     },
     cartTitle: {
         fontFamily: 'sulphurPoint_Bold',
@@ -920,6 +974,29 @@ const styles = StyleSheet.create({
         textAlign:'center',
         color: 'white'
     },
+    removeDiscountButton: {
+        alignSelf: 'flex-end',
+        backgroundColor: '#FF0000',
+        padding: 6,
+        borderRadius: 5,
+        width: '30%'
+    },
+    checkoutHeader: {
+        width: '99%',
+        flexDirection: 'row',
+    },
+    removeButtonText: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 12,
+        textAlign:'center',
+        color: 'white'
+    },
+    removeDiscountContainer: {
+        width: '100%',
+        position: 'relative',
+        right: '35%'
+    }
+
 
 
 
