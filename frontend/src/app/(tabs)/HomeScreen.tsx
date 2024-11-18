@@ -18,13 +18,14 @@ import {
     Modal,
     FlatList,
     Alert,
-    RefreshControl
+    RefreshControl, Animated, Pressable
 } from 'react-native';
 import  { useFonts } from 'expo-font';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useRouter} from "expo-router";
 
 interface Product {
     id: number;
@@ -36,8 +37,38 @@ interface Product {
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
+type MenuButtonProps = {
+    text: string;
+    iconSource: any;
+    path?: string;
+    navigateTo?: (path: string) => void;
+    onPress?: () => void;
+}
+
+const MenuButton = ({ text, iconSource, path, navigateTo, onPress }: MenuButtonProps) => {
+    return (
+        <TouchableOpacity
+            onPress={() => {
+                if (onPress) {
+                    onPress();
+                } else if (path && navigateTo) {
+                    navigateTo(path);
+                }
+            }}
+        >
+            <Image source={iconSource} style={styles.addIcon} />
+        </TouchableOpacity>
+    );
+}
+
 
 const HomeScreen = React.memo(() => {
+    const router = useRouter();
+
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null, gender:null})
+
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
@@ -45,7 +76,6 @@ const HomeScreen = React.memo(() => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null, gender:null})
     const [isFavourited, setIsFavourited] = useState({});
     const [playHeartAnimation, setPlayHeartAnimation] = useState({});
     const [isAddedToCart, setAddedToCart] = useState({});
@@ -67,8 +97,27 @@ const HomeScreen = React.memo(() => {
     const saleScrollRef = useRef(null);
     const newInScrollRef = useRef(null);
 
-    let isFetching = false;
+    const buttonScale = useRef(new Animated.Value(1)).current;
 
+    const handlePressIn = () => {
+        Animated.spring(buttonScale, {
+            toValue: 0.95,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(buttonScale, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const navigateTo = (path: string) => {
+        router.push(path);
+    };
+
+    //getting user data from session
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -128,47 +177,6 @@ const HomeScreen = React.memo(() => {
         fetchInventory().finally(() => setIsLoading(false));
     }, []);
 
-    const fetchLikes = async () => {
-        if (!user.userID) {
-            console.warn("UserID is null; skipping fetch.");
-            return;
-        }
-
-        if (isFetching) return;
-        isFetching = true;
-
-        try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
-            const data = await response.json();
-            console.log(`Fetched Likes for ${user.firstName}:`, data);
-            setLikedItems(data);
-
-            const updatedIsFavourited = {};
-
-            if(data) {
-                data.forEach(item => {
-                    updatedIsFavourited[item.unit.id] = true;
-                });
-            }
-            setIsFavourited(updatedIsFavourited);
-
-        } catch (error) {
-            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
-        } finally {
-            setIsLoading(false);
-            isFetching = false;
-        }
-    };
-
-    useEffect(() => {
-        if (user.userID) {
-            console.log("UserID available, fetching likes.");
-            setIsLoading(true);
-            fetchLikes();
-        } else {
-            console.warn("UserID is null, skipping fetch.");
-        }
-    }, [user.userID]);
 
     const toggleFavourite = (id) => {
         console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
@@ -214,15 +222,12 @@ const HomeScreen = React.memo(() => {
                         .then(response => response.json())
                         .then(data => {
                             console.log('Item added to likes:', data);
-
-                            if(data && data.likes) {
-                                console.log("Likes found: ", data.likes);
-                                setLikedItems((prevLikedItems) => [
-                                    ...(Array.isArray(prevLikedItems) ? prevLikedItems : []),
-                                    { id },
-                                ]);
+                            if (data && Array.isArray(data)) {
+                                data.forEach(item => {
+                                    setIsFavourited[item.unit.id] = true;
+                                });
                             } else {
-                                console.error('Unexpected response data: ', data);
+                                console.warn(`No likes data found for userID ${user.userID}:`, data);
                             }
                         })
                         .catch(error => {
@@ -250,6 +255,7 @@ const HomeScreen = React.memo(() => {
         }
     }
 
+    //saving cart items to table
     const toggleCart = (id) => {
         console.log(`Toggling cart for item with ID: ${id}, for ${user.firstName}. `);
 
@@ -339,6 +345,72 @@ const HomeScreen = React.memo(() => {
     }
 
     const saleItems = inventoryItems.filter(item => item.onSale) || [];
+
+
+    let isFetching = false;
+
+    const fetchLikes = async () => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // Debugging the entire response
+            console.log("Full response:", result);
+
+            const data = result.likes; // Access the 'likes' array
+
+            // Check if data is an array
+            if (!Array.isArray(data)) {
+                console.warn("No likes data received or invalid format:", data);
+                setLikedItems([]);
+                return;
+            }
+
+            setLikedItems(data);
+
+            const updatedIsFavourited = {};
+
+            data.forEach(item => {
+                if (item.unit?.id) {
+                    updatedIsFavourited[item.unit.id] = true;
+                } else {
+                    console.warn("Invalid item in likes data:", item);
+                }
+            });
+
+            setIsFavourited(updatedIsFavourited);
+
+        } catch (error) {
+            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
+        } finally {
+            setIsLoading(false);
+            isFetching = false;
+        }
+    };
+
+    useEffect(() => {
+        if (user.userID) {
+            console.log("UserID available, fetching likes.");
+            setIsLoading(true);
+            fetchLikes();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
+
 
     const handleScrollRight = (scrollRef, currentScrollX, setScrollX) => {
         if (scrollRef.current) {
@@ -507,6 +579,14 @@ const HomeScreen = React.memo(() => {
                                                             </View>
                                                         </TouchableOpacity>
                                                     ))}
+
+                                                <View style = {styles.addMore}>
+                                                    <MenuButton
+                                                        iconSource={require('@assets/images/plus.png')}
+                                                        path="/pages/Recommended"
+                                                        navigateTo={navigateTo}
+                                                    />
+                                                </View>
                                             </View>
                                         </ScrollView>
                                         <TouchableOpacity
@@ -607,6 +687,13 @@ const HomeScreen = React.memo(() => {
                                                         </View>
                                                     </TouchableOpacity>
                                                 ))}
+                                                    <View style = {styles.addMore}>
+                                                        <MenuButton
+                                                            iconSource={require('@assets/images/plus.png')}
+                                                            path="/pages/onSale"
+                                                            navigateTo={navigateTo}
+                                                        />
+                                                    </View>
                                             </View>
                                                 )}
                                         </ScrollView>
@@ -697,6 +784,13 @@ const HomeScreen = React.memo(() => {
                                                     </View>
                                                 </TouchableOpacity>
                                             ))}
+                                            <View style = {styles.addMore}>
+                                                <MenuButton
+                                                    iconSource={require('@assets/images/plus.png')}
+                                                    path="/pages/newIn"
+                                                    navigateTo={navigateTo}
+                                                />
+                                            </View>
                                         </View>
                                     </ScrollView>
                                     <TouchableOpacity style={styles.columnScrollMarker}
@@ -872,18 +966,64 @@ const HomeScreen = React.memo(() => {
                                 </Modal>
                             </View>
                         </View>
-                        <Text></Text>
+                        <Text>....</Text>
                     </ImageBackground>
                 </ScrollView>
             </SafeAreaView>
     );
 })
 
+interface CustomButtonProps {
+    text: string;
+    path: string;
+    navigateTo: (path: string) => void;
+}
+
+const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 0.95,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    return (
+        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
+            <Pressable
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={() => {
+                    console.log(`Navigating to: ${path}`);
+                    navigateTo(path);
+                }}
+                style={styles.button}
+            >
+                <Icon
+                    name={'add-circle'}
+                    style={[
+                        styles.addMoreButton,
+                    ]}
+                    size={50}
+                />
+            </Pressable>
+        </Animated.View>
+    );
+}
+
+
 const styles = StyleSheet.create({
     container: {
         flex:1,
         backgroundColor:'#93D3AE',
-
     },
     image: {
         flex: 1,
@@ -924,7 +1064,6 @@ const styles = StyleSheet.create({
 
     //each row of images with title
     clothesRow: {
-        //flex: 1,
         width: '100%',
         height: 200,
         flexDirection: "column",
@@ -1318,6 +1457,27 @@ const styles = StyleSheet.create({
         right: '0%',
         bottom: 0,
     },
+    addMore: {
+        backgroundColor: 'rgba(147,211,174,0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 170,
+        width: itemSize,
+        borderRadius: 5,
+        resizeMode: 'cover' as ImageStyle['resizeMode'],
+        margin: 5,
+
+    },
+    addMoreButton: {
+        width:'50%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#219281FF',
+    },
+    addIcon: {
+        color: "#219281FF"
+    }
 
 });
 

@@ -218,6 +218,83 @@ const RootLayout = () => {
             }}
         />
 
+        <Stack.Screen
+            name="pages/OrderHistory"
+            options={{
+                title: "Order History",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/YourDiscounts"
+            options={{
+                title: "Your Discounts",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="auth/PayGate"
+            options={{
+                title: "Pay Now",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/PostPay"
+            options={{
+                title: "Payment Successful",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/Recommended"
+            options={{
+                title: "Recommended for You",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/onSale"
+            options={{
+                title: "On Sale",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
+        <Stack.Screen
+            name="pages/newIn"
+            options={{
+                title: "New In",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
+
     </Stack>;
 };
 

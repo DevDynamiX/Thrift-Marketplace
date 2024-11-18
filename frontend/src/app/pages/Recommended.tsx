@@ -1,43 +1,50 @@
-import React, {
-    useState,
-    useEffect,
-    useRef,} from 'react';
+import React, {useEffect, useState } from 'react';
 import {
     View,
-    ImageBackground,
-    StyleSheet,
-    StatusBar,
-    SafeAreaView,
-    Image,
     Text,
-    Dimensions,
-    ActivityIndicator,
-    ScrollView,
-    ImageStyle,
-    TouchableOpacity,
-    Modal,
     FlatList,
+    Image,
+    StyleSheet,
     Alert,
-    Animated,
-    Pressable,
-    RefreshControl
+    TouchableOpacity,
+    ImageBackground,
+    RefreshControl,
+    ScrollView, Dimensions, SafeAreaView, ActivityIndicator, StatusBar, ImageStyle, Modal
 } from 'react-native';
 import  { useFonts } from 'expo-font';
-import Icon from 'react-native-vector-icons/Ionicons';
-import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
-import { router, useRouter} from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {useRouter} from "expo-router";
+import LottieView from "lottie-react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+
+interface Product {
+    id: number;
+    itemName: string;
+    itemPrice: number;
+    salePrice: number;
+}
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-const YourFavourites = () => {
-    const router = useRouter();
-
+const ViewRecommended = () => {
     const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
-    // Load fonts asynchronously
+    const [isFavourited, setIsFavourited] = useState({});
+    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
+    const [isAddedToCart, setAddedToCart] = useState({});
+    const [playCartAnimation, setPlayCartAnimation] = useState({});
+    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
+    const [inventoryItems, setInventoryItems ] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [likedItems, setLikedItems] = useState([]);
+    const [isItemModalVisible, setIsItemModalVisible] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
@@ -45,92 +52,23 @@ const YourFavourites = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    const [isFavourited, setIsFavourited] = useState({});
-    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
-    const [isAddedToCart, setAddedToCart] = useState({});
-    const [playCartAnimation, setPlayCartAnimation] = useState({});
-    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
+    let isFetching = false;
 
-    const [inventoryItems, setInventoryItems ] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [cartItems, setCartItems] = useState([]);
-    const [likedItems, setLikedItems] = useState([]);
-
-    const [isItemModalVisible, setIsItemModalVisible] = useState(false); // Main item modal
-    const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const userDataString = await AsyncStorage.getItem('userData');
-                console.log('*************');
-                console.log('Stored user data:', userDataString);
-                console.log('*************');
-
-                if (userDataString) {
-                    const userData = JSON.parse(userDataString);
-                    console.log('Email from userData:', userData.email);
-                    console.log('ID from userData:', userData.id);
-
-                    setUser({
-                        isLoggedIn: true, // Assuming the user is logged in if data exists
-                        userToken: userData.token || null,
-                        userEmail: userData.email || null,
-                        firstName: userData.firstName || null,
-                        userID: userData.id || null,
-                    });
-
-                    console.log('*************');
-                    console.log('Updated user state:', {
-                        isLoggedIn: true,
-                        userToken: userData.token || null,
-                        userEmail: userData.email || null,
-                        firstName: userData.firstName || null,
-                        userID: userData.id || null,
-                    });
-                    console.log('*************');
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchUser();
-    }, []);
-
-    // If fonts are not loaded, show a loading indicator within the component itself
-    if (!fontsLoaded) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <ActivityIndicator size="large" color="white" />
-            </SafeAreaView>
-        );
-    }
-
-    const buttonScale = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-        Animated.spring(buttonScale, {
-            toValue: 0.95,
-            useNativeDriver: true,
-        }).start();
+    const fetchInventory = async () => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
+            const data = await response.json();
+            console.log("Fetched data:", data);
+            setInventoryItems(data);
+        } catch (error) {
+            console.error("Error fetching inventory: ", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handlePressOut = () => {
-        Animated.spring(buttonScale, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const navigateTo = (path: string) => {
-        router.push(path);
-    };
-
-    //saving liked items to table
     const toggleFavourite = (id) => {
-        console.log(`Toggling Favourite for ${id}`);
+        console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -142,34 +80,72 @@ const YourFavourites = () => {
             return;
         }
 
-        if (isFavourited[id]) {
-            console.log("Attempting to remove like:", { itemID: id, userID: user.userID });
+        const newIsFavourited = !isFavourited[id];
+
+        setIsFavourited((prev) => ({
+            ...prev,
+            [id]: newIsFavourited,
+        }));
+
+        if (newIsFavourited) {
+            setPlayHeartAnimation((prev) => ({
+                ...prev,
+                [id]: true,
+            }));
+
+            console.log("Attempting to add like:", {itemID: id, userID: user.userID });
+
+            setLikedItems((prevLikedItems = []) => {
+                const items = Array.isArray(prevLikedItems) ? prevLikedItems : [];
+
+                const likedItem = items.some(item => item.id === id);
+
+                if (!likedItem) {
+                    fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': "application/json",
+                        },
+                        body: JSON.stringify({ itemID: id, userID: user.userID }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Item added to likes:', data);
+                            if (data && Array.isArray(data)) {
+                                data.forEach(item => {
+                                    setIsFavourited[item.unit.id] = true;
+                                });
+                            } else {
+                                console.warn(`No likes data found for userID ${user.userID}:`, data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error adding to 'Likes': ", error);
+                        });
+                }
+            });
+        } else {
+            setPlayHeartAnimation((prev) => ({
+                ...prev,
+                [id]: false,
+            }));
 
             fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes/${id}/${user.userID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Item removed from ${user.firstName}'s likes:", data);
-                    setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id !== id));
-                    setIsFavourited(prev => ({
-                        ...prev,
-                        [id]: false,
-                    }));
-                    Alert.alert('Success', 'Item removed from your Likes. ');
-                    fetchLikes();
+                    console.log(`Item removed from ${user.firstName}'s likes:`, data);
+                    setLikedItems(prevLikedItems  => prevLikedItems.filter(item => item.id != id));
                 })
                 .catch(error => {
                     console.error("Error removing from 'Likes': ", error);
                 });
-        }else{
-            console.log("Item is not liked yet, no action taken");
         }
     }
 
-    //saving cart items to table
     const toggleCart = (id) => {
-        console.log(`Toggling cart for ${id}`);
+        console.log(`Toggling cart for item with ID: ${id}, for ${user.firstName}. `);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -189,7 +165,7 @@ const YourFavourites = () => {
         }));
 
         if (newAddedToCart) {
-            console.log("Attempting to add to ${user.firstName}'s cart:", { itemID: id, userID: user.userID });
+            console.log("Attempting to add to cart:", { itemID: id, userID: user.userID });
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -222,8 +198,7 @@ const YourFavourites = () => {
                 }
             });
         } else {
-
-            console.log(`Removing item ${id} from cart`);
+            console.log(`Removing item ${id} from ${user.firstName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
                 ...prev,
@@ -241,7 +216,7 @@ const YourFavourites = () => {
                         [id]: false,
                     }));
                 }).catch(error => {
-                console.error("Error removing from 'Cart': ", error);
+                console.error(`Error removing from ${user.firstName}'s 'Cart': `, error);
             });
         }
     }
@@ -257,35 +232,57 @@ const YourFavourites = () => {
         }));
     }
 
-    let isFetching = false;
+    const saleItems = inventoryItems.filter(item => item.onSale) || [];
 
-    // fetch likes from Table
-    const fetchLikes = async ( isRefresh = false) => {
+    const fetchLikes = async () => {
         if (!user.userID) {
             console.warn("UserID is null; skipping fetch.");
             return;
         }
 
-         if (isFetching) return; 
-            isFetching = true;
-            
+        if (isFetching) return;
+        isFetching = true;
+
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
-            const data = await response.json();
 
-            console.log(`Fetched ${user.firstName}'s Likes:`, data);
-
-            if (!data.success) {
-                console.error("Backend error:", data.message);
-                setLikedItems([]);
-            } else {
-                setLikedItems(data.likes || []);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const result = await response.json();
+
+            // Debugging the entire response
+            console.log("Full response:", result);
+
+            const data = result.likes;
+
+            // Check if data is an array
+            if (!Array.isArray(data)) {
+                console.warn("No likes data received or invalid format:", data);
+                setLikedItems([]);
+                return;
+            }
+
+            setLikedItems(data);
+
+            const updatedIsFavourited = {};
+
+            data.forEach(item => {
+                if (item.unit?.id) {
+                    updatedIsFavourited[item.unit.id] = true;
+                } else {
+                    console.warn("Invalid item in likes data:", item);
+                }
+            });
+
+            setIsFavourited(updatedIsFavourited);
+
         } catch (error) {
-            console.error("Error fetching 'Likes': ", error);
+            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);
-            isFetching = false; 
+            isFetching = false;
         }
     };
 
@@ -299,28 +296,12 @@ const YourFavourites = () => {
         }
     }, [user.userID]);
 
-    useEffect(() => {
-        const updatedIsFavourited = {};
-
-        likedItems.forEach(item => {
-            updatedIsFavourited[item.unit.id] = true;
-        });
-
-        setIsFavourited(updatedIsFavourited);
-    }, [likedItems]);
-
-    if(isLoading){
-        return <ActivityIndicator size="large" color="#0000ff" />;
-    }
-
-    const saleItems =  inventoryItems.filter(item => item.onSale)||[];
-
-    const toggleItemModal = (item:any) => {
+    const toggleItemModal = (item) => {
         setSelectedItem(item);
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-    const openImageModal = (index:any) => {
+    const openImageModal = (index) => {
         setSelectedImageIndex(index);
         setIsImageModalVisible(true);
     };
@@ -332,79 +313,172 @@ const YourFavourites = () => {
     const images = selectedItem ? [
         { uri: selectedItem.mainImage },
         { uri: selectedItem.image2 },
-        { uri: selectedItem.image3 }] : [];
+        { uri: selectedItem.image3 }
+    ] : [];
+
+    if (!fontsLoaded) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" color="white" />
+            </SafeAreaView>
+        );
+    }
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetchInventory().finally(() => setIsLoading(false));
+    }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                        gender: userData.gender || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                        gender: userData.gender || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
+
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView
-                refreshControl={
-                    <RefreshControl
-                        refreshing={isLoading}
-                        onRefresh={() => fetchLikes(true)}
-                    />
-                }
-                contentContainerStyle={styles.scrollViewContent}
-            >
+        <SafeAreaView style = {styles.container}>
+
                 <StatusBar barStyle="light-content" backgroundColor="black"/>
 
                 <ImageBackground
                     source = {require('@assets/images/TMBackground.png')}
                     resizeMode="stretch"
                     style = {styles.image}>
-                    <View style={styles.favsContainer}>
-                        <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
+                    <View style={styles.MainContainer}>
+                        {/* Recommended Row */}
+                        <View style={styles.clothesRow}>
+                            <ScrollView
+                                showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={isLoading}
+                                        onRefresh={fetchInventory}
+                                    />
+                                }
+                            >
+                                <View style={styles.RowImages}>
+                                    {inventoryItems
+                                        .filter((item) => {
+                                            if (user.gender === 'female') {
+                                                return item.sex === 'female' || item.sex === 'unisex';
+                                            } else if (user.gender === 'male') {
+                                                return item.sex === 'male' || item.sex === 'unisex';
+                                            } else {
+                                                // For other genders, show all items
+                                                return true;
+                                            }
+                                        })
+                                        .map((item) => (
+                                            <TouchableOpacity
+                                                key={item.id}
+                                                onPress={() => toggleItemModal(item)}
+                                                testID={`recommendedItem-${item}`}
+                                            >
+                                                <View key={item.id} style={styles.imageContainer}>
+                                                    <Image
+                                                        style={styles.clothesImage}
+                                                        source={{ uri: item.mainImage }}
+                                                    />
 
-                        <View style={styles.favsGridContainer}>
-                            {/*Recommended Row*/}
-                            <View style={styles.favesRow}>
-                                <View style = {styles.exitRow}>
-                                    <Text style={styles.titleText}>Your Favourites</Text>
-
-                                </View>
-
-                                <ScrollView showsVerticalScrollIndicator={false}>
-                                    <View style={styles.favsImages}>
-                                        {likedItems.slice(0, 10).map((likedItem) => (
-                                            <TouchableOpacity key={likedItem.id} onPress={() => toggleItemModal(likedItem)} >
-                                                <View key={likedItem.id} style={styles.imageContainer}>
-                                                    <Image style={styles.clothesImage}
-                                                           source={{uri: likedItem.unit.mainImage}}/>
-
-                                                    {likedItem.unit.onSale && (
+                                                    {item.onSale && (
                                                         <View style={styles.discountBanner}>
                                                             <Text style={styles.discountText}>
-                                                                {`Now R${likedItem.unit.salePrice}`}
+                                                                {`Now R${item.salePrice}`}
                                                             </Text>
                                                         </View>
                                                     )}
 
                                                     <View style={styles.actionButtons}>
-                                                        <TouchableOpacity onPress={() => toggleFavourite(likedItem.unit.id)}>
-                                                            <Icon
-                                                                name={isFavourited[likedItem.unit.id] ? 'heart' : 'heart-outline'}
-                                                                style={[
-                                                                    styles.staticHeart,
-                                                                    isFavourited[likedItem.unit.id] && styles.filledHeart,
-                                                                ]}
-                                                                size={30}
-                                                            />
+                                                        <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
+                                                            {isFavourited[item.id] &&
+                                                            playHeartAnimation[item.id] ? (
+                                                                <LottieView
+                                                                    source={require('@assets/animations/likeButtonAnimation.json')}
+                                                                    autoPlay
+                                                                    loop={false}
+                                                                    onAnimationFinish={() =>
+                                                                        setPlayHeartAnimation((prev) => ({
+                                                                            ...prev,
+                                                                            [item.id]: false,
+                                                                        }))
+                                                                    }
+                                                                    style={styles.heartAnimation}
+                                                                />
+                                                            ) : (
+                                                                <Icon
+                                                                    name={
+                                                                        isFavourited[item.id]
+                                                                            ? 'heart'
+                                                                            : 'heart-outline'
+                                                                    }
+                                                                    style={[
+                                                                        styles.staticHeart,
+                                                                        isFavourited[item.id] &&
+                                                                        styles.filledHeart,
+                                                                    ]}
+                                                                    size={30}
+                                                                />
+                                                            )}
                                                         </TouchableOpacity>
 
-                                                        <TouchableOpacity onPress={() => toggleCart(likedItem.unit.id)}>
-                                                            {isAddedToCart[likedItem.unit.id] && playCartAnimation[likedItem.unit.id] ? (
+                                                        <TouchableOpacity onPress={() => toggleCart(item.id)}>
+                                                            {isAddedToCart[item.id] &&
+                                                            playCartAnimation[item.id] ? (
                                                                 <LottieView
                                                                     source={require('@assets/animations/cartAnimation.json')}
                                                                     autoPlay
                                                                     loop={false}
-                                                                    onAnimationFinish={() => handleAnimationFinish(likedItem.unit.id)}
-                                                                    style = { styles.cartAnimation }
+                                                                    onAnimationFinish={() =>
+                                                                        handleAnimationFinish(item.id)
+                                                                    }
+                                                                    style={styles.cartAnimation}
                                                                 />
                                                             ) : (
                                                                 <Icon
-                                                                    name={isAddedToCart[likedItem.unit.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                    name={
+                                                                        isAddedToCart[item.id]
+                                                                            ? 'checkmark-circle'
+                                                                            : 'cart-outline'
+                                                                    }
                                                                     style={[
                                                                         styles.staticCart,
-                                                                        isAddedToCart[likedItem.unit.id] && styles.filledCart
+                                                                        isAddedToCart[item.id] &&
+                                                                        styles.filledCart,
                                                                     ]}
                                                                     size={32}
                                                                 />
@@ -414,16 +488,9 @@ const YourFavourites = () => {
                                                 </View>
                                             </TouchableOpacity>
                                         ))}
-                                        <View style = {styles.addMore}>
-                                            <CustomButton  path="(tabs)/HomeScreen" navigateTo={navigateTo} />
-                                        </View>
-                                    </View>
-                                </ScrollView>
 
-                            </View>
-
-
-                            {/*when you click on an item*/}
+                                </View>
+                            </ScrollView>
                             {selectedItem && (
                                 <Modal
                                     animationType="slide"
@@ -445,16 +512,16 @@ const YourFavourites = () => {
                                         <View style={styles.modalContent}>
                                             <View style={styles.titleRow}>
                                                 <View style = { styles.modalTitleContainer}>
-                                                    <Text style={styles.modalTitle}>{selectedItem.unit.itemName}</Text>
+                                                    <Text style={styles.modalTitle}>{selectedItem.itemName}</Text>
                                                 </View>
 
                                                 <Text
                                                     style={[
                                                         styles.modalTitlePrice,
-                                                        selectedItem.unit.onSale && styles.salePriceText
+                                                        selectedItem.onSale && styles.salePriceText
                                                     ]}
                                                 >
-                                                    {`R${selectedItem.unit.itemPrice}`}
+                                                    {`R${selectedItem.itemPrice}`}
                                                 </Text>
 
                                             </View>
@@ -464,22 +531,22 @@ const YourFavourites = () => {
                                                 {/* Trigger the image modal when any image is clicked */}
                                                 <TouchableOpacity onPress={() => openImageModal(0)}>
                                                     <View style={styles.modalImage}>
-                                                        {selectedItem.unit.onSale && (
+                                                        {selectedItem.onSale && (
                                                             <View style={styles.discountBanner}>
                                                                 <Text style={styles.discountText}>
-                                                                    {`Now R${selectedItem.unit.salePrice}`}
+                                                                    {`Now R${selectedItem.salePrice}`}
                                                                 </Text>
                                                             </View>
                                                         )}
-                                                        <Image style={styles.modalImage} source={{ uri: selectedItem.unit.mainImage }} />
+                                                        <Image style={styles.modalImage} source={{ uri: selectedItem.mainImage }} />
                                                     </View>
                                                 </TouchableOpacity>
                                                 <View style={styles.imagesLeft}>
                                                     <TouchableOpacity onPress={() => openImageModal(1)}>
-                                                        <Image style={styles.modalImage2} source={{ uri: selectedItem.unit.image2 }} />
+                                                        <Image style={styles.modalImage2} source={{ uri: selectedItem.image2 }} />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => openImageModal(2)}>
-                                                        <Image style={styles.modalImage3} source={{ uri: selectedItem.unit.image3 }} />
+                                                        <Image style={styles.modalImage3} source={{ uri: selectedItem.image3 }} />
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>
@@ -488,17 +555,17 @@ const YourFavourites = () => {
                                             <View style={styles.separator} />
                                             <View style={styles.itemInfo}>
                                                 <View style={styles.topRow}>
-                                                    <Text style={styles.modalInfoTitle}>{selectedItem.unit.itemName}</Text>
-                                                    <Text style={styles.modalInfoSKU}>{`Ref: ${selectedItem.unit.SKU}`}</Text>
+                                                    <Text style={styles.modalInfoTitle}>{selectedItem.itemName}</Text>
+                                                    <Text style={styles.modalInfoSKU}>{`Ref: ${selectedItem.SKU}`}</Text>
                                                 </View>
-                                                <Text style={styles.modalInfo}>{`Colour: ${selectedItem.unit.colour}`}</Text>
-                                                <Text style={styles.modalInfo}>{`Size: ${selectedItem.unit.size}`}</Text>
-                                                <Text style={styles.modalInfo}>{`Damage: ${selectedItem.unit.damage}`}</Text>
-                                                <Text style={styles.modalDescription}>{selectedItem.unit.description}</Text>
+                                                <Text style={styles.modalInfo}>{`Colour: ${selectedItem.colour}`}</Text>
+                                                <Text style={styles.modalInfo}>{`Size: ${selectedItem.size}`}</Text>
+                                                <Text style={styles.modalInfo}>{`Damage: ${selectedItem.damage}`}</Text>
+                                                <Text style={styles.modalDescription}>{selectedItem.description}</Text>
                                             </View>
                                             <View style={styles.modalActionButtons}>
-                                                <TouchableOpacity onPress={() => toggleFavourite(selectedItem.unit.id)} style={styles.modalLikeButton}>
-                                                    {isFavourited[selectedItem.unit.id] && playHeartAnimation[selectedItem.unit.id] ? (
+                                                <TouchableOpacity onPress={() => toggleFavourite(selectedItem.id)} style={styles.modalLikeButton}>
+                                                    {isFavourited[selectedItem.id] && playHeartAnimation[selectedItem.id] ? (
                                                         <LottieView
                                                             source={require('@assets/animations/likeButtonAnimation.json')}
                                                             autoPlay
@@ -506,17 +573,17 @@ const YourFavourites = () => {
                                                             onAnimationFinish={() =>
                                                                 setPlayHeartAnimation((prev) => ({
                                                                     ...prev,
-                                                                    [selectedItem.unit.id]: false,
+                                                                    [selectedItem.id]: false,
                                                                 }))
                                                             }
                                                             style={styles.likeAnimation}
                                                         />
                                                     ) : (
                                                         <Icon
-                                                            name={isFavourited[selectedItem.unit.id] ? 'heart' : 'heart-outline'}
+                                                            name={isFavourited[selectedItem.id] ? 'heart' : 'heart-outline'}
                                                             style={[
                                                                 styles.staticHeartModal,
-                                                                isFavourited[selectedItem.unit.id] && styles.filledHeartModal,
+                                                                isFavourited[selectedItem.id] && styles.filledHeartModal,
                                                             ]}
                                                             size={45}
                                                         />
@@ -524,27 +591,27 @@ const YourFavourites = () => {
                                                 </TouchableOpacity>
 
 
-                                                <TouchableOpacity onPress={() => toggleCart(selectedItem.unit.id)} style={styles.addToCartButton}>
-                                                    {isAddedToCart[selectedItem.unit.id] && playCartAnimation[selectedItem.unit.id] ? (
+                                                <TouchableOpacity onPress={() => toggleCart(selectedItem.id)} style={styles.addToCartButton}>
+                                                    {isAddedToCart[selectedItem.id] && playCartAnimation[selectedItem.id] ? (
                                                         <LottieView
                                                             source={require('@assets/animations/cartAnimation.json')}
                                                             autoPlay
                                                             loop={false}
-                                                            onAnimationFinish={() => handleAnimationFinish(selectedItem.unit.id)}
+                                                            onAnimationFinish={() => handleAnimationFinish(selectedItem.id)}
                                                             style = { styles.cartAnimationModal }
                                                         />
                                                     ) : (
                                                         <Icon
-                                                            name={isAddedToCart[selectedItem.unit.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                            name={isAddedToCart[selectedItem.id] ? 'checkmark-circle' : 'cart-outline'}
                                                             style={[
                                                                 styles.staticCartModal,
-                                                                isAddedToCart[selectedItem.unit.id] && styles.filledCartModal
+                                                                isAddedToCart[selectedItem.id] && styles.filledCartModal
                                                             ]}
                                                             size={32}
                                                         />
                                                     )}
                                                     <Text style={styles.addToCartText}>
-                                                        {isAddedToCart[selectedItem.unit.id] ? 'Added to cart' : 'Add to cart'}
+                                                        {isAddedToCart[selectedItem.id] ? 'Added to cart' : 'Add to cart'}
                                                     </Text>
                                                 </TouchableOpacity>
                                             </View>
@@ -552,6 +619,7 @@ const YourFavourites = () => {
                                     </View>
                                 </Modal>
                             )}
+
                             {/* Image modal - Separate from the main item modal */}
                             <Modal
                                 visible={isImageModalVisible}
@@ -588,99 +656,38 @@ const YourFavourites = () => {
                         </View>
                     </View>
                 </ImageBackground>
-            </ScrollView>
         </SafeAreaView>
     );
-}
-
-interface CustomButtonProps {
-    text: string;
-    path: string;
-    navigateTo: (path: string) => void;
-}
-
-const CustomButton = ({ text, path, navigateTo }: CustomButtonProps) => {
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-        Animated.spring(scaleAnim, {
-            toValue: 0.95,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const handlePressOut = () => {
-        Animated.spring(scaleAnim, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    return (
-        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
-            <Pressable
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={() => {
-                    console.log(`Navigating to: ${path}`);
-                    navigateTo(path);
-                }}
-                style={styles.button}
-            >
-                <Icon
-                    name={'add-circle'}
-                    style={[
-                        styles.addMoreButton,
-                    ]}
-                    size={50}
-                />
-            </Pressable>
-        </Animated.View>
-    );
-}
-
+};
 
 const styles = StyleSheet.create({
     container: {
-        flex:1,
-        backgroundColor:'#93D3AE',
-    },
-    image: {
-         flex: 1,
-        justifyContent: 'center',
+        flex: 1,
         width: '100%',
     },
-    favsContainer: {
-        display: 'flex',
+    image: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
-        position: 'relative',
-        bottom: '17%'
+    },
+    MainContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: '4%',
     },
 
-    logo: {
-        resizeMode: 'contain' as ImageStyle['resizeMode'],
-        width: 260,
-        position:'relative',
-        right: '12%',
-        bottom: '47%'
-    },
-
-    //all the rows and titles
-    favsGridContainer: {
-        padding: 15,
-        width: '90%',
-        position: "absolute",
-        top: '16%',
-        backgroundColor: 'rgba(255,255,255,0.75)',
-        borderRadius: 10,
-    },
     //each row of images
-    favsImages: {
+    RowImages: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-evenly',
+        alignItems: 'flex-start',
+        paddingVertical: 10,
+        marginHorizontal: 5,
     },
     //each image
     clothesImage: {
@@ -712,16 +719,17 @@ const styles = StyleSheet.create({
         elevation: 5,
         margin: 5,
     },
-    exitRow: {
-        flexDirection: 'row'
+    headerText: {
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 24,
+        color: '#3b3b3b',
+        backgroundColor: 'rgba(33, 146, 129, 0.5)',
+        borderRadius: 4,
+        textTransform: 'capitalize',
+        paddingLeft: 10,
+        marginLeft: 6
     },
-    titleText: {
-        fontFamily: 'shrikhand',
-        fontSize: 25,
-        color: '#219281FF',
-        marginLeft: 10,
-        paddingBottom:'2%',
-    },
+
     discountBanner: {
         position: 'absolute',
         top: 15,
@@ -905,6 +913,7 @@ const styles = StyleSheet.create({
         fontSize: 22,
         marginLeft: '10%'
     },
+    modalLikeButton: {},
     modalLikeButtonIcon: {
         color: '#212121'
     },
@@ -1039,31 +1048,7 @@ const styles = StyleSheet.create({
         right: '0%',
         bottom: 0,
     },
-    addMore: {
-        backgroundColor: 'rgba(147,211,174,0.8)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: 170,
-        width: itemSize,
-        borderRadius: 5,
-        resizeMode: 'cover' as ImageStyle['resizeMode'],
-        margin: 5,
-
-    },
-    addMoreButton: {
-        color: '#219281FF',
-
-    },
-    favesRow: {
-        flexGrow: 1,
-        justifyContent: 'center',
-    },
-    scrollViewContent: {
-        flexGrow: 1
-    }
 
 });
 
-
-export default YourFavourites;
+export default ViewRecommended;
