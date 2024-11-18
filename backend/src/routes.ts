@@ -193,4 +193,11 @@ export const Routes = [
         action: "one",
     },
 
+    {
+        method: "put",
+        route: "/orders/:orderNumber/status",
+        controller: OrderController,
+        action: "updateOrderStatus",
+    },
+
 ];

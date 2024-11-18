@@ -81,23 +81,23 @@ const HomeScreen = React.memo(() => {
     const [isAddedToCart, setAddedToCart] = useState({});
     const [playCartAnimation, setPlayCartAnimation] = useState({});
     const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
-
     const [inventoryItems, setInventoryItems ] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const [likedItems, setLikedItems] = useState([]);
-
-    const recommendedScrollRef = useRef(null);
     const [recommendedScrollX, setRecommendedScrollX] = useState(0);
-    const saleScrollRef = useRef(null);
     const [saleScrollX, setSaleScrollX] = useState(0);
-    const newInScrollRef = useRef(null);
     const [newInScrollX, setNewInScrollX] = useState(0);
-
-    const [isItemModalVisible, setIsItemModalVisible] = useState(false); // Main item modal
-    const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
+    const [isItemModalVisible, setIsItemModalVisible] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+    const recommendedScrollRef = useRef(null);
+    const saleScrollRef = useRef(null);
+    const newInScrollRef = useRef(null);
+
+    let isFetching = false;
 
     const buttonScale = useRef(new Animated.Value(1)).current;
 
@@ -135,7 +135,7 @@ const HomeScreen = React.memo(() => {
                     console.log('Gender from userData:', userData.gender);
 
                     setUser({
-                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        isLoggedIn: true,
                         userToken: userData.token || null,
                         userEmail: userData.email || null,
                         firstName: userData.firstName || null,
@@ -161,16 +161,66 @@ const HomeScreen = React.memo(() => {
         fetchUser();
     }, []);
 
-    // If fonts are not loaded, show a loading indicator within the component itself
-    if (!fontsLoaded) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <ActivityIndicator size="large" color="white" />
-            </SafeAreaView>
-        );
-    }
+    const fetchInventory = async () => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
+            const data = await response.json();
+            console.log("Fetched data:", data);
+            setInventoryItems(data);
+        } catch (error) {
+            console.error("Error fetching inventory: ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    //saving liked items to table
+    useEffect(() => {
+        setIsLoading(true);
+        fetchInventory().finally(() => setIsLoading(false));
+    }, []);
+
+    const fetchLikes = async () => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
+            const data = await response.json();
+            console.log(`Fetched Likes for ${user.firstName}:`, data);
+            setLikedItems(data);
+
+            const updatedIsFavourited = {};
+
+            if(data) {
+                data.forEach(item => {
+                    updatedIsFavourited[item.unit.id] = true;
+                });
+            }
+            setIsFavourited(updatedIsFavourited);
+
+        } catch (error) {
+            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
+        } finally {
+            setIsLoading(false);
+            isFetching = false;
+        }
+    };
+
+    useEffect(() => {
+        if (user.userID) {
+            console.log("UserID available, fetching likes.");
+            setIsLoading(true);
+            fetchLikes();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
+
     const toggleFavourite = (id) => {
         console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
 
@@ -280,30 +330,29 @@ const HomeScreen = React.memo(() => {
             setCartItems((prevCartItems = []) => {
                 const existingItem = prevCartItems.some(item => item.id === id);
                 if (!existingItem) {
-                        console.log("Attempting to add to cart:", {itemID: id, userID: user.userID});
+                    console.log("Attempting to add to cart:", {itemID: id, userID: user.userID});
 
-                        fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': "application/json",
-                            },
-                            body: JSON.stringify({itemID: id, userID: user.userID}),
+                    fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': "application/json",
+                        },
+                        body: JSON.stringify({itemID: id, userID: user.userID}),
+                    })
+                        .then(response => response.json())
+                        .then((data) => {
+                            console.log('Item added to cart:', data);
+                            if (data && data.item) {
+                                setCartItems((prevCartItem) => [...prevCartItems, {id}]);
+                                setAddedToCart(prev =>({...prev, [id]:true}))
+                            }
                         })
-                            .then(response => response.json())
-                            .then((data) => {
-                                console.log('Item added to cart:', data);
-                                if (data && data.item) {
-                                    setCartItems((prevCartItem) => [...prevCartItems, {id}]);
-                                    setAddedToCart(prev =>({...prev, [id]:true}))
-                                }
-                            })
-                            .catch(error => {
-                                console.error("Error adding to 'Cart': ", error);
-                            });
+                        .catch(error => {
+                            console.error("Error adding to 'Cart': ", error);
+                        });
                 }
             });
         } else {
-
             console.log(`Removing item ${id} from ${user.firstName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
@@ -322,22 +371,23 @@ const HomeScreen = React.memo(() => {
                         [id]: false,
                     }));
                 }).catch(error => {
-                    console.error(`Error removing from ${user.firstName}'s 'Cart': `, error);
-                });
+                console.error(`Error removing from ${user.firstName}'s 'Cart': `, error);
+            });
         }
     }
 
     const handleAnimationFinish = (id) => {
-       setIsCartAnimationCompleted((prev) => ({
-           ...prev,
-           [id]: true,
-       }));
-       setPlayCartAnimation((prev) => ({
-           ...prev,
-           [id]: false,
-       }));
+        setIsCartAnimationCompleted((prev) => ({
+            ...prev,
+            [id]: true,
+        }));
+        setPlayCartAnimation((prev) => ({
+            ...prev,
+            [id]: false,
+        }));
     }
 
+    const saleItems = inventoryItems.filter(item => item.onSale) || [];
     useEffect(() => {
         setIsLoading(true);
         fetchInventory();
@@ -423,7 +473,7 @@ const HomeScreen = React.memo(() => {
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
 
-    const handleScrollRight = (scrollRef:any, currentScrollX:any, setScrollX:any) => {
+    const handleScrollRight = (scrollRef, currentScrollX, setScrollX) => {
         if (scrollRef.current) {
             const newScrollPosition = currentScrollX + 100;
             scrollRef.current.scrollTo({ x: newScrollPosition, animated: true });
@@ -431,12 +481,12 @@ const HomeScreen = React.memo(() => {
         }
     };
 
-    const toggleItemModal = (item:any) => {
+    const toggleItemModal = (item) => {
         setSelectedItem(item);
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-    const openImageModal = (index:any) => {
+    const openImageModal = (index) => {
         setSelectedImageIndex(index);
         setIsImageModalVisible(true);
     };
@@ -448,8 +498,16 @@ const HomeScreen = React.memo(() => {
     const images = selectedItem ? [
         { uri: selectedItem.mainImage },
         { uri: selectedItem.image2 },
-        { uri: selectedItem.image3 }] : [];
+        { uri: selectedItem.image3 }
+    ] : [];
 
+    if (!fontsLoaded) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" color="white" />
+            </SafeAreaView>
+        );
+    }
     return (
             <SafeAreaView style={styles.container}>
                 <ScrollView

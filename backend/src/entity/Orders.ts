@@ -17,4 +17,7 @@ export class Orders {
 
     @Column()
     address: string="";
+
+    @Column()
+    completed: boolean=false;
 }

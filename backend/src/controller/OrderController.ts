@@ -22,6 +22,7 @@ export class OrderController {
             order.email = email;
             order.total = total;
             order.address = address;
+            order.completed = false;
 
             console.log('Created order entity:', order);
 
@@ -55,6 +56,39 @@ export class OrderController {
         catch (error) {
             console.log('LOG: 5 - Error');
             console.error('Detailed error in getOrders:', error);
+        }
+    }
+
+    async updateOrderStatus(request: Request, response: Response) {
+        const { orderNumber } = request.params;
+
+        // Parse orderNumber as an integer
+        const parsedOrderNumber = parseInt(orderNumber, 10);
+
+        if (isNaN(parsedOrderNumber)) {
+            return response.status(400).json({ error: "Invalid order number." });
+        }
+
+        try {
+            const orderRepo = AppDataSource.getRepository(Orders);
+
+            // Find the order by orderNumber
+            const order = await orderRepo.findOne({ where: { orderNumber: parsedOrderNumber } });
+
+            if (!order) {
+                return response.status(404).json({ error: "Order not found." });
+            }
+
+            // Toggle the completion status
+            order.completed = !order.completed;
+
+            // Save the updated order
+            const updatedOrder = await orderRepo.save(order);
+
+            return response.status(200).json(updatedOrder);
+        } catch (error) {
+            console.error('Error toggling order completion:', error);
+            return response.status(500).json({ error: "Failed to toggle order completion" });
         }
     }
 }
