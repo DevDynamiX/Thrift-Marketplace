@@ -269,37 +269,72 @@ const SearchScreen = () => {
         fetchInventory().finally(() => setIsLoading(false));
     }, []);
 
+
+    let isFetching = false;
+
     // fetch likes from Table
     const fetchLikes = async () => {
-        if (!user.userID) return;
-        if (!likedItems) return;
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
         try {
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
-            const data = await response.json();
-            console.log(`Fetched Likes for ${user.firstName}:`, data);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // Debugging the entire response
+            console.log("Full response:", result);
+
+            const data = result.likes; // Access the 'likes' array
+
+            // Check if data is an array
+            if (!Array.isArray(data)) {
+                console.warn("No likes data received or invalid format:", data);
+                setLikedItems([]);
+                return;
+            }
+
             setLikedItems(data);
 
             const updatedIsFavourited = {};
 
-            if(data) {
-                data.forEach(item => {
+            data.forEach(item => {
+                if (item.unit?.id) {
                     updatedIsFavourited[item.unit.id] = true;
-                });
-            }
+                } else {
+                    console.warn("Invalid item in likes data:", item);
+                }
+            });
+
             setIsFavourited(updatedIsFavourited);
 
         } catch (error) {
-            if (!likedItems) return;
             console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
         } finally {
             setIsLoading(false);
+            isFetching = false;
         }
     };
 
+
     useEffect(() => {
-        setIsLoading(true);
-        fetchLikes();
-    }, []);
+        if (user.userID) {
+            console.log("UserID available, fetching likes.");
+            setIsLoading(true);
+            fetchLikes();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
 
     const saleItems =  inventoryItems.filter(item => item.onSale)||[];
 

@@ -97,8 +97,6 @@ const HomeScreen = React.memo(() => {
     const saleScrollRef = useRef(null);
     const newInScrollRef = useRef(null);
 
-    let isFetching = false;
-
     const buttonScale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -179,47 +177,6 @@ const HomeScreen = React.memo(() => {
         fetchInventory().finally(() => setIsLoading(false));
     }, []);
 
-    const fetchLikes = async () => {
-        if (!user.userID) {
-            console.warn("UserID is null; skipping fetch.");
-            return;
-        }
-
-        if (isFetching) return;
-        isFetching = true;
-
-        try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/likes?userID=${user.userID}`);
-            const data = await response.json();
-            console.log(`Fetched Likes for ${user.firstName}:`, data);
-            setLikedItems(data);
-
-            const updatedIsFavourited = {};
-
-            if(data) {
-                data.forEach(item => {
-                    updatedIsFavourited[item.unit.id] = true;
-                });
-            }
-            setIsFavourited(updatedIsFavourited);
-
-        } catch (error) {
-            console.error(`Error fetching ${user.firstName}'s 'Likes': `, error);
-        } finally {
-            setIsLoading(false);
-            isFetching = false;
-        }
-    };
-
-    useEffect(() => {
-        if (user.userID) {
-            console.log("UserID available, fetching likes.");
-            setIsLoading(true);
-            fetchLikes();
-        } else {
-            console.warn("UserID is null, skipping fetch.");
-        }
-    }, [user.userID]);
 
     const toggleFavourite = (id) => {
         console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
@@ -388,24 +345,7 @@ const HomeScreen = React.memo(() => {
     }
 
     const saleItems = inventoryItems.filter(item => item.onSale) || [];
-    useEffect(() => {
-        setIsLoading(true);
-        fetchInventory();
-    }, []);
 
-    //render error could be here
-    //fetch inventory from Table
-    const fetchInventory = async () => {
-        try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
-            const data = await response.json();
-            setInventoryItems(data);
-        } catch (error) {
-            console.error("Error fetching inventory: ", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     let isFetching = false;
 
@@ -471,7 +411,6 @@ const HomeScreen = React.memo(() => {
         }
     }, [user.userID]);
 
-    const saleItems =  inventoryItems.filter(item => item.onSale)||[];
 
     const handleScrollRight = (scrollRef, currentScrollX, setScrollX) => {
         if (scrollRef.current) {

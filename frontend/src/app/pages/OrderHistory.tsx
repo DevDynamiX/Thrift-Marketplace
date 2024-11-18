@@ -206,7 +206,7 @@ const OrdersTable: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex:1,
-        //backgroundColor:'#93D3AE',
+        opacity: 0.97,
     },
     headerContainer: {
         width:'90%',
@@ -252,30 +252,25 @@ const styles = StyleSheet.create({
     },
     orderContainer: {
         padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#219281FF',
         marginHorizontal: 16,
         marginVertical: 8,
         borderRadius: 8,
-        //backgroundColor: '#f9f9f9',
+        backgroundColor: 'rgba(249,249,249, 1)',
     },
     orderNumber: {
-        fontFamily: 'sulphurPoint',
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 26,
         marginBottom: 4,
+        color: '#93D3AE',
+
     },
     orderEmail: {
         fontFamily: 'sulphurPoint',
-        fontSize: 14,
-        color: '#666',
+        fontSize: 16,
+        color: '#219281FF',
         marginBottom: 4,
     },
-    orderTotal: {
-        fontFamily: 'sulphurPoint_Bold',
-        fontSize: 16,
-        color: '#2c3e50',
-    },
+
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
