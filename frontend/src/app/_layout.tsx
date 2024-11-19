@@ -305,6 +305,17 @@ const RootLayout = () => {
                 headerTintColor: "white",
             }}
         />
+
+        <Stack.Screen
+            name="Admin/ViewOrders"
+            options={{
+                title: "View Orders",
+                headerStyle: {
+                    backgroundColor: "#5CB7A5",
+                },
+                headerTintColor: "white",
+            }}
+        />
       
     </Stack>;
 };
