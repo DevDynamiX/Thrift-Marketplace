@@ -143,7 +143,7 @@ const EditUserDetails = () => {
     }
 
     return (
-        <ImageBackground source={require('assets/images/Your.png')} style={styles.container}>
+        <ImageBackground source={require('@assets/images/TMBackground.png')} style={styles.container}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.transparentContainer}
