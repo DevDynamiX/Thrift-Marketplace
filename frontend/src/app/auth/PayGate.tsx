@@ -16,13 +16,14 @@ import { useLocalSearchParams } from "expo-router";
 import {useFonts} from "expo-font";
 import Icon from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-//TODO: add field to apply discount from recycling
-//TODO: change total to reflect Discounts.ts etc
+import Constants from "expo-constants";
+import {router, useRouter} from "expo-router";
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PaymentScreen = () => {
+    const router = useRouter();
 
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     const { totalWithShipping } = useLocalSearchParams();
     const [cardNumber, setCardNumber] = useState('');
@@ -36,13 +37,49 @@ const PaymentScreen = () => {
     const [username, setUsername] = useState('');
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
 
     useEffect(() => {
         const fetchUserName = async () => {
@@ -70,10 +107,15 @@ const PaymentScreen = () => {
         );
     }
 
+    //Delete discount after payment
+    // const deleteDiscount = (discountCode) => {
+    //
+    // };
+
     const handlePayment = async () => {
         // basic validation , adjust if required
         // validation of user entry to simulate use of payment system
-        if (!cardNumber || !expiryDate || !cvv || !username||!address) {
+        if (!cardNumber || !expiryDate || !cvv || !username || !address) {
             Alert.alert("Error", "Please complete all fields");
             return;
         }
@@ -87,26 +129,31 @@ const PaymentScreen = () => {
             const orderNumber = Math.floor(100000 + Math.random() * 900000);// generation of order number
 
             // Saves order to table orders in databse
-            const response = await fetch('http://localhost:3000/orders', {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     orderNumber: orderNumber,
-                    email: username,
+                    email: username,    // Make sure 'username' matches the field the backend expects
                     address: address,
-                    total: Number(totalWithShipping)
+                    total: Number(totalWithShipping),   // Ensure total is a number
                 })
             });
-
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Transaction failed');//notification  of transaction failure
             }
             const data = await response.json();
+
             setStatusMessage(`Payment Complete. Order Number: ${orderNumber}`);
 
+            goToPostPay(orderNumber)
+
+
+            //Delete discount after payment
+            //deleteDiscount();
 
         } catch (error) {
             setStatusMessage(error instanceof Error ? error.message : 'Payment Failed');
@@ -116,6 +163,14 @@ const PaymentScreen = () => {
             setIsProcessing(false);
         }
     };
+
+    const goToPostPay = (orderNumber) =>{
+        router.push({
+            pathname:'pages/PostPay',
+            params:{orderNumber},
+        });
+    };
+
     // formating of date [MM/YY]
     const handleExpiryDateChange = (text: string) => {
         if (text.length === 2 && !text.includes('/')) {

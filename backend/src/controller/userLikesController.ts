@@ -12,29 +12,47 @@ export class UserLikesController {
 
     // Get all Likes
     async all(req: Request, res: Response) {
-        const {userID} = req.query;
-        const userIDNumber = Number(userID);
+        console.log("Incoming request for likes:", req.query);
 
-        if (!userID) {
-            return res.status(400).json({error: "User not found"});
+        const {userID} = req.query;
+        console.log("userIDNumber", userID);
+
+        if (!userID || isNaN(Number(userID))) {
+            console.error("Invalid or missing userID:", userID);
+            return res.status(400).json({
+                success: false,
+                likes: [],
+                message: "Invalid or missing userID",
+            });
         }
+
+        const userIDNumber = Number(userID);
 
         try {
             const userLikes = await this.likesRepository.find({
-                where: { user: {id: userIDNumber}},
+                where: {user: {id: userIDNumber}},
                 relations: ['unit'],
             });
 
-            return res.status(200).json(userLikes);
-        } catch (error) {
-            console.error("Error fetching user 'Likes'. ", error);
-            return res.status(500).json({success: false, message: "Error fetching user 'Likes'"});
-        }
+            console.log("User Likes:", userLikes);
+
+            return res.status(200).json({
+                success: true,
+                likes: userLikes,
+                message: "User likes fetched successfully.",
+            });
+        }catch (error: any) {
+                console.error("Error fetching user 'Likes':", error.message || error);
+                return res.status(500).json({
+                    success: false,
+                    likes: [],
+                    message: error.message || "An unexpected error occurred while fetching user likes.",
+                });
+            }
     }
 
     // Save a new like
     async save(req: Request, res: Response) {
-        //TODO: add userID here
         const {itemID, userID} = req.body;
         const userIDNumber = Number(userID);
 

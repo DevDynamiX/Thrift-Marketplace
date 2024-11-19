@@ -10,9 +10,6 @@ const InsertCategories = () => {
             return;
         }
 
-        // Here you would typically handle the category insertion logic,
-        // such as sending a request to your backend API or updating state.
-
         Alert.alert('Success', `Category "${categoryName}" added successfully!`);
         setCategoryName(''); // Clear the input after submission
     };

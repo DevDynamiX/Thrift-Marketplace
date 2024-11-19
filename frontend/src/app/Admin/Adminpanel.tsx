@@ -4,13 +4,9 @@ import { router } from "expo-router";
 import {useFonts} from "expo-font";
 import {handleLogout} from '../index';
 
-
-
 const AdminDashboard = () => {
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
@@ -58,7 +54,7 @@ const AdminDashboard = () => {
                 <CustomButton text="Insert Products" path="/Admin/AdminInventoryUpload" navigateTo={navigateTo} />
                 <CustomButton text="View Products" path="/Admin/ViewProduct" navigateTo={navigateTo} />
                 <CustomButton text="View Recycling" path="/Admin/Recycling" navigateTo={navigateTo} />
-                <CustomButton text="All Orders" path="/auth/AllOrders" navigateTo={navigateTo} />
+                <CustomButton text="All Orders" path="/Admin/ViewOrders" navigateTo={navigateTo} />
                 <CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />
                 <CustomButton text="List Users" path="/Admin/userlist" navigateTo={navigateTo} />
                 <TouchableOpacity onPress={handleLogout} style={styles.button}>

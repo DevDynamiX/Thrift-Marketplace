@@ -17,6 +17,7 @@ import Constants from 'expo-constants';
 import { Picker } from "@react-native-picker/picker";
 import { Firebase_Auth } from "@/firebaseConfig";
 import { createUserWithEmailAndPassword } from "@firebase/auth";
+import {useFonts} from "expo-font";
 
 const SignUp = () => {
     const [firstName, setFirstName] = useState('');
@@ -27,6 +28,13 @@ const SignUp = () => {
     const [gender, setGender] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [isFocus, setIsFocus] = useState(false);
+
+    const [fontsLoaded] = useFonts({
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
 
     const handleSignUp = async () => {
         if (!email || !password) {
@@ -39,15 +47,8 @@ const SignUp = () => {
         }
         setLoading(true);
         try {
-            // create the user with Firebase
-            /*const firebaseResponse = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
-            console.log("Firebase response:", firebaseResponse);
-
-            const { user } = firebaseResponse;
-            const { email: userEmail, uid } = user;*/
-
             // Send the user data to your backend
-            const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/register`, { // Update the URL as necessary
+            const dbResponse = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/register`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -90,7 +91,9 @@ const SignUp = () => {
                 style={styles.backgroundImage}
             >
                 <View style={styles.container}>
-                    <ScrollView>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                    >
                         <View style={styles.header}>
                             <Image
                                 resizeMode="contain"
@@ -145,6 +148,7 @@ const SignUp = () => {
                                 <Text style={styles.inputLabel}>Gender</Text>
                                 <Picker
                                     selectedValue={gender}
+                                    style = {styles.picker}
                                     onValueChange={(itemValue) => setGender(itemValue)}
                                 >
                                     <Picker.Item label="Select Gender" value="" />
@@ -166,27 +170,6 @@ const SignUp = () => {
                                 />
                             </View>
 
-
-                            {/* Gender Dropdown */}
-                            {/*<View style={styles.input}>*/}
-                            {/*    <Text style={styles.inputLabel}>Gender</Text>*/}
-                            {/*    <Dropdown*/}
-                            {/*        style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}*/}
-                            {/*        placeholderStyle={styles.placeholderStyle}*/}
-                            {/*        selectedTextStyle={styles.selectedTextStyle}*/}
-                            {/*        data={genderData}*/}
-                            {/*        labelField="label"*/}
-                            {/*        valueField="value"*/}
-                            {/*        placeholder={!isFocus ? 'Select gender' : '...'}*/}
-                            {/*        value={gender}*/}
-                            {/*        onFocus={() => setIsFocus(true)}*/}
-                            {/*        onBlur={() => setIsFocus(false)}*/}
-                            {/*        onChange={item => {*/}
-                            {/*            setGender(item.value);*/}
-                            {/*            setIsFocus(false);*/}
-                            {/*        }}*/}
-                            {/*    />*/}
-                            {/*</View>*/}
 
                             <View style={styles.formAction}>
                                 <TouchableOpacity
@@ -240,13 +223,13 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 31,
-        fontWeight: '700',
         color: '#1D2A32',
         marginBottom: 6,
+        fontFamily: 'shrikhand'
     },
     subtitle: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 15,
-        fontWeight: '500',
         color: '#929292',
     },
     header: {
@@ -277,17 +260,21 @@ const styles = StyleSheet.create({
         color: '#222',
         textAlign: 'center',
         letterSpacing: 0.15,
+        fontFamily: 'sulphurPoint',
     },
     input: {
         marginBottom: 16,
     },
     inputLabel: {
-        fontSize: 17,
+        fontFamily: 'sulphurPoint_Bold',
+        fontSize: 20,
         fontWeight: '600',
-        color: '#222',
+        color: '#219281FF',
         marginBottom: 8,
+        marginLeft: 10
     },
     inputControl: {
+        fontFamily: 'sulphurPoint',
         height: 50,
         backgroundColor: '#fff',
         paddingHorizontal: 16,
@@ -299,21 +286,17 @@ const styles = StyleSheet.create({
         borderColor: '#C9D3DB',
         borderStyle: 'solid',
     },
-    dropdown: {
-        height: 50,
-        borderColor: 'gray',
-        borderWidth: 0.5,
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        backgroundColor: 'white',
-    },
+
     placeholderStyle: {
+        fontFamily: 'sulphurPoint',
         fontSize: 16,
     },
     selectedTextStyle: {
+        fontFamily: 'sulphurPoint',
         fontSize: 16,
     },
     btn: {
+        fontFamily: 'sulphurPoint',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -325,7 +308,8 @@ const styles = StyleSheet.create({
         borderColor: '#ec5707',
     },
     btnText: {
-        fontSize: 18,
+        fontFamily: 'sulphurPoint',
+        fontSize: 22,
         lineHeight: 26,
         color: '#ffffff',
     },
@@ -345,6 +329,13 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         marginRight: 10,
+    },
+    picker: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 13,
+        color: '#222',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        marginBottom: 10,
     },
 });
 

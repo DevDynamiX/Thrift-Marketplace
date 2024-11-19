@@ -11,6 +11,38 @@ export class DiscountsController {
     private recyclingRepository = AppDataSource.getRepository(Recycling)
     private userRepository = AppDataSource.getRepository(User)
 
+    // Get a by user ID
+    async one(request: Request, response: Response) {
+        try {
+            const userID = parseInt(request.params.userId);
+
+            console.log("Searching for discounts for user ID: ", userID);
+
+            if (!userID) {
+                console.log("No user ID provided.");
+                return response.status(400).json({ message: "User ID is required." });
+            }
+
+            // Query discounts where the user ID matches
+            const userDiscounts: Discounts[] = await this.discountsRepository.find({
+                where: { user: { id: userID } },
+                relations: ["user", "recycling"],
+            });
+
+            if (userDiscounts.length === 0) {
+                return response.status(404).json({ message: "No discounts for this user!" });
+            }
+
+            console.log("These are the user's discounts: ", userDiscounts);
+
+            return response.json(userDiscounts);
+        } catch (error) {
+            console.error("There was an error fetching the discounts: ", error);
+            return response.status(500).json({ message: "An error occurred while fetching the discounts." });
+        }
+    }
+
+
     // Get all in recycling table
     async all(request: Request, response: Response, next: NextFunction) {
         try {

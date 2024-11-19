@@ -1,48 +1,39 @@
 import React, {
     useState,
     useEffect,
-    useRef,
-    useContext } from 'react';
+     } from 'react';
 import {
     View,
     ImageBackground,
     StyleSheet,
     StatusBar,
     SafeAreaView,
-    Image,
     Text,
     Dimensions,
     ActivityIndicator,
-    ScrollView,
-    ImageStyle,
     TouchableOpacity,
-    Modal,
-    FlatList,
-    Alert, Animated, Pressable, TextInput
+    Alert,
+    TextInput
 } from 'react-native';
 import  { useFonts } from 'expo-font';
-import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import Constants from "expo-constants";
 // Todo removed Navigitation as it caused a nested Navigition error
 // import {useNavigation} from '@react-navigation/native';
 import { Formik } from 'formik';
 import {Picker} from "@react-native-picker/picker";
-import {hidden} from "colorette";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-//TODO: GET USER ID FOR FIELDS
 const RecycleNow = () => {
     // Todo removed Navigitation as it caused a nested Navigition error
     // const navigation = useNavigation();
 
     // Load fonts asynchronously
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),

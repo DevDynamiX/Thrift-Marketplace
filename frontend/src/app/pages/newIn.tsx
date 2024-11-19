@@ -1,30 +1,49 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState } from 'react';
 import {
     View,
-    ImageBackground,
-    StyleSheet,
-    StatusBar,
-    SafeAreaView,
-    Image,
     Text,
-    ScrollView,
-    Dimensions,
-    ImageStyle, TouchableOpacity, Modal, FlatList, ActivityIndicator, RefreshControl
+    FlatList,
+    Image,
+    StyleSheet,
+    Alert,
+    TouchableOpacity,
+    ImageBackground,
+    RefreshControl,
+    ScrollView, Dimensions, SafeAreaView, ActivityIndicator, StatusBar, ImageStyle, Modal
 } from 'react-native';
-import { SearchBar } from 'react-native-elements';
-import Icon from "react-native-vector-icons/Ionicons";
-import LottieView from "lottie-react-native";
+import  { useFonts } from 'expo-font';
 import Constants from "expo-constants";
-import {useFonts} from "expo-font";
-import { checkUserSession } from "@/app/auth/LoginScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {useRouter} from "expo-router";
+import LottieView from "lottie-react-native";
+import Icon from "react-native-vector-icons/Ionicons";
 
+interface Product {
+    id: number;
+    itemName: string;
+    itemPrice: number;
+    salePrice: number;
+}
 
 const { width } = Dimensions.get('window');
 const itemSize = width/3;
 
-const SearchScreen = () => {
-
+const ViewNewIn = () => {
     const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
+
+    const [isFavourited, setIsFavourited] = useState({});
+    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
+    const [isAddedToCart, setAddedToCart] = useState({});
+    const [playCartAnimation, setPlayCartAnimation] = useState({});
+    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
+    const [inventoryItems, setInventoryItems ] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [likedItems, setLikedItems] = useState([]);
+    const [isItemModalVisible, setIsItemModalVisible] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
@@ -33,51 +52,21 @@ const SearchScreen = () => {
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
 
-    const [isFavourited, setIsFavourited] = useState({});
-    const [playHeartAnimation, setPlayHeartAnimation] = useState({});
-    const [isAddedToCart, setAddedToCart] = useState({});
-    const [playCartAnimation, setPlayCartAnimation] = useState({});
-    const [isCartAnimationCompleted, setIsCartAnimationCompleted] = useState({});
+    let isFetching = false;
 
-    const [inventoryItems, setInventoryItems ] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [cartItems, setCartItems] = useState([]);
-    const [likedItems, setLikedItems] = useState([]);
-
-    const recommendedScrollRef = useRef(null);
-    const [recommendedScrollX, setRecommendedScrollX] = useState(0);
-    const saleScrollRef = useRef(null);
-    const [saleScrollX, setSaleScrollX] = useState(0);
-    const newInScrollRef = useRef(null);
-    const [newInScrollX, setNewInScrollX] = useState(0);
-
-    const [isItemModalVisible, setIsItemModalVisible] = useState(false); // Main item modal
-    const [isImageModalVisible, setIsImageModalVisible] = useState(false); // Image modal
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-    //getting user data from session
-    useEffect(() => {
-        const fetchUserSession = async () =>{
-            const sessionData = await checkUserSession();
-            setUser(sessionData);
-
-            console.log("Data in the session: ", sessionData);
+    const fetchInventory = async () => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
+            const data = await response.json();
+            console.log("Fetched data:", data);
+            setInventoryItems(data);
+        } catch (error) {
+            console.error("Error fetching inventory: ", error);
+        } finally {
+            setIsLoading(false);
         }
+    };
 
-        fetchUserSession();
-    }, []);
-
-    // If fonts are not loaded, show a loading indicator within the component itself
-    if (!fontsLoaded) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <ActivityIndicator size="large" color="white" />
-            </SafeAreaView>
-        );
-    }
-
-    //saving liked items to table
     const toggleFavourite = (id) => {
         console.log(`Toggling favourite for item with ID: ${id}, for user ID ${user.userID}`);
 
@@ -122,15 +111,12 @@ const SearchScreen = () => {
                         .then(response => response.json())
                         .then(data => {
                             console.log('Item added to likes:', data);
-
-                            if(data && data.likes) {
-                                console.log("Likes found: ", data.likes);
-                                setLikedItems((prevLikedItems) => [
-                                    ...(Array.isArray(prevLikedItems) ? prevLikedItems : []),
-                                    { id },
-                                ]);
+                            if (data && Array.isArray(data)) {
+                                data.forEach(item => {
+                                    setIsFavourited[item.unit.id] = true;
+                                });
                             } else {
-                                console.error('Unexpected response data: ', data);
+                                console.warn(`No likes data found for userID ${user.userID}:`, data);
                             }
                         })
                         .catch(error => {
@@ -158,9 +144,8 @@ const SearchScreen = () => {
         }
     }
 
-    //saving cart items to table
     const toggleCart = (id) => {
-        console.log(`Toggling cart for ${id}`);
+        console.log(`Toggling cart for item with ID: ${id}, for ${user.firstName}. `);
 
         if (!id) {
             console.error("Item ID is missing");
@@ -201,7 +186,7 @@ const SearchScreen = () => {
                     })
                         .then(response => response.json())
                         .then((data) => {
-                            console.log("Item added to cart:", data);
+                            console.log('Item added to cart:', data);
                             if (data && data.item) {
                                 setCartItems((prevCartItem) => [...prevCartItems, {id}]);
                                 setAddedToCart(prev =>({...prev, [id]:true}))
@@ -213,7 +198,6 @@ const SearchScreen = () => {
                 }
             });
         } else {
-
             console.log(`Removing item ${id} from ${user.firstName}'s cart`);
 
             setPlayCartAnimation((prev) => ({
@@ -248,31 +232,8 @@ const SearchScreen = () => {
         }));
     }
 
-    //render error could be here
-    //fetch inventory from Table
-    const fetchInventory = async () => {
-        if (!inventoryItems) return;
-        try {
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory`);
-            const data = await response.json();
-            console.log("Fetched data:", data);
-            setInventoryItems(data);
-        } catch (error) {
-            console.error("Error fetching inventory: ", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const saleItems = inventoryItems.filter(item => item.onSale) || [];
 
-    useEffect(() => {
-        setIsLoading(true);
-        fetchInventory().finally(() => setIsLoading(false));
-    }, []);
-
-
-    let isFetching = false;
-
-    // fetch likes from Table
     const fetchLikes = async () => {
         if (!user.userID) {
             console.warn("UserID is null; skipping fetch.");
@@ -294,7 +255,7 @@ const SearchScreen = () => {
             // Debugging the entire response
             console.log("Full response:", result);
 
-            const data = result.likes; // Access the 'likes' array
+            const data = result.likes;
 
             // Check if data is an array
             if (!Array.isArray(data)) {
@@ -325,7 +286,6 @@ const SearchScreen = () => {
         }
     };
 
-
     useEffect(() => {
         if (user.userID) {
             console.log("UserID available, fetching likes.");
@@ -336,22 +296,12 @@ const SearchScreen = () => {
         }
     }, [user.userID]);
 
-    const saleItems =  inventoryItems.filter(item => item.onSale)||[];
-
-    const handleScrollRight = (scrollRef:any, currentScrollX:any, setScrollX:any) => {
-        if (scrollRef.current) {
-            const newScrollPosition = currentScrollX + 100;
-            scrollRef.current.scrollTo({ x: newScrollPosition, animated: true });
-            setScrollX(newScrollPosition);
-        }
-    };
-
-    const toggleItemModal = (item:any) => {
+    const toggleItemModal = (item) => {
         setSelectedItem(item);
         setIsItemModalVisible(!isItemModalVisible);
     };
 
-    const openImageModal = (index:any) => {
+    const openImageModal = (index) => {
         setSelectedImageIndex(index);
         setIsImageModalVisible(true);
     };
@@ -363,98 +313,97 @@ const SearchScreen = () => {
     const images = selectedItem ? [
         { uri: selectedItem.mainImage },
         { uri: selectedItem.image2 },
-        { uri: selectedItem.image3 }] : [];
+        { uri: selectedItem.image3 }
+    ] : [];
+
+    if (!fontsLoaded) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" color="white" />
+            </SafeAreaView>
+        );
+    }
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetchInventory().finally(() => setIsLoading(false));
+    }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                console.log('*************');
+                console.log('Stored user data:', userDataString);
+                console.log('*************');
+
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    console.log('Email from userData:', userData.email);
+                    console.log('ID from userData:', userData.id);
+
+                    setUser({
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                        gender: userData.gender || null,
+                    });
+
+                    console.log('*************');
+                    console.log('Updated user state:', {
+                        isLoggedIn: true,
+                        userToken: userData.token || null,
+                        userEmail: userData.email || null,
+                        firstName: userData.firstName || null,
+                        userID: userData.id || null,
+                        gender: userData.gender || null,
+                    });
+                    console.log('*************');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUser();
+    }, []);
+
 
     return (
-        <ScrollView
-            refreshControl={
-                <RefreshControl
-                    refreshing={isLoading}
-                    onRefresh={fetchLikes}
-                />
-            }
-        >
-            <SafeAreaView style = {styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="black" />
+        <SafeAreaView style = {styles.container}>
+
+            <StatusBar barStyle="light-content" backgroundColor="black"/>
+
             <ImageBackground
                 source = {require('@assets/images/TMBackground.png')}
                 resizeMode="stretch"
                 style = {styles.image}>
-                <View style = {styles.mainContainer}>
-                    <View style = {styles.itemsContainer}>
-                        <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
-                        <View style = {styles.searchBarContainer}>
-                            <SearchBar
-                                platform="default"
-                                value=""
-                                loadingProps={{}}
-                                showLoading={false}
-                                lightTheme={false}
-                                round={false}
-                                onCancel={() => {}}
-                                onClear={() => {}}
-                                onFocus={() => {}}
-                                onBlur={() => {}}
-                                onChangeText={() => {}}
-                                cancelButtonTitle=""
-                                cancelButtonProps={{}}
-                                showCancel={false}
-                                inputStyle={{
-                                    backgroundColor:'#219281',
-                                    paddingLeft: 5,
-                                }}
-                                containerStyle={{
-                                    width:"100%",
-                                    alignSelf: "center",
-                                    backgroundColor:'#219281',
-                                    borderColor: '#219281',
-                                    borderRadius: 10,
-                                    shadowColor: 'rgba(26,26,26,0.85)',
-                                    shadowOffset: {
-                                        width: 0,
-                                        height: 2,
-                                    },
-                                    shadowOpacity: 1,
-                                    shadowRadius: 4,
-                                    elevation: 5,
-                                }}
-                                placeholderTextColor={'#93D3AE'}
-                                placeholder={'search'}
-                                searchIcon={{
-                                    name: 'search',
-                                    color: '#93D3AE',
-                                    size: 30,
-                                }}
-                                clearIcon={{
-                                    name: 'clear',
-                                    color: '#219281',
-                                }}
-                                inputContainerStyle={{
-                                    backgroundColor:'#219281',
-                                }}
-                            ></SearchBar>
-                        </View>
-                    </View>
-
-                    <View style={styles.rowsContainer}>
-                        {/*Recommended Row*/}
-                        <View style={styles.clothesRow}>
-                            <Text style={styles.headerText}>'search query' in Recommended: </Text>
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                ref={recommendedScrollRef}
-                                onScroll={(event) => setRecommendedScrollX((event.nativeEvent.contentOffset.x))}
-                                scrollEventThrottle={16}
-                                style={{flexGrow: 0}}
-                                testID = "recommendedScrollView"
-                            >
-                                <View style={styles.RowImages}>
-                                    {inventoryItems.slice(0, 10).map((item) => (
-                                        <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)} testID = {`recommendedItem-${item}`}>
+                <View style={styles.MainContainer}>
+                    {/* Recommended Row */}
+                    <View style={styles.clothesRow}>
+                        <ScrollView
+                            showsVerticalScrollIndicator={false}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={isLoading}
+                                    onRefresh={fetchInventory}
+                                />
+                            }
+                        >
+                            <View style={styles.RowImages}>
+                                {inventoryItems
+                                    .map((item) => (
+                                        <TouchableOpacity
+                                            key={item.id}
+                                            onPress={() => toggleItemModal(item)}
+                                            testID={`recommendedItem-${item}`}
+                                        >
                                             <View key={item.id} style={styles.imageContainer}>
-                                                <Image style={styles.clothesImage}
-                                                       source={{uri: item.mainImage}}/>
+                                                <Image
+                                                    style={styles.clothesImage}
+                                                    source={{ uri: item.mainImage }}
+                                                />
 
                                                 {item.onSale && (
                                                     <View style={styles.discountBanner}>
@@ -466,7 +415,8 @@ const SearchScreen = () => {
 
                                                 <View style={styles.actionButtons}>
                                                     <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
-                                                        {isFavourited[item.id] && playHeartAnimation[item.id] ? (
+                                                        {isFavourited[item.id] &&
+                                                        playHeartAnimation[item.id] ? (
                                                             <LottieView
                                                                 source={require('@assets/animations/likeButtonAnimation.json')}
                                                                 autoPlay
@@ -481,10 +431,15 @@ const SearchScreen = () => {
                                                             />
                                                         ) : (
                                                             <Icon
-                                                                name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
+                                                                name={
+                                                                    isFavourited[item.id]
+                                                                        ? 'heart'
+                                                                        : 'heart-outline'
+                                                                }
                                                                 style={[
                                                                     styles.staticHeart,
-                                                                    isFavourited[item.id] && styles.filledHeart,
+                                                                    isFavourited[item.id] &&
+                                                                    styles.filledHeart,
                                                                 ]}
                                                                 size={30}
                                                             />
@@ -492,20 +447,28 @@ const SearchScreen = () => {
                                                     </TouchableOpacity>
 
                                                     <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                        {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
+                                                        {isAddedToCart[item.id] &&
+                                                        playCartAnimation[item.id] ? (
                                                             <LottieView
                                                                 source={require('@assets/animations/cartAnimation.json')}
                                                                 autoPlay
                                                                 loop={false}
-                                                                onAnimationFinish={() => handleAnimationFinish(item.id)}
-                                                                style = { styles.cartAnimation }
+                                                                onAnimationFinish={() =>
+                                                                    handleAnimationFinish(item.id)
+                                                                }
+                                                                style={styles.cartAnimation}
                                                             />
                                                         ) : (
                                                             <Icon
-                                                                name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
+                                                                name={
+                                                                    isAddedToCart[item.id]
+                                                                        ? 'checkmark-circle'
+                                                                        : 'cart-outline'
+                                                                }
                                                                 style={[
                                                                     styles.staticCart,
-                                                                    isAddedToCart[item.id] && styles.filledCart
+                                                                    isAddedToCart[item.id] &&
+                                                                    styles.filledCart,
                                                                 ]}
                                                                 size={32}
                                                             />
@@ -515,197 +478,9 @@ const SearchScreen = () => {
                                             </View>
                                         </TouchableOpacity>
                                     ))}
-                                </View>
-                            </ScrollView>
-                            <TouchableOpacity style={styles.columnScrollMarker}
-                                              onPress={() => handleScrollRight(recommendedScrollRef, recommendedScrollX, setRecommendedScrollX)}>
-                                <View>
-                                    <Icon name="chevron-forward-outline" style={styles.arrowIcon} size={30}/>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
 
-                        {/*On Sale Row*/}
-                            <View style={styles.clothesRow}>
-                                <Text style={styles.headerText}>'search query' in Sale:</Text>
-                                <ScrollView
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    ref={saleScrollRef}
-                                    onScroll={(event) => setSaleScrollX((event.nativeEvent.contentOffset.x))}
-                                    scrollEventThrottle={16}
-                                    style={{flexGrow: 0}}
-                                >
-                                    {saleItems.length > 0 && (
-
-                                        <View style={styles.RowImages}>
-                                        {saleItems.map((item) => (
-                                            <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
-                                                <View key={item.id} style={styles.imageContainer}>
-                                                    <Image style={styles.clothesImage}
-                                                           source={{uri: item.mainImage}}/>
-
-                                                    {item.salePrice && (
-                                                        <View style={styles.discountBanner}>
-                                                            <Text style={styles.discountText}>
-                                                                {`Now R${item.salePrice}`}
-                                                            </Text>
-                                                        </View>
-                                                    )}
-
-                                                    <View style={styles.actionButtons}>
-                                                        <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
-                                                            {isFavourited[item.id] && playHeartAnimation[item.id] ? (
-                                                                <LottieView
-                                                                    source={require('@assets/animations/likeButtonAnimation.json')}
-                                                                    autoPlay
-                                                                    loop={false}
-                                                                    onAnimationFinish={() =>
-                                                                        setPlayHeartAnimation((prev) => ({
-                                                                            ...prev,
-                                                                            [item.id]: false,
-                                                                        }))
-                                                                    }
-                                                                    style={styles.heartAnimation}
-                                                                />
-                                                            ) : (
-                                                                <Icon
-                                                                    name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
-                                                                    style={[
-                                                                        styles.staticHeart,
-                                                                        isFavourited[item.id] && styles.filledHeart,
-                                                                    ]}
-                                                                    size={30}
-                                                                />
-                                                            )}
-                                                        </TouchableOpacity>
-
-                                                        <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                            {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
-                                                                <LottieView
-                                                                    source={require('@assets/animations/cartAnimation.json')}
-                                                                    autoPlay
-                                                                    loop={false}
-                                                                    onAnimationFinish={() => handleAnimationFinish(item.id)}
-                                                                    style = { styles.cartAnimation }
-                                                                />
-                                                            ) : (
-                                                                <Icon
-                                                                    name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
-                                                                    style={[
-                                                                        styles.staticCart,
-                                                                        isAddedToCart[item.id] && styles.filledCart
-                                                                    ]}
-                                                                    size={32}
-                                                                />
-                                                            )}
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </View>
-                                        )}
-                                </ScrollView>
-                                <TouchableOpacity style={styles.columnScrollMarker}
-                                                  onPress={() => handleScrollRight(saleScrollRef, saleScrollX, setSaleScrollX)}>
-                                    <View>
-                                        <Icon name="chevron-forward-outline" style={styles.arrowIcon}
-                                              size={30}/>
-                                    </View>
-                                </TouchableOpacity>
                             </View>
-
-
-                        {/* New In Row*/}
-                        <View style={styles.clothesRow}>
-                            <Text style={styles.headerText}> 'search query' in New In </Text>
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                ref={newInScrollRef}
-                                onScroll={(event) => setNewInScrollX((event.nativeEvent.contentOffset.x))}
-                                scrollEventThrottle={16}
-                                style={{flexGrow: 0}}
-                            >
-
-                                <View style={styles.RowImages}>
-                                    {inventoryItems.slice(0, 10).map((item) => (
-                                        <TouchableOpacity key={item.id} onPress={() => toggleItemModal(item)}>
-                                            <View key={item.id} style={styles.imageContainer}>
-                                                <Image style={styles.clothesImage}
-                                                       source={{uri: item.mainImage}}/>
-
-                                                {item.onSale && (
-                                                    <View style={styles.discountBanner}>
-                                                        <Text style={styles.discountText}>
-                                                            {`Now R${item.salePrice}`}
-                                                        </Text>
-                                                    </View>
-                                                )}
-                                                <View style={styles.actionButtons}>
-                                                    <TouchableOpacity onPress={() => toggleFavourite(item.id)}>
-                                                        {isFavourited[item.id] && playHeartAnimation[item.id] ? (
-                                                            <LottieView
-                                                                source={require('@assets/animations/likeButtonAnimation.json')}
-                                                                autoPlay
-                                                                loop={false}
-                                                                onAnimationFinish={() =>
-                                                                    setPlayHeartAnimation((prev) => ({
-                                                                        ...prev,
-                                                                        [item.id]: false,
-                                                                    }))
-                                                                }
-                                                                style={styles.heartAnimation}
-                                                            />
-                                                        ) : (
-                                                            <Icon
-                                                                name={isFavourited[item.id] ? 'heart' : 'heart-outline'}
-                                                                style={[
-                                                                    styles.staticHeart,
-                                                                    isFavourited[item.id] && styles.filledHeart,
-                                                                ]}
-                                                                size={30}
-                                                            />
-                                                        )}
-                                                    </TouchableOpacity>
-
-                                                    <TouchableOpacity onPress={() => toggleCart(item.id)}>
-                                                        {isAddedToCart[item.id] && playCartAnimation[item.id] ? (
-                                                            <LottieView
-                                                                source={require('@assets/animations/cartAnimation.json')}
-                                                                autoPlay
-                                                                loop={false}
-                                                                onAnimationFinish={() => handleAnimationFinish(item.id)}
-                                                                style = { styles.cartAnimation }
-                                                            />
-                                                        ) : (
-                                                            <Icon
-                                                                name={isAddedToCart[item.id] ? 'checkmark-circle' : 'cart-outline'}
-                                                                style={[
-                                                                    styles.staticCart,
-                                                                    isAddedToCart[item.id] && styles.filledCart
-                                                                ]}
-                                                                size={32}
-                                                            />
-                                                        )}
-                                                    </TouchableOpacity>
-                                                </View>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </ScrollView>
-                            <TouchableOpacity style={styles.columnScrollMarker}
-                                              onPress={() => handleScrollRight(newInScrollRef, newInScrollX, setNewInScrollX)}>
-                                <View>
-                                    <Icon name="chevron-forward-outline" style={styles.arrowIcon} size={30}/>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                        <Text> hi </Text>
-
-                        {/*when you click on an item*/}
+                        </ScrollView>
                         {selectedItem && (
                             <Modal
                                 animationType="slide"
@@ -834,6 +609,7 @@ const SearchScreen = () => {
                                 </View>
                             </Modal>
                         )}
+
                         {/* Image modal - Separate from the main item modal */}
                         <Modal
                             visible={isImageModalVisible}
@@ -871,85 +647,37 @@ const SearchScreen = () => {
                 </View>
             </ImageBackground>
         </SafeAreaView>
-        </ScrollView>
     );
-}
+};
 
 const styles = StyleSheet.create({
-    mainContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        width: '100%',
-        height: '100%',
-        justifyContent: 'space-evenly',
-        marginTop: '10%'
-
-    },
     container: {
-        flex:1,
-        backgroundColor:'black',
+        flex: 1,
+        width: '100%',
     },
     image: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
-        height: '100%',
     },
-    logo:{
-        resizeMode: 'contain',
-        width: '65%',
-        position: "relative",
-        top: '17%',
-    },
-    itemsContainer: {
-        width: '100%',
-        marginLeft: "5%",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        bottom: '18%'
-    },
-    searchBarContainer: {
-        width: '90%',
-        display: 'flex',
-        position: "relative",
-        bottom: '15%',
-        marginBottom: '5%'
-    },
-
-    //all the rows and titles
-    rowsContainer: {
+    MainContainer: {
         flex: 1,
-        padding: 15,
+        flexDirection: 'column',
         width: '100%',
-        flexDirection: "column",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        position: "relative",
-        top: '10%',
-        right: '2%'
-    },
-
-    //each row of images with title
-    clothesRow: {
-        //flex: 1,
-        width: '100%',
-        height: 200,
-        flexDirection: "column",
-        position: "relative",
-        bottom: '60%',
-        marginVertical:10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: '4%',
     },
 
     //each row of images
     RowImages: {
-        flex: 1,
         flexDirection: 'row',
-        height: 180,
-        display: 'flex',
-        justifyContent: 'flex-start',
-        alignItems: "center",
+        flexWrap: 'wrap',
+        justifyContent: 'space-evenly',
+        alignItems: 'flex-start',
+        paddingVertical: 10,
+        marginHorizontal: 5,
     },
     //each image
     clothesImage: {
@@ -981,24 +709,6 @@ const styles = StyleSheet.create({
         elevation: 5,
         margin: 5,
     },
-
-    //marker
-    columnScrollMarker: {
-        width: '15%',
-        height: '87%',
-        backgroundColor: 'rgba(229, 229, 229, 0.85)',
-        position: "absolute",
-        zIndex: 2,
-        left: 340,
-        top: '14%'
-    },
-    arrowIcon: {
-        color: '#212121',
-        position: "relative",
-        top: 70,
-        left: '5%'
-    },
-
     headerText: {
         fontFamily: 'sulphurPoint_Bold',
         fontSize: 24,
@@ -1009,6 +719,7 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         marginLeft: 6
     },
+
     discountBanner: {
         position: 'absolute',
         top: 15,
@@ -1327,6 +1038,7 @@ const styles = StyleSheet.create({
         right: '0%',
         bottom: 0,
     },
+
 });
 
-export default SearchScreen;
+export default ViewNewIn;

@@ -15,15 +15,12 @@ import {
     ImageStyle,
     TouchableOpacity,
     Dimensions,
-    RefreshControl, Animated, Pressable
+    RefreshControl, Modal, TextInput
 } from 'react-native';
 import {router, useRouter} from "expo-router";
-import {sum} from "@firebase/firestore";
 import {useFonts} from "expo-font";
 import Constants from "expo-constants";
 import Icon from "react-native-vector-icons/Ionicons";
-import {async} from "@firebase/util";
-import { checkUserSession } from "@/app/auth/LoginScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
@@ -37,7 +34,7 @@ const itemSize = width/3;
 
 
 const CartPage: React.FC = () => {
-    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: 1})
+    const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
     const [products, setProducts] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState([]);
@@ -46,15 +43,37 @@ const CartPage: React.FC = () => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [ refresh, setRefresh] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const [discountCode, setDiscountCode] = useState('');
+    const [appliedDiscount, setAppliedDiscount] = useState(null);
+    const [discounts, setDiscounts ] = useState([]);
+    const [discountedAmount, setDiscountedAmount ] = useState([]);
+
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+    const autoRefreshInterval = useRef<NodeJS.Timeout>();
+
 
     const [fontsLoaded] = useFonts({
-        'montserrat': require('@assets/fonts/Montserrat-VariableFont_wght.ttf'),
-        'montserrat_Italic': require('@assets/fonts/Montserrat-Italic-VariableFont_wght.ttf'),
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
         'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
         'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
     });
+
+    useEffect(() => {
+        autoRefreshInterval.current = setInterval(() => {
+            if (!isLoading) {
+                fetchCart();
+                setLastUpdate(new Date());
+            }
+        }, 1000); // 30 seconds
+        return () => {
+            if (autoRefreshInterval.current) {
+                clearInterval(autoRefreshInterval.current);
+            }
+        };
+    }, [isLoading]);
 
     //getting user data from session
     useEffect(() => {
@@ -71,7 +90,7 @@ const CartPage: React.FC = () => {
                     console.log('ID from userData:', userData.id);
 
                     setUser({
-                        isLoggedIn: true, // Assuming the user is logged in if data exists
+                        isLoggedIn: true,
                         userToken: userData.token || null,
                         userEmail: userData.email || null,
                         firstName: userData.firstName || null,
@@ -95,7 +114,6 @@ const CartPage: React.FC = () => {
         fetchUser();
     }, []);
 
-
     if (!fontsLoaded) {
         return (
             <SafeAreaView style={styles.container}>
@@ -104,28 +122,166 @@ const CartPage: React.FC = () => {
         );
     }
 
+    useEffect(() => {
+        const fetchUserDiscounts = async () => {
+            if (!user.userID) {
+                console.warn("UserID is null; skipping fetch.");
+                return;
+            }
+
+            setIsLoading(true);
+
+            try {
+                const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts/${user.userID}`);
+                if (!response.ok) {
+                    console.log("No Discounts for: ", user.firstName)
+                    throw new Error('Failed to fetch discounts data');
+                }
+                const data = await response.json();
+
+                console.log("Discounts fetched: ", data)
+
+                setDiscounts(data);
+            } catch (error) {
+                console.error('Error fetching discounts data: ', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        if(user.userID) {
+            console.log(`User ID available, fetching discounts for ${user.firstName}`);
+            fetchUserDiscounts();
+        }
+    }, [user.userID]);
+
     const shipping = 85;
     const freeShipping = 500;
 
+    const validateCode = (discountCode) => {
+        console.log("Discount Code to Validate: ", discountCode)
+        console.log("Available Discounts: ", discounts);
+
+        if(!discountCode) {
+            Alert.alert("No Discounts available!");
+            return undefined;
+        }
+        if (!Array.isArray(discounts) || discounts.length === 0) {
+            console.warn("Discounts are not available or empty.");
+            return undefined;
+        }
+        const availableDiscounts = discounts || [];
+        const discount = discounts.find(d => d.discountCode === discountCode.trim())
+
+        if (!discount) {
+            console.log('Discount not found for code:', discountCode);
+            return undefined;
+        }
+
+        console.log("Found Discount: ", discount)
+
+        return discount;
+    }
+
+    const handleDiscountSubmit = () => {
+        const discount = validateCode(discountCode);
+
+        console.log("Discount: ", discount)
+
+        if (!discount) {
+            Alert.alert("Error", "Invalid Discount Code!");
+            return;
+        }
+
+        const discountPercent = discount.discountCode.slice(-2);
+
+        setAppliedDiscount(discount);
+        Alert.alert(`${discountPercent}% OFF!`, ` Discount Applied: ${discount.discountCode}`);
+        closeModal();
+    }
+
     useEffect(() => {
         const newTotal = cartItems.reduce((sum,item)=>{
-            const price = item.inventoryItem.onSale ? Number(item.inventoryItem.salePrice) || 0 : Number(item.inventoryItem.itemPrice) || 0;
+            const price = item.inventoryItem.onSale ? Number(item.inventoryItem.salePrice) || 0
+                : Number(item.inventoryItem.itemPrice) || 0;
             return sum + price;
             },0);
 
-        const totalWithShipping  =  newTotal >= freeShipping ? newTotal : newTotal + shipping;
+        let discountedTotal = newTotal;
+        let discountedAmount = 0;
 
-        setTotal(newTotal);
+        if (appliedDiscount) {
+            const discountCode =  appliedDiscount.discountCode.trim();
+            const discountPercent = parseInt(discountCode.slice(-2), 10);
+
+            console.log("Discount percent: ", discountPercent)
+
+            if(discountPercent >= 0 && discountPercent <= 100) {
+                const discountedAmount = (newTotal * discountPercent)/100;
+                discountedTotal =  newTotal -  discountedAmount;
+
+                setDiscountedAmount(discountedAmount);
+
+                console.log("Discount Percent:", discountPercent);
+                console.log("Discount Amount:", (newTotal * discountPercent) / 100);
+
+            } else {
+                console.log("Invalid discount percentage.");
+            }
+        }
+
+        const totalWithShipping  =  discountedTotal > freeShipping ? discountedTotal : discountedTotal + shipping;
+
+        setTotal(discountedTotal);
         setTotalWithShipping(totalWithShipping);
-        },[cartItems]);
 
+        console.log("Cart Items:", cartItems);
+        console.log("Subtotal (newTotal):", newTotal);
+        console.log("Discounted Amount:", discountedAmount);
+        console.log("Discounted Total:", discountedTotal);
+        console.log("Total With Shipping:", totalWithShipping);
 
-    const fetchCart= async () => {
-        setIsLoading(true);
+        },[cartItems, appliedDiscount]);
+
+    const removeDiscount = () => {
+        setAppliedDiscount(null);
+        const newTotal = cartItems.reduce((sum, item) => {
+            const price = item.inventoryItem.onSale
+                ? Number(item.inventoryItem.salePrice) || 0
+                : Number(item.inventoryItem.itemPrice) || 0;
+            return sum + price;
+        }, 0);
+
+        let discountedTotal = newTotal;
+
+        // Recalculate total without discount
+        const totalWithShipping = discountedTotal > freeShipping ? discountedTotal : discountedTotal + shipping;
+
+        setTotal(discountedTotal);
+        setTotalWithShipping(totalWithShipping);
+        setDiscountedAmount(0);  // Reset discounted amount
+
+        console.log("Discount Removed");
+
+    }
+
+    let isFetching = false;
+
+    const fetchCart= async (isRefresh = false) => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
 
         try {
             console.log("User ID: ", user.userID);
-            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart?userID=${user.userID}`);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${user.userID}`);
+            if (!response.ok) {
+                console.log("No Cart for: ", user.firstName)
+                throw new Error('Failed to fetch cart data');
+            }
             const data = await response.json();
 
             console.log(`Fetched ${user.firstName}'s Cart:`, data);
@@ -142,13 +298,19 @@ const CartPage: React.FC = () => {
             setCartItems([]);
         } finally {
             setIsLoading(false);
+            isFetching = false;
         }
-
     };
 
     useEffect(() => {
-        fetchCart();
-    }, []);
+        if(user.userID){
+            console.log("UserID available, fetching cart.");
+            setIsLoading(true);
+            fetchCart();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
 
     const addToCart = (newItem) => {
         setCartItems(prevCartItems => [...prevCartItems, newItem]);
@@ -196,7 +358,7 @@ const CartPage: React.FC = () => {
     const goToCart = () =>{
         router.push({
             pathname:'auth/PayGate',
-            params:{totalWithShipping},
+            params:{totalWithShipping, discountCode},
         });
     };
 
@@ -209,7 +371,7 @@ const CartPage: React.FC = () => {
     const handleRefresh = async () => {
         setRefresh(true);
         try{
-            await fetchCart();
+            await fetchCart(true);
         } catch (error){
             console.error("Failed to refresh cart. ", error);
             Alert.alert('Error', 'Could not refresh cart.');
@@ -276,7 +438,13 @@ const CartPage: React.FC = () => {
         </View>
     );
 
-    console.log("These are Cart Items: ", cartItems)
+    const openModal  = () => {
+        setModalVisible(true)
+    };
+
+    const closeModal = () => {
+        setModalVisible(false)
+    }
 
     return (
         <ImageBackground
@@ -288,6 +456,44 @@ const CartPage: React.FC = () => {
             <View style={styles.container}>
                 <View style = {styles.content}>
                     <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
+
+                    <View style = { styles.applyDiscountContainer}>
+                        <TouchableOpacity style = {styles.submitButton} onPress={openModal}>
+                            <View style = {styles.iconContainer}><Image style = {styles.discountCodeIcon} source={require("@assets/images/promo-code.png")}/></View>
+                            <Text style = {styles.discountCodeText}>Use Discount Code</Text>
+                        </TouchableOpacity>
+
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={modalVisible}
+                            onRequestClose={closeModal}
+                        >
+                            <View style={styles.modalContainer}>
+                                <View style={styles.modalContent}>
+                                    <View style = {styles.couponIconContainer}><Image source={require('@assets/images/coupon.png')} style={styles.couponIcon} /></View>
+                                    <TextInput
+                                        style={styles.codeInput}
+                                        placeholder="Enter Discount Code"
+                                        value={discountCode}
+                                        onChangeText={setDiscountCode}
+                                    />
+                                    <View style={styles.dicountCodeButtonsContainer}>
+                                        <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                                            <Text style={styles.buttonText}>Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.saveButton}
+                                            onPress={handleDiscountSubmit}
+                                        >
+                                            <Text style={styles.buttonText}>Save</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+                    </View>
+
 
                     <View style={styles.pageContent}>
                         {cartItems.length === 0 ? (
@@ -323,7 +529,17 @@ const CartPage: React.FC = () => {
                     </View>
 
                     <View style={styles.cartContainer}>
-                        <Text style={styles.cartTitle}>Checkout: </Text>
+                        <View style = {styles.checkoutHeader}>
+                            <Text style={styles.cartTitle}>Checkout: </Text>
+
+                            {discountedAmount > 0 && (
+                                <View style={styles.removeDiscountContainer}>
+                                    <TouchableOpacity onPress={removeDiscount} style={styles.removeDiscountButton}>
+                                        <Text style={styles.removeButtonText}>Remove Discount</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
 
                         <View style={styles.separator} />
 
@@ -332,6 +548,13 @@ const CartPage: React.FC = () => {
                                 <Text style = {styles.text}>Your Cart Subtotal: </Text>
                                 <Text style  = {styles.text}>R{Number(total).toFixed(2)}</Text>
                             </View>
+
+                            {discountedAmount > 0 && (
+                                <View style={styles.paymentDetailsContainer}>
+                                    <Text style={styles.text}>Discount Applied: </Text>
+                                    <Text style={styles.text}>-R{discountedAmount.toFixed(2)}</Text>
+                                </View>
+                            )}
 
                             <View style = {styles.paymentDetailsContainer}>
                                 <Text style = {styles.text}>Shipping Fees: </Text>
@@ -381,18 +604,17 @@ const styles = StyleSheet.create({
         width:'90%',
         height: '100%',
         position: "relative",
-        top: '7%',
+        top: '5%',
         left: '5%',
     },
     pageContent: {
         display:'flex',
         flexDirection: 'column',
-        height: '60%',
+        height: '45%',
         width: '100%',
         marginBottom: 100,
-        bottom: '23%',
+        bottom: '45%',
     },
-
     productCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.85)',
         padding: 10,
@@ -420,7 +642,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
         position: 'relative',
-        bottom: '43%'
+        bottom: '64%'
     },
     cartTitle: {
         fontFamily: 'sulphurPoint_Bold',
@@ -480,13 +702,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#FF0000',
         textAlign: 'center',
-
     },
     logo: {
         resizeMode: 'contain' as ImageStyle['resizeMode'],
         width: '70%',
         position: "relative",
-        //top:'80%',
         marginBottom: '8%',
     },
     separator: {
@@ -534,7 +754,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     imageContainer: {
-        height: 170,
+        height: 120,
         width: itemSize,
         borderRadius: 5,
         resizeMode: 'cover' as ImageStyle['resizeMode'],
@@ -548,7 +768,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     clothesImage: {
-        height: 170,
+        height: 120,
         width: itemSize,
         borderRadius: 5,
         resizeMode: 'cover' as ImageStyle['resizeMode'],
@@ -666,7 +886,137 @@ const styles = StyleSheet.create({
     },
     happyIcon:{
         paddingLeft: 10
+    },
+    submitButton: {
+        backgroundColor: '#219281FF',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: "center",
+        borderRadius: 5,
+        height: '25%',
+        marginBottom: '10%',
+        position: 'relative',
+        bottom: '76%'
+    },
+    discountCodeText: {
+        fontSize: 20,
+        fontFamily: 'sulphurPoint',
+        color: '#93D3AE',
+        position: 'relative',
+        right: '6%'
+    },
+    discountCodeIcon: {
+        width:'35%',
+        height:'50%',
+    },
+    iconContainer:{
+        width:'30%',
+        height:'120%',
+        alignItems:'center',
+        justifyContent:'center',
+        position: 'relative',
+        left: '0%',
+    },
+    applyDiscountContainer: {
+        marginBottom: 10,
+    },
+    modalContainer: {
+        backgroundColor: 'rgba(255,255,255,0.86)',
+        margin: 10,
+        padding: 5,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        height: '50%'
+    },
+    modalContent: {
+        alignItems:'center',
+        padding:5,
+    },
+    modalTitle: {
+        fontFamily: 'shrikhand',
+        fontSize: 25,
+        color: "#219281FF"
+    },
+    couponIconContainer: {
+        width: '40%',
+        height: '40%',
+        marginBottom: 5,
+        alignItems:'center',
+    },
+    couponIcon: {
+        width: 70,
+        height: 70,
+    },
+    codeInput: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 18,
+        borderWidth: 1,
+        borderRadius: 10,
+        borderColor: 'rgba(28,28,28,0.5)',
+        padding: 10,
+        paddingLeft: 25,
+        paddingRight: 25,
+        marginBottom: 10,
+    },
+    dicountCodeButtonsContainer: {
+        flexDirection: 'row',
+        marginTop: 10,
+        width: 250,
+        justifyContent: 'space-evenly',
+    },
+    closeButton: {
+        backgroundColor: '#F9A822',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: 10,
+        paddingLeft:15,
+        paddingRight: 15,
+        borderRadius: 10,
+        marginRight: 23,
+    },
+    saveButton: {
+        alignItems: 'center',
+        backgroundColor: '#219281FF',
+        padding: 10,
+        borderRadius: 10,
+        marginLeft: 20,
+        paddingLeft:15,
+        paddingRight: 15,
+    },
+    buttonText: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 22,
+        textAlign:'center',
+        color: 'white'
+    },
+    removeDiscountButton: {
+        alignSelf: 'flex-end',
+        backgroundColor: '#FF0000',
+        padding: 6,
+        borderRadius: 5,
+        width: '30%'
+    },
+    checkoutHeader: {
+        width: '99%',
+        flexDirection: 'row',
+    },
+    removeButtonText: {
+        fontFamily: 'sulphurPoint',
+        fontSize: 12,
+        textAlign:'center',
+        color: 'white'
+    },
+    removeDiscountContainer: {
+        width: '100%',
+        position: 'relative',
+        right: '35%'
     }
+
+
+
 
     
 });
