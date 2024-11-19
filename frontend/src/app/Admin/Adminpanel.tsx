@@ -55,7 +55,7 @@ const AdminDashboard = () => {
                 <CustomButton text="View Products" path="/Admin/ViewProduct" navigateTo={navigateTo} />
                 <CustomButton text="View Recycling" path="/Admin/Recycling" navigateTo={navigateTo} />
                 <CustomButton text="All Orders" path="/Admin/ViewOrders" navigateTo={navigateTo} />
-                <CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />
+                {/*<CustomButton text="List Payments" path="/auth/ListPayments" navigateTo={navigateTo} />*/}
                 <CustomButton text="List Users" path="/Admin/userlist" navigateTo={navigateTo} />
                 <TouchableOpacity onPress={handleLogout} style={styles.button}>
                     <Text style={styles.buttonText}> Logout </Text>
