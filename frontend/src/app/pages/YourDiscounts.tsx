@@ -94,6 +94,7 @@ const ViewDiscounts = () => {
             setDiscounts(data);
         } catch (error) {
             console.error('Error fetching discounts data: ', error);
+            setDiscounts([]);
         } finally {
             setIsLoading(false);
             isFetching = false;
