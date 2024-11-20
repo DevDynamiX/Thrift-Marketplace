@@ -42,7 +42,6 @@ export class CartController {
     }
 
     async save(req: Request, res: Response) {
-        //TODO: add userID here
         const {itemID, userID} = req.body;
 
         console.log("Request Body:", req.body);
@@ -127,9 +126,26 @@ export class CartController {
     }
 
     async clearCart(req:Request,res:Response){
+        const { userID } = req.params;
+        const userIDNumber = Number(userID);
+
+        console.log(`DELETE /cart/clear/:userID received for userID: ${userIDNumber}`);
+
+        console.log("Attempting to cart for user ID: ", userIDNumber);
+
         const itemRepo = AppDataSource.getRepository(Cart);
-        await itemRepo.clear();
-        return res.json({message:"Item cleared"});
+
+        try{
+            const result = await itemRepo.delete({user: {id: userIDNumber}});
+
+            console.log(`Removed all items from cart for user: ${userID}`);
+
+            return res.json({ message: `All items removed from cart for user ${userID}.` });
+        } catch (error) {
+            console.error("Error clearing cart for user:", error);
+            return res.status(500).json({ message: "Error clearing cart for user." });
+        }
+
     }
 }
 

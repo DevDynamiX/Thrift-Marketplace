@@ -1,5 +1,4 @@
 import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne, JoinColumn} from "typeorm";
-import {Likes} from "./userLikes";
 import {Discounts} from "./Discounts";
 import {User} from "./User";
 

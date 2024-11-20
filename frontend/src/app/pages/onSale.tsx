@@ -482,6 +482,13 @@ const ViewOnSale = () => {
                                                         )}
                                                     </TouchableOpacity>
                                                 </View>
+                                                {item.isSold && (
+                                                    <View style={styles.soldOverlay}>
+                                                        <Icon name="sad-outline" style={styles.sadIcon}
+                                                              size={30}/>
+                                                        <Text style={styles.soldText}>Sorry! This item is sold</Text>
+                                                    </View>
+                                                )}
                                             </View>
                                         </TouchableOpacity>
                                     ))}
@@ -1045,7 +1052,28 @@ const styles = StyleSheet.create({
         right: '0%',
         bottom: 0,
     },
-
+    soldOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(33,146,129,0.75)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2,
+        borderRadius: 5,
+    },
+    soldText: {
+        textAlign: 'center',
+        fontFamily: 'sulphurPoint_Bold',
+        color: 'white',
+        fontSize: 18,
+    },
+    sadIcon: {
+        color: 'white',
+        marginBottom: 10
+    }
 });
 
 export default ViewOnSale;

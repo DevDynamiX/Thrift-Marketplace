@@ -346,7 +346,6 @@ const HomeScreen = React.memo(() => {
 
     const saleItems = inventoryItems.filter(item => item.onSale) || [];
 
-
     let isFetching = false;
 
     const fetchLikes = async () => {
@@ -576,6 +575,13 @@ const HomeScreen = React.memo(() => {
                                                                         )}
                                                                     </TouchableOpacity>
                                                                 </View>
+                                                                {item.isSold && (
+                                                                    <View style={styles.soldOverlay}>
+                                                                        <Icon name="sad-outline" style={styles.sadIcon}
+                                                                              size={30}/>
+                                                                        <Text style={styles.soldText}>Sorry! This item is sold</Text>
+                                                                    </View>
+                                                                )}
                                                             </View>
                                                         </TouchableOpacity>
                                                     ))}
@@ -684,6 +690,13 @@ const HomeScreen = React.memo(() => {
                                                                     )}
                                                                 </TouchableOpacity>
                                                             </View>
+                                                            {item.isSold && (
+                                                                <View style={styles.soldOverlay}>
+                                                                    <Icon name="sad-outline" style={styles.sadIcon}
+                                                                          size={30}/>
+                                                                    <Text style={styles.soldText}>Sorry! This item is sold</Text>
+                                                                </View>
+                                                            )}
                                                         </View>
                                                     </TouchableOpacity>
                                                 ))}
@@ -694,6 +707,7 @@ const HomeScreen = React.memo(() => {
                                                             navigateTo={navigateTo}
                                                         />
                                                     </View>
+
                                             </View>
                                                 )}
                                         </ScrollView>
@@ -781,6 +795,13 @@ const HomeScreen = React.memo(() => {
                                                                 )}
                                                             </TouchableOpacity>
                                                         </View>
+                                                        {item.isSold && (
+                                                            <View style={styles.soldOverlay}>
+                                                                <Icon name="sad-outline" style={styles.sadIcon}
+                                                                      size={30}/>
+                                                                <Text style={styles.soldText}>Sorry! This item is sold</Text>
+                                                            </View>
+                                                        )}
                                                     </View>
                                                 </TouchableOpacity>
                                             ))}
@@ -791,6 +812,7 @@ const HomeScreen = React.memo(() => {
                                                     navigateTo={navigateTo}
                                                 />
                                             </View>
+
                                         </View>
                                     </ScrollView>
                                     <TouchableOpacity style={styles.columnScrollMarker}
@@ -1477,6 +1499,28 @@ const styles = StyleSheet.create({
     },
     addIcon: {
         color: "#219281FF"
+    },
+    soldOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(33,146,129,0.75)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2,
+        borderRadius: 5,
+    },
+    soldText: {
+        textAlign: 'center',
+        fontFamily: 'sulphurPoint_Bold',
+        color: 'white',
+        fontSize: 18,
+    },
+    sadIcon: {
+        color: 'white',
+        marginBottom: 10
     }
 
 });

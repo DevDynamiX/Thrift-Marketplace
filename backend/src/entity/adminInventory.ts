@@ -61,6 +61,9 @@ export class Inventory {
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date;
 
+    @Column({ default: false, nullable: true })
+    isSold!: boolean;
+
     @OneToMany(() => Cart, (cart) => cart.inventoryItem, {cascade: ['remove']})
     cartItems?: Cart[] ;
 

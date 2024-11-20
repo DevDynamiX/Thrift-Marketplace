@@ -355,7 +355,6 @@ const YourFavourites = () => {
                         <Image source={require('@assets/images/TMPageLogo.png')} style={styles.logo as ImageStyle}/>
 
                         <View style={styles.favsGridContainer}>
-                            {/*Recommended Row*/}
                             <View style={styles.favesRow}>
                                 <View style = {styles.exitRow}>
                                     <Text style={styles.titleText}>Your Favourites</Text>
@@ -411,6 +410,28 @@ const YourFavourites = () => {
                                                             )}
                                                         </TouchableOpacity>
                                                     </View>
+
+                                                    {likedItem.unit.isSold && (
+                                                        <View style={styles.overlayContainer}>
+                                                            <TouchableOpacity
+                                                                style={styles.deleteButton}
+                                                                onPress={() => toggleFavourite(likedItem.unit.id)}
+                                                            >
+                                                                <Icon
+                                                                    name="trash-outline"
+                                                                    size={24}
+                                                                    color="white"
+                                                                    style={styles.deleteIcon}
+                                                                />
+                                                            </TouchableOpacity>
+                                                            <Icon name="sad-outline" style={styles.sadIcon}
+                                                                  size={30}/>
+                                                            <Text style={styles.overlayText}>
+                                                                Sorry! This item is sold
+                                                            </Text>
+
+                                                        </View>
+                                                        )}
                                                 </View>
                                             </TouchableOpacity>
                                         ))}
@@ -1061,6 +1082,41 @@ const styles = StyleSheet.create({
     },
     scrollViewContent: {
         flexGrow: 1
+    },
+    overlayContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(33,146,129,0.75)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2,
+        borderRadius: 5,
+    },
+    overlayText: {
+        textAlign: 'center',
+        fontFamily: 'sulphurPoint_Bold',
+        color: 'white',
+        fontSize: 18,
+    },
+    deleteButton: {
+        zIndex:5,
+        position: 'absolute',
+        right: '-13%',
+        top: '-3%',
+        backgroundColor: '#ffc6c6',
+        padding: 5,
+        borderRadius: 50,
+    },
+    deleteIcon: {
+        color: '#FF0000',
+        alignSelf: 'center',
+    },
+    sadIcon: {
+        color: 'white',
+        marginBottom: 10
     }
 
 });

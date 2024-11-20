@@ -77,6 +77,14 @@ export const Routes = [
         controller: AdminInventoryController,
         action: "update",
     },
+    {
+        method: "patch",
+        route: "/inventory/:id/status",
+        controller: AdminInventoryController,
+        action: "updateInventoryStatus",
+    },
+
+
 
     //routes for carts table
     {
@@ -94,9 +102,9 @@ export const Routes = [
 
     {
         method: "delete",
-        route: "/cart/:itemID/:userID",
+        route: "/cart/clear/:userID",
         controller: CartController,
-        action: "remove",
+        action: "clearCart",
     },
 
 
@@ -191,6 +199,12 @@ export const Routes = [
         route: "/discounts/:id",
         controller: DiscountsController,
         action: "one",
+    },
+    {
+        method: "put",
+        route: "/discounts/update/:discountCode",
+        controller: DiscountsController,
+        action: "updateUsed",
     },
 
     {

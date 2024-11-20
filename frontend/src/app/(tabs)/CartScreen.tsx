@@ -53,7 +53,6 @@ const CartPage: React.FC = () => {
     const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
     const autoRefreshInterval = useRef<NodeJS.Timeout>();
 
-
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
         'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
@@ -67,7 +66,7 @@ const CartPage: React.FC = () => {
                 fetchCart();
                 setLastUpdate(new Date());
             }
-        }, 1000); // 30 seconds
+        }, 60000); // 30 seconds
         return () => {
             if (autoRefreshInterval.current) {
                 clearInterval(autoRefreshInterval.current);
@@ -234,12 +233,6 @@ const CartPage: React.FC = () => {
         setTotal(discountedTotal);
         setTotalWithShipping(totalWithShipping);
 
-        console.log("Cart Items:", cartItems);
-        console.log("Subtotal (newTotal):", newTotal);
-        console.log("Discounted Amount:", discountedAmount);
-        console.log("Discounted Total:", discountedTotal);
-        console.log("Total With Shipping:", totalWithShipping);
-
         },[cartItems, appliedDiscount]);
 
     const removeDiscount = () => {
@@ -258,14 +251,12 @@ const CartPage: React.FC = () => {
 
         setTotal(discountedTotal);
         setTotalWithShipping(totalWithShipping);
-        setDiscountedAmount(0);  // Reset discounted amount
+        setDiscountedAmount(0);
 
         console.log("Discount Removed");
-
     }
 
     let isFetching = false;
-
     const fetchCart= async (isRefresh = false) => {
         if (!user.userID) {
             console.warn("UserID is null; skipping fetch.");
@@ -276,15 +267,19 @@ const CartPage: React.FC = () => {
         isFetching = true;
 
         try {
-            console.log("User ID: ", user.userID);
             const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${user.userID}`);
+
+            if(response.status === 404) {
+                console.log("No Cart for: ", user.firstName)
+                setCartItems([]);
+                return;
+            }
+
             if (!response.ok) {
                 console.log("No Cart for: ", user.firstName)
-                throw new Error('Failed to fetch cart data');
             }
             const data = await response.json();
 
-            console.log(`Fetched ${user.firstName}'s Cart:`, data);
 
             if(Array.isArray(data)) {
                 setCartItems(data);
@@ -317,7 +312,6 @@ const CartPage: React.FC = () => {
     };
 
     const removeFromCart = async (product)=>{
-
         Alert.alert('Remove Item', `Are you sure you want to remove "${product.inventoryItem.itemName}" from your Cart?`,
             [
                 {
