@@ -110,7 +110,6 @@ const ViewDiscounts = () => {
         }
     }, [user.userID]);
 
-
     const openEditModal = (item) => {
         setSelectedItem(item);
         setModalVisible(true);
@@ -125,7 +124,6 @@ const ViewDiscounts = () => {
          Clipboard.setString(text);
          Alert.alert('Copied to clipboard!');
      };
-
 
     const renderDiscount = ({ item }) => {
         if (!item) return null;
@@ -153,7 +151,6 @@ const ViewDiscounts = () => {
         );
     };
 
-
     return (
         <ImageBackground
             source = {require('@assets/images/TMBackground.png')}
@@ -164,7 +161,7 @@ const ViewDiscounts = () => {
                     <Text style={styles.discountLine}>Discounts for {user.firstName}:</Text>
                 </View>
                 <FlatList
-                    data={discounts}
+                    data={discounts.filter(item => !item.isUsed && item.recycling !== null)}
                     renderItem={renderDiscount}
                     keyExtractor={(item) => item.id}
                     refreshControl={

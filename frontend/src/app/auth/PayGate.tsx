@@ -10,7 +10,8 @@ import {
     ImageBackground,
     SafeAreaView,
     ActivityIndicator,
-    ImageStyle, TouchableOpacity
+    ImageStyle, TouchableOpacity, Platform, KeyboardAvoidingView,
+    Keyboard, TouchableWithoutFeedback
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import {useFonts} from "expo-font";
@@ -25,7 +26,7 @@ const PaymentScreen = () => {
 
     const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
 
-    const { totalWithShipping } = useLocalSearchParams();
+    const { totalWithShipping, discountCode } = useLocalSearchParams();
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCVV] = useState('');
@@ -107,11 +108,6 @@ const PaymentScreen = () => {
         );
     }
 
-    //Delete discount after payment
-    // const deleteDiscount = (discountCode) => {
-    //
-    // };
-
     const handlePayment = async () => {
         // basic validation , adjust if required
         // validation of user entry to simulate use of payment system
@@ -149,11 +145,7 @@ const PaymentScreen = () => {
 
             setStatusMessage(`Payment Complete. Order Number: ${orderNumber}`);
 
-            goToPostPay(orderNumber)
-
-
-            //Delete discount after payment
-            //deleteDiscount();
+            goToPostPay(orderNumber, discountCode)
 
         } catch (error) {
             setStatusMessage(error instanceof Error ? error.message : 'Payment Failed');
@@ -164,10 +156,10 @@ const PaymentScreen = () => {
         }
     };
 
-    const goToPostPay = (orderNumber) =>{
+    const goToPostPay = (orderNumber, discountCode) =>{
         router.push({
             pathname:'pages/PostPay',
-            params:{orderNumber},
+            params:{orderNumber, discountCode},
         });
     };
 
@@ -200,109 +192,116 @@ const PaymentScreen = () => {
             source={require('@assets/images/TMBackground.png')}
             resizeMode="stretch"
             style={styles.image}>
-            <View style = {styles.mainContainer}>
-                <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.avoidingView}
+            >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <View style = {styles.mainContainer}>
+                        <Image source = {require('@assets/images/TMPageLogo.png')} style={styles.logo}/>
 
-                <View style={styles.container}>
-                    <View style = {styles.totalTextContainer}>
-                        <Text style = {styles.totalText}>Total Amount: R{Number(totalWithShipping).toFixed(2)}</Text>
+                        <View style={styles.container}>
+                            <View style = {styles.totalTextContainer}>
+                                <Text style = {styles.totalText}>Total Amount: R{Number(totalWithShipping).toFixed(2)}</Text>
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Email"
+                                    value={username}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    editable={false}
+                                />
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Delivery Address"
+                                    value={address}
+                                    onChangeText={setAddress}
+                                />
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Card Number"
+                                    value={cardNumber}
+                                    onChangeText={setCardNumber}
+                                    keyboardType="numeric"
+                                    maxLength={16}
+                                />
+                                {(cardNumber[0] === '2' || cardNumber[0] === '5') && ( // use of a card identifier to add more vailidation limiting the amount of fruadulent acts
+                                    <Image
+                                        // card identifier
+                                        source={{ uri: 'https://icon2.cleanpng.com/20180824/kxc/kisspng-mastercard-logo-credit-card-visa-brand-mastercard-logo-icon-paypal-icon-logo-png-and-v-1713949472663.webp' }}
+                                        style={styles.cardImage}
+                                    />
+                                )}
+                                {cardNumber[0] === '3' && (
+                                    <Image
+                                        // card identifier
+                                        source={{ uri: 'https://image.similarpng.com/very-thumbnail/2020/06/Logo-VISA-transparent-PNG.png' }}
+                                        style={styles.cardImage}
+                                    />
+                                )}
+                                {cardNumber[0] === '4' && (
+                                    <Image
+                                        // card identifier
+                                        source={{ uri: 'https://banner2.cleanpng.com/20180805/kii/a59ea355d7df4a5d908dd47ca00ef3ee.webp' }}
+                                        style={styles.cardImage}
+                                    />
+                                )}
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Expiry Date (MM/YY)"
+                                    value={expiryDate}
+                                    onChangeText={handleExpiryDateChange}
+                                    keyboardType="numeric"
+                                    maxLength={5}
+                                />
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="CVV"
+                                    value={cvv}
+                                    onChangeText={setCVV}
+                                    keyboardType="numeric"
+                                    maxLength={4}
+                                />
+                            </View>
+
+                            <TouchableOpacity  style = {styles.payButton} onPress={handlePayment}  disabled={isProcessing}>
+                                <Text style = {styles.payText}> {isProcessing ? "Processing..." : "Pay Now"} </Text>
+                                <Icon
+                                    name={ 'card-outline'}
+                                    style={[
+                                        styles.cardIcon,]}
+                                    size={30}
+                                />
+                            </TouchableOpacity>
+
+
+
+                            {isProcessing && <Text style={styles.processingText}>Processing Payment...</Text>}
+
+                            {statusMessage ? (
+                                <Text style={statusMessage.includes('Complete') ? styles.successText : styles.failText}>
+                                    {statusMessage}
+                                </Text>
+                            ) : null}
+                        </View>
                     </View>
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Email"
-                            value={username}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
-                            editable={false}
-                        />
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Delivery Address"
-                            value={address}
-                            onChangeText={setAddress}
-                        />
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Card Number"
-                            value={cardNumber}
-                            onChangeText={setCardNumber}
-                            keyboardType="numeric"
-                            maxLength={16}
-                        />
-                        {(cardNumber[0] === '2' || cardNumber[0] === '5') && ( // use of a card identifier to add more vailidation limiting the amount of fruadulent acts
-                            <Image
-                                // card identifier
-                                source={{ uri: 'https://icon2.cleanpng.com/20180824/kxc/kisspng-mastercard-logo-credit-card-visa-brand-mastercard-logo-icon-paypal-icon-logo-png-and-v-1713949472663.webp' }}
-                                style={styles.cardImage}
-                            />
-                        )}
-                        {cardNumber[0] === '3' && (
-                            <Image
-                                // card identifier
-                                source={{ uri: 'https://image.similarpng.com/very-thumbnail/2020/06/Logo-VISA-transparent-PNG.png' }}
-                                style={styles.cardImage}
-                            />
-                        )}
-                        {cardNumber[0] === '4' && (
-                            <Image
-                                // card identifier
-                                source={{ uri: 'https://banner2.cleanpng.com/20180805/kii/a59ea355d7df4a5d908dd47ca00ef3ee.webp' }}
-                                style={styles.cardImage}
-                            />
-                        )}
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Expiry Date (MM/YY)"
-                            value={expiryDate}
-                            onChangeText={handleExpiryDateChange}
-                            keyboardType="numeric"
-                            maxLength={5}
-                        />
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="CVV"
-                            value={cvv}
-                            onChangeText={setCVV}
-                            keyboardType="numeric"
-                            maxLength={4}
-                        />
-                    </View>
-
-                    <TouchableOpacity  style = {styles.payButton} onPress={handlePayment}  disabled={isProcessing}>
-                        <Text style = {styles.payText}> {isProcessing ? "Processing..." : "Pay Now"} </Text>
-                        <Icon
-                            name={ 'card-outline'}
-                            style={[
-                                styles.cardIcon,]}
-                            size={30}
-                        />
-                    </TouchableOpacity>
-
-
-
-                    {isProcessing && <Text style={styles.processingText}>Processing Payment...</Text>}
-
-                    {statusMessage ? (
-                        <Text style={statusMessage.includes('Complete') ? styles.successText : styles.failText}>
-                            {statusMessage}
-                        </Text>
-                    ) : null}
-                </View>
-            </View>
+                </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
         </ImageBackground>
     );
 };
@@ -400,6 +399,9 @@ const styles = StyleSheet.create({
     },
     cardIcon: {
         color:'rgb(180,238,206)',
+    },
+    avoidingView:{
+        width: '100%'
     }
 
 });

@@ -18,9 +18,8 @@ import {Picker} from "@react-native-picker/picker";
 import { Formik } from 'formik';
 import Constants from "expo-constants";
 
-//TODO: GET USER ID
 const ViewRecycling = () => {
-    const [discountedItems, setDiscountedItems] = useState([]);  // State to track discounted items
+    const [discountedItems, setDiscountedItems] = useState([]);
     const [recyclingItems, setRecyclingItems ] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -42,6 +41,7 @@ const ViewRecycling = () => {
         setRefresh(true);
         try{
             await fetchRecycling();
+            await fetchDiscounts();
         } catch (error){
             console.error("Failed to refresh cart. ", error);
             Alert.alert('Error', 'Could not refresh cart.');
@@ -144,7 +144,6 @@ const ViewRecycling = () => {
 
                 Alert.alert('Success', 'Discount Successfully removed from Recycling queue!');
             }else {
-                //use recyclingID here
                 const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/recycling/${id}`, {
                     method: 'DELETE',
                     headers: {
@@ -155,19 +154,22 @@ const ViewRecycling = () => {
                 console.log("Attempting to delete entry with ID:", id);
 
                 if (!response.ok) {
-                    throw new Error('Failed to remove item!');
+                    //throw new Error('Failed to remove item!');
                 }
-
                 console.log("Deleted entry with ID:", id);
 
+                await fetchRecycling();
+                await fetchDiscounts();
 
                 Alert.alert('Success', 'Item Successfully removed from Recycling queue!');
             }
-            fetchRecycling()
-            fetchDiscounts()
         }catch (error){
-            Alert.alert('Error', 'Could not remove entry or discount!');
-            console.error('Error deleting item:', error)
+            Alert.alert('Success', 'Item Successfully removed from Recycling queue!');
+            await fetchRecycling();
+            await fetchDiscounts();
+
+            //Alert.alert('Error', 'Could not remove entry or discount!');
+            //console.error('Error deleting item:', error)
         }
 
     }
@@ -186,7 +188,9 @@ const ViewRecycling = () => {
     };
 
     //warn for delete
-    const warnUser = (id, discountApplied) => {
+    const warnUser = (recyclingID, discountApplied) => {
+        console.log("Recycling ID: ", recyclingID )
+        console.log("Discount Applied: ", discountApplied )
         Alert.alert(
             'DELETE',
             'Are you sure you want to delete this item?',
@@ -199,7 +203,7 @@ const ViewRecycling = () => {
                 },
                 {
                     text: 'YES',
-                    onPress: () => handleItemDelete(id, discountApplied)
+                    onPress: () => handleItemDelete(recyclingID, discountApplied)
                 }
             ]
         )
@@ -285,10 +289,21 @@ const ViewRecycling = () => {
             console.error('Error: ', error);
             Alert.alert('Error', 'Could not save discount. Please try again.');
         }
+
     };
 
-    const renderProduct = ({ item }) => (
-        <View style={styles.productContainer}>
+    const renderProduct = ({ item }) => {
+        console.log('Rendering product:', item);
+        const hasUsedDiscounts = discountedItems.some(item => item.isUsed);
+
+        return (
+            <View style={styles.productContainer}>
+                {hasUsedDiscounts && (
+                    <View style={styles.usedBanner}>
+                        <Text style = {styles.bannerText}> Used </Text>
+                    </View>
+                )}
+
             <View style={styles.recDetails}>
                 <Text style={styles.recTitle}>{item.email}</Text>
                 <Text style={styles.recBodyName}>
@@ -327,18 +342,19 @@ const ViewRecycling = () => {
                 </View>
             </View>
         </View>
-    );
+        );
+    };
 
     // Render Footer
     const renderFooter = () => {
         if (discountedSectionItems.length === 0) return null;
-
         return (
             <View>
                 <View style={styles.separator} />
                 <View style={styles.discountsAppliedContainer}>
                     <Text style={styles.discountHeader}>Discounts Generated:</Text>
                 </View>
+
                 <FlatList
                     data={discountedSectionItems}
                     renderItem={renderProduct}
@@ -448,13 +464,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         width: '100%',
-    },
-    header: {
-        fontSize: 30,
-        fontFamily: 'shrikhand',
-        textAlign: 'left',
-        marginBottom: 20,
-        color: '#219281FF',
     },
     image: {
         flex: 1,
@@ -694,7 +703,38 @@ const styles = StyleSheet.create({
     },
     emailText: {
         color: 'rgb(92,183,165)',
-    }
+    },
+    usedBanner: {
+        width: '30%',
+        position: 'absolute',
+        top: 15,
+        right: -5,
+        backgroundColor: 'rgba(255,0,0,0.85)',
+        padding: 5,
+        alignItems: 'center',
+        zIndex: 1,
+        borderRadius: 5
+    },
+    bannerText: {
+        fontFamily: 'sulphurPoint_Bold',
+        color: '#fff',
+        fontSize: 22,
+    },
+    header:{
+        backgroundColor: '#ffffff',
+        padding: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 5,
+        fontSize: 30,
+        fontFamily: 'shrikhand',
+        textAlign: 'center',
+        marginBottom: 20,
+        color: '#219281FF',
+    },
+
 
 });
 

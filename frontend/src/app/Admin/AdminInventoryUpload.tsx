@@ -298,6 +298,7 @@ const InsertProdScreen = () => {
                                         <Picker.Item label="Trousers" value="trousers" />
                                         <Picker.Item label="Skirt" value="skirt" />
                                         <Picker.Item label="Jacket" value="jacket" />
+                                        <Picker.Item label="Footwear" value="footwear" />
                                     </Picker>
 
                                     <Text style={styles.label}> Size*: </Text>

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from "expo-constants";
 import { TouchableOpacity } from 'react-native';
 import {date} from "yup";
+import {useFonts} from "expo-font";
 
 interface Order {
     orderNumber: number;
@@ -19,6 +20,13 @@ const OrdersTable: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [updatingOrder, setUpdatingOrder] = useState<number | null>(null);
+
+    const [fontsLoaded] = useFonts({
+        'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
+        'sulphurPoint_Bold': require('@assets/fonts/SulphurPoint-Bold.ttf'),
+        'sulphurPoint_Light': require('@assets/fonts/SulphurPoint-Light.ttf'),
+        'shrikhand': require('@assets/fonts/Shrikhand-Regular.ttf'),
+    });
 
     const fetchOrders = async () => {
         try {
@@ -143,28 +151,40 @@ const OrdersTable: React.FC = () => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.headerContainer}>
-                <Text style={styles.headerText}>Orders</Text>
-            </View>
-            <FlatList
-                data={orders}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.orderNumber.toString()}
-                ListEmptyComponent={() => (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No orders found</Text>
-                    </View>
-                )}
-            />
-        </SafeAreaView>
+        <ImageBackground
+            source = {require('@assets/images/TMBackground.png')}
+            resizeMode="stretch"
+            style = {styles.image}>
+            <SafeAreaView style={styles.container}>
+                <FlatList
+                    data={orders}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.orderNumber.toString()}
+                    ListEmptyComponent={() => (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>No orders found</Text>
+                        </View>
+                    )}
+                    showsVerticalScrollIndicator={false}
+                />
+            </SafeAreaView>
+        </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        width: '100%',
+        //backgroundColor: '#fff',
+    },
+    image: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+        opacity: 0.90,
     },
     headerContainer: {
         padding: 16,
@@ -172,8 +192,8 @@ const styles = StyleSheet.create({
         borderBottomColor: '#ccc',
     },
     headerText: {
+        fontFamily: 'shrikhand',
         fontSize: 24,
-        fontWeight: 'bold',
     },
     loadingContainer: {
         flex: 1,
@@ -181,8 +201,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     loadingText: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 18,
-        fontWeight: 'bold',
     },
     errorContainer: {
         flex: 1,
@@ -190,8 +210,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     errorText: {
+        fontFamily: 'sulphurPoint_Bold',
         fontSize: 18,
-        fontWeight: 'bold',
         color: 'red',
         marginBottom: 8,
     },
@@ -201,10 +221,12 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     retryText: {
+        fontFamily: 'sulphurPoint',
         color: '#fff',
         fontSize: 16,
     },
     orderContainer: {
+        width: '90%',
         padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
@@ -219,6 +241,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     orderEmail: {
+        fontFamily: 'sulphurPoint',
         fontSize: 14,
         color: '#666',
         marginBottom: 4,
@@ -230,9 +253,9 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     statusButtonText: {
+        fontFamily: 'sulphurPoint_Bold',
         color: '#fff',
         fontSize: 14,
-        fontWeight: 'bold',
     },
     emptyContainer: {
         flex: 1,
@@ -241,6 +264,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     emptyText: {
+        fontFamily: 'sulphurPoint',
         fontSize: 16,
         color: '#666',
     },

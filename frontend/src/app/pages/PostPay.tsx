@@ -8,7 +8,7 @@ import {
     ImageBackground,
     SafeAreaView,
     ActivityIndicator,
-    TouchableOpacity
+    TouchableOpacity, Alert
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import {useFonts} from "expo-font";
@@ -16,13 +16,16 @@ import Icon from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {router, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
+import Constants from "expo-constants";
 
 // Make use of destructors to hold current state and allow the state to be updated.
 const PostPay = () => {
     const [user, setUser] = useState({isLoggedIn: false, userToken: null, userEmail: null, firstName: null, userID: null})
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
+    const [cartItems, setCartItems] = useState([]);
 
-    const { orderNumber } = useLocalSearchParams();
+    const { orderNumber, discountCode } = useLocalSearchParams();
 
     const [fontsLoaded] = useFonts({
         'sulphurPoint': require('@assets/fonts/SulphurPoint-Regular.ttf'),
@@ -76,12 +79,176 @@ const PostPay = () => {
             </SafeAreaView>
         );
     }
+
+    const fetchCart= async (isRefresh = false) => {
+        if (!user.userID) {
+            console.warn("UserID is null; skipping fetch.");
+            return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
+        try {
+            console.log("User ID: ", user.userID);
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/${user.userID}`);
+            if (!response.ok) {
+                console.log("No Cart for: ", user.firstName)
+                throw new Error('Failed to fetch cart data');
+            }
+            const data = await response.json();
+
+            console.log(`Fetched ${user.firstName}'s Cart:`, data);
+
+            if(Array.isArray(data)) {
+                setCartItems(data);
+            }else if (data){
+                setCartItems([data]);
+            }else{
+                setCartItems([])
+            }
+        } catch (error) {
+            console.error("Error fetching 'Cart': ", error);
+            setCartItems([]);
+        } finally {
+            setIsLoading(false);
+            isFetching = false;
+        }
+    };
+
+    let isFetching = false;
+
+    const clearUserCart = async (userID) => {
+        console.log("Attempting to clear cart for User ID: ", userID);
+        try {
+            const response = await fetch(
+                `${Constants.expoConfig?.extra?.BACKEND_HOST}/cart/clear/${userID}`,
+                {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+
+            if (response.ok) {
+                console.log(`Successfully cleared cart for user ${userID}`);
+            } else {
+                console.error(`Failed to clear cart for user ${userID}`);
+            }
+        } catch (error) {
+            console.error("Error clearing user cart: ", error);
+        }
+    }
+
+    useEffect(() => {
+        if(user.userID){
+            console.log("UserID available, fetching cart.");
+            setIsLoading(true);
+            fetchCart();
+        } else {
+            console.warn("UserID is null, skipping fetch.");
+        }
+    }, [user.userID]);
+
+    const itemIsSold = async ( inventoryId ) => {
+        try {
+            const response = await fetch(`${Constants.expoConfig?.extra?.BACKEND_HOST}/inventory/${inventoryId}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ isSold: true }),
+            });
+
+            console.log("Response Status:", response.status);
+
+            if(!response.ok) {
+                const errorText = await response.text();
+                console.error(`Failed to update 'isSold' for inventory item ${inventoryId}:`, errorText);
+                return;
+            }
+
+            const result = await response.json();
+            console.log("Response Data:", result);
+
+            console.log(`Successfully updated 'isSold' for inventory item ${inventoryId}:`, result);
+        } catch (error) {
+            console.error("Error updating 'isSold' status: ", error);
+        }
+    };
+
+    const handlePurchase = async () => {
+        if (!cartItems ||  cartItems.length === 0 ){
+            console.warn("Cart is empty, nothing to purchase.");
+            return;
+        }
+
+        try {
+            for (const cartItem of cartItems) {
+                const inventoryItemId = cartItem.inventoryItem?.id;
+
+                console.log("InventoryItem id: ", inventoryItemId)
+
+                if (inventoryItemId) {
+                    await itemIsSold(inventoryItemId);
+                    console.log(`Finished updating Inventory Item ID: ${inventoryItemId}`);
+                }
+            }
+
+            const userID  = user.userID;
+
+            if(userID) {
+                await clearUserCart(userID);
+            }
+            else {
+                console.log("No user ID!");
+            }
+            setCartItems([]);
+            //console.log("All cart items cleared successfully!");
+
+        } catch (error) {
+            console.error("Error deleting from Cart: ", error);
+        }
+    }
+
+    useEffect(() => {
+        if (cartItems.length > 0) {
+            console.log("Cart items fetched, processing purchase...");
+            handlePurchase();
+        }
+    }, [cartItems]);
+
     const goHome = () =>{
         console.log("go home");
         router.push({
             pathname:'(tabs)/HomeScreen',
         });
     };
+
+    const updateDiscounts = async (discountCode) => {
+        console.log("Received discount code:", discountCode);
+
+        try {
+            const response = await fetch(
+                `${Constants.expoConfig?.extra?.BACKEND_HOST}/discounts/update/${discountCode}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+
+            if (response.ok) {
+                console.log(`Discount code ${discountCode} marked as used.`);
+            } else {
+                console.error(`Failed to update discount code ${discountCode}.`);
+            }
+        } catch (error) {
+            console.error("Error updating discount code as used: ", error);
+        }
+    }
+
+    useEffect(() => {
+        if (discountCode) {
+            updateDiscounts(discountCode);
+        }
+    }, [discountCode]);
 
     return (
         <ImageBackground

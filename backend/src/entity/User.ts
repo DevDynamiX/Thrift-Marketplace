@@ -36,18 +36,18 @@ export class User {
     UserRole!: UserRole;
 
     // For Likes table
-    @OneToMany(() => Likes, (Likes) => Likes.user)
+    @OneToMany(() => Likes, (Likes) => Likes.user, {onDelete: 'CASCADE' })
     Likes!: Likes[];
 
     // For Cart table
-    @OneToMany(() => Cart, (Cart) => Cart.user)
+    @OneToMany(() => Cart, (Cart) => Cart.user, {onDelete: 'CASCADE' })
     Cart!: Cart[];
 
     // For Recycling table
-    @OneToMany(() => Recycling, (Recycling) => Recycling.user)
+    @OneToMany(() => Recycling, (Recycling) => Recycling.user, {onDelete: 'CASCADE' })
     Recycling!: Recycling[];
 
     // For Discounts table
-    @OneToMany(() => Discounts, (discounts) => discounts.user)
+    @OneToMany(() => Discounts, (discounts) => discounts.user, {onDelete: 'CASCADE' })
     discounts!: Discounts[];
 }

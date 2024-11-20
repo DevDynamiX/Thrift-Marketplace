@@ -219,4 +219,35 @@ export class AdminInventoryController {
             return res.status(500).json({success: false, message: "Error Removing Item"});
         }
     }
+
+    async updateInventoryStatus(req: Request, res: Response) {
+        const { id } = req.params;
+        const { isSold } = req.body;
+
+        if (typeof isSold !== "boolean") {
+            return res.status(400).json({ message: "'isSold' must be a boolean value." });
+        }
+
+        try {
+            // Find the inventory item by ID
+            const inventoryItem = await this.inventoryRepository.findOne({ where: { id: parseInt(id) } });
+
+            if (!inventoryItem) {
+                return res.status(404).json({ message: "Inventory item not found." });
+            }
+
+            // Update the isSold field
+            inventoryItem.isSold = isSold;
+            await this.inventoryRepository.save(inventoryItem);
+
+            return res.status(200).json({
+                success: true,
+                message: "Inventory item status updated successfully.",
+                item: inventoryItem,
+            });
+        } catch (error) {
+            console.error("Error updating inventory item:", error);
+            return res.status(500).json({ message: "Failed to update inventory item." });
+        }
+    }
 }
