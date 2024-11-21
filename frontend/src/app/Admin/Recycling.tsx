@@ -294,7 +294,10 @@ const ViewRecycling = () => {
 
     const renderProduct = ({ item }) => {
         console.log('Rendering product:', item);
-        const hasUsedDiscounts = discountedItems.some(item => item.isUsed);
+
+        const hasUsedDiscounts = discountedItems.some(
+            (discount) => discount.recycling?.id === item.id && discount.isUsed
+        );
 
         return (
             <View style={styles.productContainer}>

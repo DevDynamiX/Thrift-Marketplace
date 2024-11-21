@@ -184,7 +184,6 @@ const ViewProducts = () => {
 
     }
 
-
     const openEditModal = (item:Product) => {
         setSelectedItem(item);
         setModalVisible(true);
@@ -216,6 +215,12 @@ const ViewProducts = () => {
 
     const renderProduct = ({ item }: { item: Product }) => (
             <View style={styles.productContainer}>
+                {item.isSold &&(
+                    <View style = {styles.isSoldOverlay}>
+                        <Text style = {styles.soldHeader}> Sold: </Text>
+                        <Text style = {styles.soldBody}> Delete item once order is fulfilled </Text>
+                    </View>
+                )}
                 {item.onSale && <OnSaleBanner/>}
                 <Image source={{ uri: item.mainImage }} style={styles.productImage} />
                 <View style={styles.productDetails}>
@@ -226,17 +231,19 @@ const ViewProducts = () => {
                     <Text>{item.onSale ? item.salePrice : item.itemPrice} </Text>
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity
-                            style={styles.editButton}
-                            onPress={() => openEditModal(item)}
-                        >
-                            <Text style={styles.buttonText}>Edit</Text>
-                        </TouchableOpacity>
+                        {!item.isSold ?(
+                            <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={() => openEditModal(item)}
+                            >
+                                <Text style={styles.buttonText}>Edit</Text>
+                            </TouchableOpacity>
+                            ): null}
                         <TouchableOpacity
                             style={styles.deleteButton}
                             onPress={() => warnUser(item.id)}
                         >
-                            <Text style={styles.buttonText}>Delete</Text>
+                            <Text style={styles.buttonText}>Remove</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -786,6 +793,31 @@ const styles = StyleSheet.create({
         color: '#FFFFFF', // Text color
         fontWeight: 'bold',
     },
+    isSoldOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(33,146,129,0.85)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2,
+        borderRadius: 5,
+        width: '36%'
+    },
+    soldHeader: {
+        textAlign: 'center',
+        fontFamily: 'sulphurPoint_Bold',
+        color: 'white',
+        fontSize: 38,
+    },
+    soldBody: {
+        textAlign: 'center',
+        fontFamily: 'sulphurPoint_Bold',
+        color: 'white',
+        fontSize: 14,
+    }
 
 });
 
